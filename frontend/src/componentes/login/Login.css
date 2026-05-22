@@ -1,41 +1,314 @@
-.Loginform{
-    background-color: var(--color-principal-transparente);
-    display: flex;
-    flex-direction: column;
-    height: fit-content;
-    width: fit-content;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-texto);
-    padding: 20px;
-    border-radius: var(--border-radius1);
-}
+/* ======================================
+   Login.css — Estilos de la página de inicio de sesión
+   Depende de variables definidas en Global.css
+   ====================================== */
 
-.pantalla-login{
+/* === Contenedor pantalla completa === */
+.pantalla-login {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    width: 100vw;
-    background-color: var(--color-secundario);
+    min-height: 100vh;
+    min-width: 100vw;
+    background: linear-gradient(
+        135deg,
+        var(--color-fondo-oscuro) 0%,
+        color-mix(in srgb, var(--color-fondo-oscuro) 80%, var(--color-fondo-claro) 20%) 50%,
+        var(--color-fondo-oscuro) 100%
+    );
+    position: relative;
+    overflow: hidden;
+    gap: 3rem;
+    padding: 2rem;
 }
 
-.input-group{
+/* === Efectos decorativos de fondo === */
+.pantalla-login::before {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--color-fondo-claro) 0%, transparent 70%);
+    opacity: 0.06;
+    top: -200px;
+    right: -200px;
+    pointer-events: none;
+}
+
+.pantalla-login::after {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--color-fondo-claro) 0%, transparent 70%);
+    opacity: 0.04;
+    bottom: -100px;
+    left: -100px;
+    pointer-events: none;
+}
+
+/* === Panel de branding === */
+.login-branding {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
-    background-color: var(--color-principal-transparente);
-    padding: 5px;
-    border-radius: var(--border-radius1);
-    border: 1px solid var(--color-borde);
+    align-items: center;
+    justify-content: center;
+    color: var(--color-texto-claro);
+    text-align: center;
+    z-index: 1;
+    padding: 2rem;
 }
 
-.input-group input{
-    padding: 10px;
-    border: none;
+.branding-icon {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(
+        135deg,
+        var(--color-fondo-claro) 0%,
+        color-mix(in srgb, var(--color-fondo-claro) 70%, var(--color-texto-claro) 30%) 100%
+    );
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-fondo-oscuro);
+    margin-bottom: 1.5rem;
+    box-shadow: 0 8px 32px color-mix(in srgb, var(--color-fondo-claro) 25%, transparent);
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+}
+
+.branding-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin: 0;
+    background: linear-gradient(135deg, var(--color-texto-claro) 0%, var(--color-fondo-claro) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.branding-subtitle {
+    font-size: 0.95rem;
+    opacity: 0.7;
+    margin-top: 0.5rem;
+    font-weight: 400;
+}
+
+/* === Tarjeta del formulario === */
+.login-card {
+    background: var(--color-texto-claro);
+    border-radius: var(--border-radius1);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 
+        0 20px 60px color-mix(in srgb, var(--color-fondo-oscuro) 30%, transparent),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    z-index: 1;
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-card-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-card-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-texto-oscuro);
+    margin: 0 0 0.5rem 0;
+}
+
+.login-card-header p {
+    font-size: 0.9rem;
+    color: color-mix(in srgb, var(--color-texto-oscuro) 60%, transparent);
+    margin: 0;
+}
+
+/* === Inputs === */
+.input-group {
+    margin-bottom: 1.25rem;
+}
+
+.input-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-texto-oscuro);
+    margin-bottom: 0.5rem;
+}
+
+.input-group label svg {
+    color: var(--color-fondo-oscuro);
+    opacity: 0.6;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 2px solid color-mix(in srgb, var(--color-texto-oscuro) 15%, transparent);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    color: var(--color-texto-oscuro);
+    background: color-mix(in srgb, var(--color-texto-oscuro) 3%, var(--color-texto-claro) 97%);
     outline: none;
-    background-color: white;
-    color: var(--color-texto);
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.input-wrapper input:focus {
+    border-color: var(--color-fondo-oscuro);
+    background: var(--color-texto-claro);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-fondo-oscuro) 10%, transparent);
+}
+
+.input-wrapper input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.input-wrapper input::placeholder {
+    color: color-mix(in srgb, var(--color-texto-oscuro) 40%, transparent);
+}
+
+/* === Botón toggle de contraseña === */
+.password-toggle {
+    position: absolute;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    color: color-mix(in srgb, var(--color-texto-oscuro) 40%, transparent);
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+.password-toggle:hover {
+    color: var(--color-fondo-oscuro);
+}
+
+/* === Mensaje de error === */
+.login-error {
+    background-color: color-mix(in srgb, #dc2626 8%, transparent);
+    color: #dc2626;
+    border: 1px solid color-mix(in srgb, #dc2626 20%, transparent);
     border-radius: var(--border-radius2);
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* === Botón de login === */
+.login-button {
+    width: 100%;
+    padding: 0.9rem;
+    background: linear-gradient(
+        135deg,
+        var(--color-fondo-oscuro) 0%,
+        color-mix(in srgb, var(--color-fondo-oscuro) 80%, var(--color-fondo-claro) 20%) 100%
+    );
+    color: var(--color-texto-claro);
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--color-fondo-oscuro) 30%, transparent);
+}
+
+.login-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px color-mix(in srgb, var(--color-fondo-oscuro) 40%, transparent);
+}
+
+.login-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.login-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* === Spinner de carga === */
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid color-mix(in srgb, var(--color-texto-claro) 30%, transparent);
+    border-top-color: var(--color-texto-claro);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* === Responsive: móviles === */
+@media (max-width: 768px) {
+    .pantalla-login {
+        flex-direction: column;
+        gap: 2rem;
+        padding: 1.5rem;
+    }
+
+    .login-branding {
+        padding: 1rem 0;
+    }
+
+    .branding-icon {
+        width: 80px;
+        height: 80px;
+    }
+
+    .branding-icon svg {
+        width: 36px;
+        height: 36px;
+    }
+
+    .branding-title {
+        font-size: 2rem;
+    }
+
+    .login-card {
+        padding: 2rem;
+    }
 }

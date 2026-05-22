@@ -1,0 +1,70 @@
+/* ======================================
+   mainlayout.css — Estilos del layout principal
+   Toolbar con trigger del sidebar y contenedor de contenido
+   ====================================== */
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100vh;
+    background: #f5f7fa;
+}
+
+/* Toolbar superior con el trigger */
+.main-toolbar {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-texto-claro);
+    border-bottom: 2px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+/* Trigger personalizado */
+.sidebar-trigger-custom {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 10px !important;
+    background: var(--color-texto-claro) !important;
+    color: var(--color-fondo-oscuro) !important;
+    cursor: pointer;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-trigger-custom:hover {
+    background: var(--color-texto-claro) !important;
+    border-color: var(--color-fondo-claro) !important;
+    box-shadow: 0 2px 8px rgba(2, 31, 84, 0.15);
+    transform: translateY(-1px);
+}
+
+.sidebar-trigger-custom:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(2, 31, 84, 0.1);
+}
+
+.sidebar-trigger-custom svg {
+    width: 1.6rem;
+    height: 1.6rem;
+    transition: transform 0.3s ease;
+}
+
+.group-data-[collapsible=icon] .sidebar-trigger-custom svg {
+    transform: rotate(180deg);
+}
+
+/* Contenedor del contenido principal */
+.main-outlet {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+}

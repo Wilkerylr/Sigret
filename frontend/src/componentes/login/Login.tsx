@@ -1,53 +1,113 @@
-import React, { useState} from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { LogIn, User, Lock, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import "./Login.css";
 import "../Global.css";
 
-// Componente de formulario de inicio de sesión
-
+/**
+ * Página de inicio de sesión.
+ * Separa la UI del formulario de la lógica de autenticación (useAuth hook).
+ */
 const LoginForm: React.FC = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const navigate = useNavigate();
+    const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const { login, isLoading } = useAuth();
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (username === "admin" && password === "password") {
-            alert("Login exitoso");
-            navigate("/home");
-        } else {
-            alert("Credenciales incorrectas");
+        setError(null);
+
+        const success = await login(username, password);
+
+        if (!success) {
+            setError("Credenciales incorrectas. Intenta de nuevo.");
         }
     };
 
     return (
         <div className="pantalla-login">
-            <div className="Loginform">
-                <h2>Iniciar sesion</h2>
-                <form onSubmit={handleSubmit}>
-                    <div className="input-group">
-                        <div>
-                        <label htmlFor="username">Nombre de usuario:</label>
-                        <input
-                            type="text"
-                            id="username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="password">Contraseña:</label>
-                        <input
-                            type="password"
-                            id="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
+            <div className="login-branding">
+                <div className="branding-icon">
+                    <LogIn size={48} />
                 </div>
-                <button type="submit">Login</button>
-            </form>
-        </div>
+                <h1 className="branding-title">Sigret</h1>
+                <p className="branding-subtitle">Sistema de Gestión de Reportes</p>
+            </div>
+
+            <div className="login-card">
+                <div className="login-card-header">
+                    <h2>Bienvenido</h2>
+                    <p>Ingresa tus credenciales para continuar</p>
+                </div>
+
+                <form onSubmit={handleSubmit} noValidate>
+                    <div className="input-group">
+                        <label htmlFor="username">
+                            <User size={16} aria-hidden="true" />
+                            Usuario
+                        </label>
+                        <div className="input-wrapper">
+                            <input
+                                type="text"
+                                id="username"
+                                placeholder="Nombre de usuario"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                disabled={isLoading}
+                                required
+                                autoComplete="username"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="input-group">
+                        <label htmlFor="password">
+                            <Lock size={16} aria-hidden="true" />
+                            Contraseña
+                        </label>
+                        <div className="input-wrapper">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                id="password"
+                                placeholder="Contraseña"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                disabled={isLoading}
+                                required
+                                autoComplete="current-password"
+                            />
+                            <button
+                                type="button"
+                                className="password-toggle"
+                                onClick={() => setShowPassword(prev => !prev)}
+                                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                                tabIndex={-1}
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
+                    </div>
+
+                    {error && (
+                        <div className="login-error" role="alert">
+                            {error}
+                        </div>
+                    )}
+
+                    <button type="submit" className="login-button" disabled={isLoading}>
+                        {isLoading ? (
+                            <span className="spinner" aria-hidden="true" />
+                        ) : (
+                            <>
+                                <LogIn size={18} aria-hidden="true" />
+                                Iniciar sesión
+                            </>
+                        )}
+                    </button>
+                </form>
+            </div>
         </div>
     );
 };
