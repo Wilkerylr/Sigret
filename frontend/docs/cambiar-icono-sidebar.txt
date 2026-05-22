@@ -1,0 +1,206 @@
+═══════════════════════════════════════════════════════════════
+  CÓMO CAMBIAR EL ICONO DEL BOTÓN QUE ABRE/CIERRA EL SIDEBAR
+═══════════════════════════════════════════════════════════════
+
+
+ÍNDICE
+───────────────────────────────────────────────────────────────
+1. Ubicación del botón
+2. Cambiar el icono estático (paso a paso)
+3. Cambiar el icono dinámicamente (abierto vs cerrado)
+4. Lista de iconos recomendados
+5. Dónde encontrar más iconos
+
+
+═══════════════════════════════════════════════════════════════
+1. UBICACIÓN DEL BOTÓN
+═══════════════════════════════════════════════════════════════
+
+Archivo:  frontend/src/componentes/ui/sidebar.tsx
+
+El botón se encuentra dentro de la función "SidebarTrigger",
+aproximadamente en la línea 256.
+
+┌────────────────────────────────────────────────────────────┐
+│ 256  function SidebarTrigger({                             │
+│ 257    className,                                          │
+│ 258    onClick,                                            │
+│ 259    ...props                                            │
+│ 260  }: React.ComponentProps<typeof Button>) {             │
+│ 261    const { toggleSidebar } = useSidebar()              │
+│ 262                                                         │
+│ 263    return (                                             │
+│ 264      <Button                                            │
+│ 265        data-sidebar="trigger"                           │
+│ 266        data-slot="sidebar-trigger"                     │
+│ 267        variant="ghost"                                  │
+│ 268        size="icon"                                      │
+│ 269        className={cn("size-7", className)}              │
+│ 270        onClick={(event) => {                            │
+│ 271          onClick?.(event)                               │
+│ 272          toggleSidebar()                                │
+│ 273        }}                                               │
+│ 274        {...props}                                       │
+│ 275      >                                                  │
+│ 276        <Menu />                    ← ICONO ACTUAL     │
+│ 277        <span className="sr-only">                     │
+│ 278          Toggle Sidebar                                 │
+│ 279        </span>                                          │
+│ 280      </Button>                                          │
+│ 281    )                                                    │
+│ 282  }                                                      │
+└────────────────────────────────────────────────────────────┘
+
+El icono actual es "Menu" (☰) de la librería lucide-react.
+Se importa en la línea 5 del mismo archivo:
+
+  import { Menu } from "lucide-react"
+
+
+═══════════════════════════════════════════════════════════════
+2. CAMBIAR EL ICONO ESTÁTICO (PASO A PASO)
+═══════════════════════════════════════════════════════════════
+
+PASO 1 — Elegir un icono
+─────────────────────────
+Visita https://lucide.dev/icons y elige el que más te guste.
+Por ejemplo: "PanelRightClose", "PanelLeftClose", "X", "ChevronLeft".
+
+PASO 2 — Abrir el archivo
+─────────────────────────
+Abre:  frontend/src/componentes/ui/sidebar.tsx
+
+PASO 3 — Cambiar la importación (línea 5)
+──────────────────────────────────────────
+Busca esta línea:
+
+  import { Menu } from "lucide-react"
+
+Reemplázala con el icono que elegiste. Por ejemplo:
+
+  import { PanelRightClose } from "lucide-react"
+
+Si quieres importar MÁS de un icono, sepáralos con coma:
+
+  import { PanelRightClose, PanelLeftClose } from "lucide-react"
+
+PASO 4 — Cambiar el icono en el JSX (línea 276)
+────────────────────────────────────────────────
+Busca:
+
+  <Menu />
+
+Reemplázalo con:
+
+  <PanelRightClose />
+
+PASO 5 — Guardar el archivo
+────────────────────────────
+Guarda los cambios (Ctrl + S). El nuevo icono aparecerá
+automáticamente al recargar la página.
+
+
+═══════════════════════════════════════════════════════════════
+3. CAMBIAR EL ICONO DINÁMICAMENTE (ABIERTO VS CERRADO)
+═══════════════════════════════════════════════════════════════
+
+Si quieres que el icono CAMBIE dependiendo de si el sidebar
+está expandido o colapsado, sigue estos pasos:
+
+PASO 1 — Importar ambos iconos (línea 5):
+
+  import { PanelRightClose, PanelLeftClose } from "lucide-react"
+
+PASO 2 — Obtener "state" del sidebar (línea 261):
+
+  function SidebarTrigger({ ... }) {
+    const { toggleSidebar } = useSidebar()
+    const { state } = useSidebar()  // ← AGREGAR ESTA LÍNEA
+    ...
+
+PASO 3 — Usar el state para mostrar un icono u otro (línea 276):
+
+  {state === "expanded" ? <PanelRightClose /> : <PanelLeftClose />}
+
+  Esto mostrará:
+  - "PanelRightClose" (←) cuando el sidebar ESTÁ expandido
+  - "PanelLeftClose"  (→) cuando el sidebar ESTÁ colapsado
+
+CÓDIGO COMPLETO DE LA FUNCIÓN DESPUÉS DEL CAMBIO:
+
+┌────────────────────────────────────────────────────────────┐
+│ function SidebarTrigger({                                  │
+│   className,                                               │
+│   onClick,                                                 │
+│   ...props                                                 │
+│ }: React.ComponentProps<typeof Button>) {                  │
+│   const { toggleSidebar } = useSidebar()                   │
+│   const { state } = useSidebar()                           │
+│                                                            │
+│   return (                                                  │
+│     <Button                                                 │
+│       data-sidebar="trigger"                                │
+│       data-slot="sidebar-trigger"                          │
+│       variant="ghost"                                       │
+│       size="icon"                                           │
+│       className={cn("size-7", className)}                   │
+│       onClick={(event) => {                                 │
+│         onClick?.(event)                                    │
+│         toggleSidebar()                                     │
+│       }}                                                    │
+│       {...props}                                            │
+│     >                                                       │
+│       {state === "expanded"                                 │
+│         ? <PanelRightClose />                               │
+│         : <PanelLeftClose />                                │
+│       }                                                     │
+│       <span className="sr-only">Toggle Sidebar</span>       │
+│     </Button>                                               │
+│   )                                                         │
+│ }                                                           │
+└────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════
+4. LISTA DE ICONOS RECOMENDADOS
+═══════════════════════════════════════════════════════════════
+
+Estos son algunos iconos comunes de lucide-react para este uso:
+
+┌─────────────────────┬──────────────────────────────────────┐
+│ Nombre del icono    │ Descripción                          │
+├─────────────────────┼──────────────────────────────────────┤
+│ Menu                │ ☰  Menú hamburguesa clásico          │
+│ PanelLeftClose      │ ←  Flecha apuntando a la izquierda   │
+│ PanelRightClose     │ →  Flecha apuntando a la derecha     │
+│ PanelLeftOpen       │ ⬅  Flecha desde izquierda            │
+│ PanelRightOpen      │ ➡  Flecha desde derecha              │
+│ ChevronLeft         │ ◀  Chevrón simple hacia izquierda    │
+│ ChevronRight        │ ▶  Chevrón simple hacia derecha      │
+│ X                   │ ✕  Cerrar (tacha)                    │
+│ SidebarOpen         │ ▣  Icono de sidebar abierto          │
+│ SidebarClose        │ ▣  Icono de sidebar cerrado          │
+│ ArrowLeftFromLine   │ ←│ Flecha desde línea vertical       │
+│ ArrowRightFromLine  │ │→ Flecha hacia línea vertical       │
+└─────────────────────┴──────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════
+5. DÓNDE ENCONTRAR MÁS ICONOS
+═══════════════════════════════════════════════════════════════
+
+Catálogo oficial de lucide-react (todos los disponibles):
+  https://lucide.dev/icons
+
+La librería ya está instalada en el proyecto:
+  frontend/node_modules/lucide-react
+
+Para buscar un icono específico dentro del proyecto:
+  npm list lucide-react --prefix frontend
+
+Para instalar una versión más reciente (si hiciera falta):
+  npm install lucide-react --prefix frontend
+
+
+
+
