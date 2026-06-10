@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-import { PanelRightClose, PanelLeftClose } from "lucide-react"
+import { ChevronsRight, ChevronsLeft } from "lucide-react"
 import { Slot } from "radix-ui"
 
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -274,7 +274,7 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      {state === "collapsed" ? <PanelRightClose /> : <PanelLeftClose />}
+      {state === "collapsed" ? <ChevronsRight /> : <ChevronsLeft />}
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )

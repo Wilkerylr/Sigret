@@ -1,10 +1,11 @@
 import React from "react"
+import FormRegistroReportes from "@/componentes/registro_reportes/form_registro_reportes";
+
 
 const RegistroReportesPage: React.FC = () => {
     return(
         <div>
-            <h1>Registrar Reportes</h1>
-            <p>Aquí se podrá registrar nuevos reportes.</p>
+            <FormRegistroReportes />
         </div>
     );
 }       

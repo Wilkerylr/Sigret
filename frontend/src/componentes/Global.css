@@ -25,6 +25,19 @@
     --font-weight-bold: 700;
     --font-size-lg: 1.125rem;   /* 18px */
 
+    /* === Colores para formularios y tarjetas === */
+    --color-fondo-card: #ffffff;
+    --color-borde-claro: #e5e7eb;
+    --color-input-fondo: #f9fafb;
+    --color-input-borde: #d1d5db;
+    --color-input-focus-sombra: rgba(2, 31, 84, 0.12);
+    --color-texto-secundario: #374151;
+    --color-texto-terciario: #6b7280;
+    --color-fondo-tabla-head: #f3f4f6;
+    --color-boton-secundario-fondo: #e5e7eb;
+    --color-boton-secundario-texto: #374151;
+    --color-boton-hover: #034088;
+
     /* === Mapeo shadcn/ui sidebar === */
     --sidebar: var(--color-fondo-oscuro);
     --sidebar-foreground: var(--color-texto-claro);

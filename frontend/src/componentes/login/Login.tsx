@@ -1,19 +1,21 @@
 import React, { useState } from "react";
 import { LogIn, User, Lock, Eye, EyeOff } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { useAuthContext } from "@/context/AuthContext";
 import "./Login.css";
 import "../Global.css";
 
 /**
  * Página de inicio de sesión.
- * Separa la UI del formulario de la lógica de autenticación (useAuth hook).
+ * Separa la UI del formulario de la lógica de autenticación (useAuthContext hook).
  */
 const LoginForm: React.FC = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const { login, isLoading } = useAuth();
+    const { login, isLoading } = useAuthContext();
+    const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -21,7 +23,9 @@ const LoginForm: React.FC = () => {
 
         const success = await login(username, password);
 
-        if (!success) {
+        if (success) {
+            navigate("/home");
+        } else {
             setError("Credenciales incorrectas. Intenta de nuevo.");
         }
     };
@@ -33,7 +37,7 @@ const LoginForm: React.FC = () => {
                     <LogIn size={48} />
                 </div>
                 <h1 className="branding-title">Sigret</h1>
-                <p className="branding-subtitle">Sistema de Gestión de Reportes</p>
+                <p className="branding-subtitle">Sistema de Gestión de Reportes Tecnicos</p>
             </div>
 
             <div className="login-card">

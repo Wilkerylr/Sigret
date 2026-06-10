@@ -1,0 +1,383 @@
+/* ======================================
+   form_registro_reportes.css
+   Estilos del formulario de registro de reportes
+   ====================================== */
+
+/* Contenedor principal del formulario */
+.registro-reporte-contenedor {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.registro-reporte-contenedor form {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+/* ---- Columna izquierda (campos del formulario) ---- */
+.registro-reporte-campos {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    background: var(--color-fondo-card);
+    padding: 1.5rem;
+    border-radius: var(--border-radius2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--color-borde-claro);
+}
+
+/* ---- Columna derecha (datos de control del reporte) ---- */
+.registro-reporte-control {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    background: var(--color-fondo-card);
+    padding: 1.5rem;
+    border-radius: var(--border-radius2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--color-borde-claro);
+    position: sticky;
+    top: 5rem;
+}
+
+/* ---- Numeros del reporte (columna derecha) ---- */
+.numero-reporte {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.numero-reporte > label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-fondo-oscuro);
+    letter-spacing: 0.01em;
+    margin-top: 0.5rem;
+}
+
+.numero-reporte > label:first-child {
+    margin-top: 0;
+}
+
+.numero-reporte > input,
+.numero-reporte > select {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9rem;
+    color: var(--color-texto-oscuro);
+    background: var(--color-input-fondo);
+    border: 1px solid var(--color-input-borde);
+    border-radius: var(--border-radius2);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.numero-reporte > input:focus,
+.numero-reporte > select:focus {
+    border-color: var(--color-fondo-oscuro);
+    box-shadow: 0 0 0 3px var(--color-input-focus-sombra);
+    background: var(--color-fondo-card);
+}
+
+/* ---- Grupo de campo (label + input/select/textarea) ---- */
+.campo-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.campo-grupo label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-fondo-oscuro);
+    letter-spacing: 0.01em;
+}
+
+.campo-grupo input,
+.campo-grupo select,
+.campo-grupo textarea {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9rem;
+    color: var(--color-texto-oscuro);
+    background: var(--color-input-fondo);
+    border: 1px solid var(--color-input-borde);
+    border-radius: var(--border-radius2);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.campo-grupo input:focus,
+.campo-grupo select:focus,
+.campo-grupo textarea:focus {
+    border-color: var(--color-fondo-oscuro);
+    box-shadow: 0 0 0 3px var(--color-input-focus-sombra);
+    background: var(--color-fondo-card);
+}
+
+.campo-grupo textarea {
+    min-height: 80px;
+    resize: vertical;
+    line-height: 1.5;
+    font-family: inherit;
+}
+
+/* ---- Botones (Add, New) ---- */
+.agregar-repuesto,
+.Nuevo-repuesto,
+.agregar-etiqueta,
+.Nueva-etiqueta,
+.agregar-tecnicp {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: none;
+    border-radius: var(--border-radius2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    min-width: 4rem;
+}
+
+.agregar-repuesto,
+.agregar-etiqueta,
+.agregar-tecnicp {
+    background: var(--color-fondo-oscuro);
+    color: var(--color-texto-claro);
+}
+
+.agregar-repuesto:hover,
+.agregar-etiqueta:hover,
+.agregar-tecnicp:hover {
+    background: var(--color-boton-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.agregar-repuesto:active,
+.agregar-etiqueta:active,
+.agregar-tecnicp:active {
+    transform: translateY(0);
+}
+
+.Nuevo-repuesto,
+.Nueva-etiqueta {
+    background: var(--color-boton-secundario-fondo);
+    color: var(--color-boton-secundario-texto);
+    border: 1px solid var(--color-input-borde);
+}
+
+.Nuevo-repuesto:hover,
+.Nueva-etiqueta:hover {
+    background: var(--color-input-borde);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* ---- Tablas (repuestos, etiquetas, tecnicos) ---- */
+.tabla-repuestos,
+.tabla-etiquetas {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.tabla-repuestos th,
+.tabla-etiquetas th {
+    background: var(--color-fondo-tabla-head);
+    color: var(--color-fondo-oscuro);
+    font-weight: 600;
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 2px solid var(--color-borde-claro);
+    white-space: nowrap;
+}
+
+.tabla-repuestos td,
+.tabla-etiquetas td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--color-fondo-tabla-head);
+}
+
+.tabla-repuestos tr:hover,
+.tabla-etiquetas tr:hover {
+    background: var(--color-input-fondo);
+}
+
+.tabla-repuestos tr:last-child td,
+.tabla-etiquetas tr:last-child td {
+    border-bottom: none;
+}
+
+/* ---- Grupo de radios para la declaracion ---- */
+.declaracion-radio-grupo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--color-input-fondo);
+    border-radius: var(--border-radius2);
+    border: 1px solid var(--color-borde-claro);
+}
+
+.declaracion-radio-grupo label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-texto-secundario);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius2);
+    transition: background 0.15s ease;
+}
+
+.declaracion-radio-grupo label:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.declaracion-radio-grupo input[type="radio"] {
+    width: auto;
+    accent-color: var(--color-fondo-oscuro);
+    cursor: pointer;
+}
+
+/* ---- Barra de acciones inferior ---- */
+.form-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-borde-claro);
+}
+
+.btn-guardar,
+.btn-cancelar {
+    padding: 0.625rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: var(--border-radius2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-guardar {
+    background: var(--color-fondo-oscuro);
+    color: var(--color-texto-claro);
+}
+
+.btn-guardar:hover {
+    background: var(--color-boton-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-cancelar {
+    background: transparent;
+    color: var(--color-texto-secundario);
+    border: 1px solid var(--color-input-borde);
+}
+
+.btn-cancelar:hover {
+    background: var(--color-input-fondo);
+    border-color: var(--color-texto-secundario);
+}
+
+/* ---- Espaciado para selects con botones adyacentes ---- */
+.campo-grupo:has(> select + button) {
+    gap: 0.5rem;
+}
+
+.campo-grupo:has(> select + button) select {
+    margin-bottom: 0;
+}
+
+/* ---- Mensajes de validacion ---- */
+.campo-grupo input:invalid:not(:placeholder-shown),
+.campo-grupo select:invalid:not(:placeholder-shown),
+.campo-grupo textarea:invalid:not(:placeholder-shown) {
+    border-color: #e74c3c;
+}
+
+.campo-grupo input:invalid:not(:placeholder-shown):focus,
+.campo-grupo select:invalid:not(:placeholder-shown):focus,
+.campo-grupo textarea:invalid:not(:placeholder-shown):focus {
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+}
+
+/* ---- Placeholder styling ---- */
+.campo-grupo input::placeholder,
+.campo-grupo textarea::placeholder {
+    color: var(--color-texto-secundario);
+    opacity: 0.7;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+    .registro-reporte-contenedor form {
+        flex-direction: column;
+    }
+
+    .registro-reporte-control {
+        position: static;
+    }
+
+    .registro-reporte-campos,
+    .registro-reporte-control {
+        padding: 1rem;
+    }
+
+    .declaracion-radio-grupo {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .form-acciones {
+        flex-direction: column;
+    }
+
+    .btn-guardar,
+    .btn-cancelar {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .registro-reporte-contenedor {
+        padding: 0.75rem;
+    }
+
+    .registro-reporte-campos,
+    .registro-reporte-control {
+        padding: 0.75rem;
+    }
+
+    .tabla-repuestos th,
+    .tabla-repuestos td,
+    .tabla-etiquetas th,
+    .tabla-etiquetas td {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.8rem;
+    }
+}
