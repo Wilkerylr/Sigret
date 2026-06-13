@@ -1,0 +1,1 @@
+export { default as FormRegistroReportes } from './form_registro_reportes';
