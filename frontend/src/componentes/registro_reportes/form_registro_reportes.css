@@ -27,7 +27,7 @@
     background: var(--color-fondo-card);
     padding: 1.5rem;
     border-radius: var(--border-radius2);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 3px var(--color-sombra-card);
     border: 1px solid var(--color-borde-claro);
 }
 
@@ -40,7 +40,7 @@
     background: var(--color-fondo-card);
     padding: 1.5rem;
     border-radius: var(--border-radius2);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 3px var(--color-sombra-card);
     border: 1px solid var(--color-borde-claro);
     position: sticky;
     top: 5rem;
@@ -105,7 +105,7 @@
 
 .campo-grupo label.requerido::after {
     content: '*';
-    color: #e74c3c;
+    color: var(--color-error);
     font-weight: bold;
 }
 
@@ -173,7 +173,7 @@
 .agregar-tecnico:hover {
     background: var(--color-boton-hover);
     transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 6px var(--color-sombra-hover);
 }
 
 .agregar-repuesto:active,
@@ -193,7 +193,7 @@
 .Nueva-etiqueta:hover {
     background: var(--color-input-borde);
     transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px var(--color-sombra-hover);
 }
 
 /* ---- Tablas (repuestos, etiquetas, tecnicos) ---- */
@@ -258,7 +258,7 @@
 }
 
 .declaracion-radio-grupo label:hover {
-    background: rgba(0, 0, 0, 0.04);
+    background: var(--color-sombra-sutil);
 }
 
 .declaracion-radio-grupo input[type="radio"] {
@@ -271,13 +271,13 @@
 .form-acciones-contenedor {
     position: fixed;
     bottom: 0;
-    left: 240px; /* Ancho típico del sidebar */
+    left: 240px; /* Ancho típico del sidebar en desktop */
     right: 0;
     background: var(--color-fondo-card);
     padding: 1rem 1.5rem;
     border-top: 1px solid var(--color-borde-claro);
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
-    z-index: 5; /* Reducido para que no se superponga al sidebar */
+    box-shadow: 0 -2px 10px var(--color-sombra-card);
+    z-index: 5;
 }
 
 /* ---- Barra de acciones ---- */
@@ -321,7 +321,7 @@
 .btn-guardar:hover {
     background: var(--color-boton-hover);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px var(--color-sombra-boton);
 }
 
 .btn-cancelar {
@@ -363,9 +363,9 @@
 
 /* ---- Botón de eliminar en tablas ---- */
 .btn-eliminar {
-    background: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #fca5a5;
+    background: var(--color-error-fondo);
+    color: var(--color-error-texto);
+    border: 1px solid var(--color-error-borde);
     border-radius: 4px;
     width: 28px;
     height: 28px;
@@ -378,7 +378,7 @@
 }
 
 .btn-eliminar:hover {
-    background: #fecaca;
+    background: var(--color-error-fondo-hover);
     transform: scale(1.1);
 }
 
@@ -399,13 +399,13 @@
 .campo-grupo input:invalid:not(:placeholder-shown),
 .campo-grupo select:invalid:not(:placeholder-shown),
 .campo-grupo textarea:invalid:not(:placeholder-shown) {
-    border-color: #e74c3c;
+    border-color: var(--color-error);
 }
 
 .campo-grupo input:invalid:not(:placeholder-shown):focus,
 .campo-grupo select:invalid:not(:placeholder-shown):focus,
 .campo-grupo textarea:invalid:not(:placeholder-shown):focus {
-    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+    box-shadow: 0 0 0 3px var(--color-error-sombra);
 }
 
 .campo-grupo input:required,
@@ -420,14 +420,30 @@
     opacity: 0.7;
 }
 
-/* ---- Responsive ---- */
-@media (max-width: 900px) {
+/* ==========================================
+   RESPONSIVE - Adaptación a distintos tamaños
+   ========================================== */
+
+/* ---- Tablets y pantallas medianas (< 1024px) ---- */
+@media (max-width: 1024px) {
     .registro-reporte-contenedor form {
         flex-direction: column;
     }
 
     .registro-reporte-control {
         position: static;
+    }
+}
+
+/* ---- Cuando el sidebar se colapsa o pasa a modo mobile (< 768px) ---- */
+/* El sidebar de shadcn/ui usa md: (768px) como breakpoint para ocultarse */
+@media (max-width: 768px) {
+    .form-acciones-contenedor {
+        left: 0; /* Sidebar ya no ocupa espacio, ocupa todo el ancho */
+    }
+
+    .registro-reporte-contenedor {
+        padding: 1rem;
     }
 
     .registro-reporte-campos,
@@ -451,12 +467,9 @@
         width: 100%;
         justify-content: center;
     }
-
-    .form-acciones-contenedor {
-        left: 0; /* En tablets también ocupa todo el ancho */
-    }
 }
 
+/* ---- Móviles pequeños (< 480px) ---- */
 @media (max-width: 480px) {
     .registro-reporte-contenedor {
         padding: 0.75rem;
@@ -516,21 +529,17 @@
     }
 
     .form-acciones {
-        flex-direction: column;
         gap: 0.5rem;
-        align-items: stretch;
     }
 
     .btn-guardar,
     .btn-cancelar {
-        width: 100%;
         padding: 0.5rem 1rem;
         font-size: 0.85rem;
     }
 
     .form-acciones-contenedor {
         padding: 0.75rem 1rem;
-        left: 0; /* En móviles ocupa todo el ancho */
     }
 
     .grupo-repuestos-linea,

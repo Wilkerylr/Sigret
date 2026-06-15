@@ -33,6 +33,9 @@ const DatosCliente: React.FC<DatosClienteProps> = ({
         placeholder="Equipo que recibe el servicio"
         required={true}
       />
+
+
+
     </>
   );
 };

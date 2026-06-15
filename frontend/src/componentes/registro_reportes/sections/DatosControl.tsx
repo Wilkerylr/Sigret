@@ -43,7 +43,7 @@ const DatosControl: React.FC<DatosControlProps> = ({
         onChange={onChange}
         type="select"
         opciones={PLANTILLAS}
-        required={true}
+        required={false}
       />
       
       <CampoFormulario

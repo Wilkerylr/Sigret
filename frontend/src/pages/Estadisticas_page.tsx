@@ -1,14 +1,21 @@
-import CardGenerica from "@/componentes/card_generica";
-import React from "react";
+import React from "react"
+import { GraficoReportes, ChartBarMultiple } from "@/componentes/estadisticas/components"
+import "@/componentes/estadisticas/estadisticas.css"
 
 const EstadisticasPage: React.FC = () => {
     return (
-        <div>   
-            <h1>Estadísticas</h1>
-            <p>Aquí se mostrarán las estadísticas de los reportes.</p>
-            <CardGenerica title="Ejemplo de Card Genérica" />
-        </div>
-    );
-}   
+        <div className="estadisticas-contenedor">
+            <h1 className="estadisticas-titulo">Estadísticas</h1>
+            {/* Gráfico grande de área con selector de tiempo - ocupa todo el ancho */}
+                <GraficoReportes />
 
-export default EstadisticasPage;
+            {/* Gráficos secundarios en grid de 2 columnas debajo */}
+            <div className="estadisticas-grid">
+                <ChartBarMultiple />
+                {/* Aquí se pueden agregar más gráficos en el futuro */}
+            </div>
+        </div>
+    )
+}
+
+export default EstadisticasPage

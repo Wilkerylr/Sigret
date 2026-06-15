@@ -24,16 +24,16 @@ export const ETIQUETAS = [
 
 export const TECNICOS = [
   { value: '', label: 'Seleccione los técnicos correspondientes' },
-  { value: 'tecnico1', label: 'Técnico 1' },
-  { value: 'tecnico2', label: 'Técnico 2' },
-  { value: 'tecnico3', label: 'Técnico 3' },
+  { value: 'Victor', label: 'Victor' },
+  { value: 'Wilker', label: 'Wilker' },
+  { value: 'Alexis', label: 'Alexis' },
 ];
 
 export const PLANTILLAS = [
   { value: '', label: 'Selecciona una plantilla' },
-  { value: 'plantilla1', label: 'Plantilla 1' },
-  { value: 'plantilla2', label: 'Plantilla 2' },
-  { value: 'plantilla3', label: 'Plantilla 3' },
+  { value: 'plantilla1', label: 'Mantenimiento' },
+  { value: 'plantilla2', label: 'Inspección' },
+  { value: 'plantilla3', label: 'Reparación' },
 ];
 
 export const DECLARACIONES = [
@@ -42,6 +42,11 @@ export const DECLARACIONES = [
   { value: 'no aplica', label: 'No aplica' },
   { value: 'operativo bajo observacion', label: 'Operativo, bajo observación' },
 ];
+
+export const EMPLEADOS = [
+  { value: 'Encargado1', label: 'Encargado 1' },
+  { value: 'Encargado2', label: 'Encargado 2' },
+  { value: 'Parkero1', label: 'Parkero1'}]
 
 export const CAMPOS_REQUERIDOS: Array<keyof import('../types').FormReporteData> = [
   'cliente',

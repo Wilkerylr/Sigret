@@ -6,6 +6,7 @@ interface DatosServicioProps {
   trabajoRealizado: string;
   posibleCausa: string;
   anotaciones: string;
+  reportadoPor: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
 }
 
@@ -14,6 +15,7 @@ const DatosServicio: React.FC<DatosServicioProps> = ({
   trabajoRealizado,
   posibleCausa,
   anotaciones,
+  reportadoPor,
   onChange,
 }) => {
   return (
@@ -27,7 +29,17 @@ const DatosServicio: React.FC<DatosServicioProps> = ({
         type="textarea"
         required={true}
       />
-      
+
+      <CampoFormulario
+        label="Reportado por:"
+        name="reportadoPor"
+        value={reportadoPor}
+        onChange={onChange}
+        placeholder="Nombre del personal que reportó la falla"
+        type="text"
+        required={false}
+      />
+
       <CampoFormulario
         label="Trabajo realizado"
         name="trabajoRealizado"

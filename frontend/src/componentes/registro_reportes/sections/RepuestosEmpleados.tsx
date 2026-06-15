@@ -34,6 +34,7 @@ const RepuestosEmpleados: React.FC<RepuestosEmpleadosProps> = ({
       items={repuestos}
       botonNuevo={true}
       tipo="conCantidad"
+      requerido={false}
       inputCantidad={{
         name: "cantidad",
         value: cantidad,

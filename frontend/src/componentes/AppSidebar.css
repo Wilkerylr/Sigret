@@ -1,72 +1,79 @@
+/* ======================================
+   AppSidebar.css
+   Estilos del sidebar de navegación
+   ====================================== */
 
-/* Contenedor principal */
+/* ---- Contenedor principal ---- */
 .sidebar-container {
+  height: 100%;
   background-color: var(--color-fondo-oscuro);
   color: var(--color-texto-claro);
-  height: 100%;
 }
 
-/* Encabezado del sidebar */
+/* ---- Encabezado del sidebar ---- */
 .sidebar-header {
   padding: var(--spacing-md);
   font-weight: var(--font-weight-bold);
   font-size: var(--font-size-lg);
-  background-color: var(--color-fondo-oscuro);
   color: var(--color-texto-claro);
 }
 
-/* Etiqueta de grupo de navegación */
+/* ---- Etiqueta de grupo de navegación ---- */
 .sidebar-group-label {
-  color: var(--color-texto-claro);
   padding: 0.5rem 0.75rem;
   font-weight: 600;
+  color: var(--color-texto-claro);
 }
 
-/* Botón de menú: estado base */
+/* ---- Botón de menú: estado base ---- */
 .sidebar-menu-button {
+  border-radius: var(--border-radius2);
   color: var(--color-texto-claro);
   background-color: transparent;
-  border-radius: var(--border-radius2);
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Botón de menú: hover */
+/* ---- Botón de menú: hover ---- */
 .sidebar-menu-button:hover,
 .sidebar-menu-button[data-active="true"]:hover {
   background-color: var(--color-fondo-claro);
   color: var(--color-texto-oscuro);
 }
 
-/* Botón de menú: estado activo (usa data-active de shadcn/ui) */
+/* ---- Botón de menú: estado activo (data-active de shadcn/ui) ---- */
 .sidebar-menu-button[data-active="true"] {
+  font-weight: 600;
   background-color: var(--color-fondo-claro);
   color: var(--color-texto-oscuro);
-  font-weight: 600;
 }
 
-/* Ítem del menú */
+/* ---- Ítem del menú ---- */
 .sidebar-menu-item {
   padding: 0.25rem 0.5rem;
 }
 
-/* Footer */
-.sidebar-footer {
-  background-color: var(--color-fondo-oscuro);
-  color: var(--color-texto-claro);
-  border-top: 1px solid color-mix(in srgb, var(--color-fondo-claro) 20%, transparent);
-  padding: var(--spacing-md);
-  margin-top: auto;
+.sidebar-menu-item svg {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
-/* Botón de cerrar sesión */
+/* ---- Footer ---- */
+.sidebar-footer {
+  margin-top: auto;
+  padding: var(--spacing-md);
+  border-top: 1px solid color-mix(in srgb, var(--color-fondo-claro) 20%, transparent);
+  color: var(--color-texto-claro);
+}
+
+/* ---- Botón de cerrar sesión ---- */
 .sidebar-logout-button {
-  color: color-mix(in srgb, var(--color-texto-claro) 70%, transparent);
   font-size: 0.875rem;
+  color: color-mix(in srgb, var(--color-texto-claro) 70%, transparent);
 }
 
 .sidebar-logout-button:hover {
-  background-color: color-mix(in srgb, #dc2626 15%, transparent) !important;
-  color: #ef4444 !important;
+  background-color: var(--color-sidebar-logout-fondo) !important;
+  color: var(--color-sidebar-logout-texto) !important;
 }
 
 .sidebar-logout-button svg {
@@ -77,18 +84,19 @@
   transform: translateX(2px);
 }
 
+/* ---- Divisor del logout ---- */
 .sidebar-logout-item {
-  border-top: 1px solid color-mix(in srgb, var(--color-fondo-claro) 15%, transparent);
-  padding-top: 0.5rem;
   margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-fondo-claro) 15%, transparent);
 }
 
-.sidebar-menu-item svg {
-  width: 1.25rem;
-  height: 1.25rem;
-}
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
 
-.sidebarTriger button{
-
-  
+/* ---- Mobile: forzar fondo oscuro en sidebar (Sheet) ---- */
+/* shadcn/ui usa data-mobile="true" cuando el sidebar se renderiza como Sheet */
+[data-sidebar="sidebar"][data-mobile="true"] {
+  background-color: var(--color-fondo-oscuro) !important;
 }

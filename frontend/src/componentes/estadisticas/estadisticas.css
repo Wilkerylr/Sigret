@@ -1,0 +1,92 @@
+/* ======================================
+   estadisticas.css
+   Estilos de la página de estadísticas y gráficos
+   ====================================== */
+
+/* ---- Layout de la página ---- */
+.estadisticas-contenedor {
+    padding: 1.5rem;
+    width: 100%;
+}
+
+.estadisticas-titulo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--color-texto-oscuro);
+}
+
+/* ---- Grid de gráficos ---- */
+.estadisticas-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .estadisticas-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ---- Personalización de la Card del gráfico ---- */
+.estadisticas-card {
+    border: 1px solid var(--color-borde-claro);
+    box-shadow: 0 1px 3px var(--color-sombra-card);
+    border-radius: var(--border-radius2);
+    background: var(--color-fondo-card);
+}
+
+.estadisticas-card-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--color-borde-claro);
+}
+
+@media (min-width: 640px) {
+    .estadisticas-card-header {
+        flex-direction: row;
+        align-items: center;
+    }
+}
+
+.estadisticas-card-titulo {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-texto-oscuro);
+}
+
+.estadisticas-card-descripcion {
+    font-size: 0.875rem;
+    color: var(--color-texto-secundario);
+}
+
+/* ---- Selector de período ---- */
+.estadisticas-selector-periodo {
+    width: 160px;
+    border-radius: var(--border-radius2);
+    border: 1px solid var(--color-input-borde);
+    background: var(--color-input-fondo);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--color-texto-oscuro);
+    cursor: pointer;
+    outline: none;
+}
+
+.estadisticas-selector-periodo:focus {
+    border-color: var(--color-fondo-oscuro);
+    box-shadow: 0 0 0 3px var(--color-input-focus-sombra);
+}
+
+/* ---- Contenedor del chart ---- */
+.estadisticas-chart-wrapper {
+    padding: 1rem 0.5rem;
+}
+
+@media (min-width: 640px) {
+    .estadisticas-chart-wrapper {
+        padding: 1.5rem 1.5rem;
+    }
+}

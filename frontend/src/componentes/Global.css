@@ -38,6 +38,30 @@
     --color-boton-secundario-texto: #374151;
     --color-boton-hover: #034088;
 
+    /* === Colores de error y validación === */
+    --color-error: #e74c3c;
+    --color-error-fondo: #fee2e2;
+    --color-error-fondo-hover: #fecaca;
+    --color-error-texto: #991b1b;
+    --color-error-borde: #fca5a5;
+    --color-error-sombra: rgba(231, 76, 60, 0.2);
+
+    /* === Colores para gráficos (Recharts / shadcn chart) === */
+    --chart-1: #021F54;
+    --chart-2: #5F95D2;
+    --color-desktop: #021F54;
+    --color-mobile: #5F95D2;
+
+    /* === Sidebar === */
+    --color-sidebar-logout-fondo: rgba(220, 38, 38, 0.15);
+    --color-sidebar-logout-texto: #ef4444;
+
+    /* === Sombras === */
+    --color-sombra-card: rgba(0, 0, 0, 0.08);
+    --color-sombra-hover: rgba(0, 0, 0, 0.15);
+    --color-sombra-boton: rgba(0, 0, 0, 0.2);
+    --color-sombra-sutil: rgba(0, 0, 0, 0.04);
+
     /* === Mapeo shadcn/ui sidebar === */
     --sidebar: var(--color-fondo-oscuro);
     --sidebar-foreground: var(--color-texto-claro);

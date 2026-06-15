@@ -50,6 +50,7 @@ function FormRegistroReportes() {
             trabajoRealizado={formData.trabajoRealizado}
             posibleCausa={formData.posibleCausa}
             anotaciones={formData.anotaciones}
+            reportadoPor={formData.reportadoPor}
             onChange={handleChange}
           />
           

@@ -12,13 +12,14 @@ const SelectConBotones: React.FC<SelectConBotonesProps> = ({
   items,
   botonNuevo = false,
   tipo = 'simple',
+  requerido = true,
   inputCantidad,
 }) => {
   const esRepuestos = tipo === 'conCantidad';
 
   return (
     <div className="campo-grupo">
-      <label htmlFor="select-item" className="requerido">
+      <label htmlFor="select-item" className={requerido ? 'requerido' : ''}>
         {label}
       </label>
       
@@ -48,7 +49,18 @@ const SelectConBotones: React.FC<SelectConBotonesProps> = ({
             onClick={onAgregar}
             aria-label="Agregar repuesto seleccionado"
           >
-            Add
+            {inputCantidad && (
+            <input
+              type="text"
+              className="input-cantidad"
+              name={inputCantidad.name}
+              placeholder="Cantidad"
+              value={inputCantidad.value}
+              onChange={inputCantidad.onChange}
+              inputMode="numeric"
+            />
+          )}
+            Agregar
           </button>
           
           {botonNuevo && (
@@ -61,17 +73,6 @@ const SelectConBotones: React.FC<SelectConBotonesProps> = ({
             </button>
           )}
           
-          {inputCantidad && (
-            <input
-              type="text"
-              className="input-cantidad"
-              name={inputCantidad.name}
-              placeholder="Cantidad"
-              value={inputCantidad.value}
-              onChange={inputCantidad.onChange}
-              inputMode="numeric"
-            />
-          )}
         </div>
       ) : (
         <div className="grupo-etiquetas-linea">

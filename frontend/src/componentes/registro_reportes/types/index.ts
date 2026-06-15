@@ -26,6 +26,7 @@ export interface FormReporteData {
   fechaAtencion: string;
   horaInicio: string;
   horaFinalizacion: string;
+  reportadoPor: string;
 }
 
 export type FormField = keyof FormReporteData;
@@ -58,6 +59,7 @@ export interface SelectConBotonesProps {
   items: string[] | Repuesto[];
   botonNuevo?: boolean;
   tipo?: 'simple' | 'conCantidad';
+  requerido?: boolean;
   inputCantidad?: {
     name: string;
     value: string;
