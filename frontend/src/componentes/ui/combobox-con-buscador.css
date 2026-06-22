@@ -1,0 +1,186 @@
+/* ======================================
+   combobox-con-buscador.css
+   Estilos para el Combobox reutilizable con buscador
+   ====================================== */
+
+.combobox-con-buscador-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    position: relative;
+}
+
+.combobox-con-buscador-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-texto-secundario);
+}
+
+.combobox-con-buscador-label.requerido::after {
+    content: ' *';
+    color: var(--color-error);
+}
+
+/* ---- Wrapper del input ---- */
+.combobox-con-buscador-input-wrapper {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--color-input-borde);
+    border-radius: var(--border-radius2);
+    background: var(--color-fondo-card);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    cursor: text;
+}
+
+.combobox-con-buscador-input-wrapper:focus-within {
+    border-color: var(--color-fondo-oscuro);
+    box-shadow: 0 0 0 3px var(--color-input-focus-sombra);
+}
+
+.combobox-con-buscador-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--color-texto-oscuro);
+    min-width: 0;
+    font-family: inherit;
+}
+
+.combobox-con-buscador-input::placeholder {
+    color: var(--color-texto-terciario);
+}
+
+.combobox-con-buscador-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ---- Acciones (limpiar + trigger) ---- */
+.combobox-con-buscador-acciones {
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+    padding-right: 0.25rem;
+    flex-shrink: 0;
+}
+
+.combobox-con-buscador-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: none;
+    background: transparent;
+    color: var(--color-texto-terciario);
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 0;
+    transition: color 0.2s, background 0.2s;
+}
+
+.combobox-con-buscador-clear:hover {
+    color: var(--color-texto-oscuro);
+    background: var(--color-boton-secundario-fondo);
+}
+
+.combobox-con-buscador-separador {
+    width: 1px;
+    height: 1.25rem;
+    background: var(--color-borde-claro);
+    flex-shrink: 0;
+}
+
+.combobox-con-buscador-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: none;
+    background: transparent;
+    color: var(--color-texto-terciario);
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 0;
+    transition: color 0.2s, background 0.2s;
+}
+
+.combobox-con-buscador-trigger:hover {
+    color: var(--color-texto-oscuro);
+    background: var(--color-boton-secundario-fondo);
+}
+
+.combobox-con-buscador-trigger.abierto svg {
+    transform: rotate(180deg);
+}
+
+.combobox-con-buscador-trigger svg {
+    transition: transform 0.2s;
+}
+
+/* ---- Dropdown ---- */
+.combobox-con-buscador-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    margin-top: 4px;
+    background: var(--color-fondo-card);
+    border: 1px solid var(--color-borde-claro);
+    border-radius: var(--border-radius2);
+    box-shadow: 0 4px 12px var(--color-sombra-card);
+    max-height: 240px;
+    overflow-y: auto;
+    animation: comboboxSlideDown 0.15s ease-out;
+}
+
+@keyframes comboboxSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.combobox-con-buscador-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--color-texto-oscuro);
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.combobox-con-buscador-item:hover,
+.combobox-con-buscador-item.resaltado {
+    background: var(--color-fondo-claro);
+    color: var(--color-fondo-oscuro);
+}
+
+.combobox-con-buscador-item.seleccionado {
+    font-weight: 600;
+    background: var(--color-fondo-claro);
+}
+
+.combobox-con-buscador-check {
+    color: var(--color-fondo-oscuro);
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.combobox-con-buscador-sin-resultados {
+    padding: 0.75rem;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--color-texto-terciario);
+}

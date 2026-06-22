@@ -44,7 +44,7 @@ const CampoFormulario: React.FC<CampoFormularioProps> = ({
             ))}
           </select>
         );
-      
+
       case 'number':
         return (
           <input

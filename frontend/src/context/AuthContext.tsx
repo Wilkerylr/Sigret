@@ -1,10 +1,13 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
+import { findUsuario } from "@/componentes/login/contexto/usuarios";
+import type { UserRole, Permission } from "@/componentes/login/contexto/usuarios";
 
-export type UserRole = "admin" | "tecnico" | "administrativo";
+export type { UserRole, Permission };
 
 export interface User {
   username: string;
   role: UserRole;
+  permissions: Permission[];
 }
 
 interface AuthContextType {
@@ -13,25 +16,18 @@ interface AuthContextType {
   logout: () => void;
   isLoading: boolean;
   hasAccess: (allowedRoles: UserRole[]) => boolean;
+  hasPermission: (perm: Permission) => boolean;
+  hasAnyPermission: (perms: Permission[]) => boolean;
+  userPermissions: Permission[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Usuarios hardcodeados (reemplazar con API)
-const VALID_USERS: Record<string, { password: string; role: UserRole }> = {
-  admin: { password: "password", role: "admin" },
-  tecnico: { password: "tecnico123", role: "tecnico" },
-  administrativo: { password: "admin123", role: "administrativo" },
-};
-
 const SESSION_STORAGE_KEY = "sigret_user";
 
 function getStoredUser(): User | null {
   try {
     const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored) as User;
-    }
+    if (stored) return JSON.parse(stored) as User;
   } catch {
     // Ignorar errores de parsing
   }
@@ -45,12 +41,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (username: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // Simular delay de conexión
       await new Promise((resolve) => setTimeout(resolve, 800));
 
-      const foundUser = VALID_USERS[username];
+      const foundUser = findUsuario(username);
       if (foundUser && foundUser.password === password) {
-        const userData: User = { username, role: foundUser.role };
+        const userData: User = {
+          username: foundUser.username,
+          role: foundUser.role,
+          permissions: foundUser.permissions,
+        };
         setUser(userData);
         sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(userData));
         return true;
@@ -71,8 +70,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return allowedRoles.includes(user.role);
   };
 
+  const hasPermission = (perm: Permission): boolean => {
+    if (!user) return false;
+    return user.permissions.includes(perm);
+  };
+
+  const hasAnyPermission = (perms: Permission[]): boolean => {
+    if (!user) return false;
+    return perms.some((perm) => user.permissions.includes(perm));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading, hasAccess }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        isLoading,
+        hasAccess,
+        hasPermission,
+        hasAnyPermission,
+        userPermissions: user?.permissions ?? [],
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

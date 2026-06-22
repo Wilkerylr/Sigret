@@ -12,7 +12,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/componentes/ui/sidebar"
-import { useAuthContext, type UserRole } from "@/context/AuthContext"
+import { useAuthContext, type UserRole, type Permission } from "@/context/AuthContext"
 import type { ComponentType } from "react"
 import { 
   ChartArea, 
@@ -24,12 +24,13 @@ import {
  } from "lucide-react"
 import "./AppSidebar.css"
 
-// Define los elementos del menú de navegación con roles permitidos
 interface MenuItem {
   title: string;
   icon: ComponentType;
   path: string;
   allowedRoles: UserRole[];
+  /** Permiso individual requerido para ver este menú (nuevo sistema dinámico) */
+  requiredPermission?: Permission;
 }
 
 const menuItems: MenuItem[] = [
@@ -38,30 +39,35 @@ const menuItems: MenuItem[] = [
     icon: ChartArea,
     path: "/home",
     allowedRoles: ["admin", "tecnico", "administrativo"],
+    requiredPermission: "view-estadisticas",
   },
   {
     title: "Registrar Reportes",
     icon: StickyNotePlus,
     path: "/home/registro-reportes",
     allowedRoles: ["admin", "administrativo"],
+    requiredPermission: "view-registro-reportes",
   },
   {
     title: "Búsqueda de Reportes",
     icon: Search,
     path: "/home/busqueda-reportes",
     allowedRoles: ["admin", "tecnico", "administrativo"],
+    requiredPermission: "view-busqueda-reportes",
   },
   {
     title: "Gestión de Registros",
     icon: DatabaseSearch,
     path: "/home/gestion-registros",
     allowedRoles: ["admin", "administrativo"],
+    requiredPermission: "view-gestion-registros",
   },
   {
     title: "Gestión de Usuarios",
     icon: UserSearch,
     path: "/home/gestion-usuarios",
     allowedRoles: ["admin"],
+    requiredPermission: "view-gestion-usuarios",
   },
 ]
 
@@ -70,9 +76,14 @@ export function AppSidebar() {
   const location = useLocation();
   const { user, logout } = useAuthContext();
 
-  // Filtrar items según el rol del usuario
+  // Filtrar items según rol del usuario Y permisos individuales
   const filteredItems = menuItems.filter(
-    (item) => user && item.allowedRoles.includes(user.role)
+    (item) =>
+      user &&
+      item.allowedRoles.includes(user.role) &&
+      (item.requiredPermission
+        ? user.permissions.includes(item.requiredPermission)
+        : true)
   );
 
   const handleLogout = () => {

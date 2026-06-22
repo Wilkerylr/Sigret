@@ -43,7 +43,7 @@ export interface CampoFormularioProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   placeholder?: string;
   required?: boolean;
-  type?: 'text' | 'number' | 'date' | 'time' | 'textarea' | 'select';
+  type?: 'text' | 'number' | 'date' | 'time' | 'textarea' | 'select' | 'radio' | 'combobox';
   opciones?: Array<{ value: string; label: string }>;
   min?: string | number;
 }

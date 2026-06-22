@@ -1,8 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext.tsx";
-import { ProtectedRoute } from "./componentes/ProtectedRoute.tsx";
+import { AuthProvider } from "./context/AuthContext";
+import { ProtectedRoute } from "./componentes/ProtectedRoute";
 import "./componentes/Global.css"
 import EstadisticasPage from "./pages/Estadisticas_page.tsx"
 import BusquedaReportesPage from './pages/Busqueda_reportes_page.tsx'
@@ -21,7 +21,10 @@ const router = createBrowserRouter([
   {
     path: "/home",
     element: (
-      <ProtectedRoute allowedRoles={["admin", "tecnico", "administrativo"]}>
+      <ProtectedRoute
+          allowedRoles={["admin", "tecnico", "administrativo"]}
+          requiredPermissions={["view-estadisticas"]}
+        >
         <Layout />
       </ProtectedRoute>
     ),
@@ -29,7 +32,10 @@ const router = createBrowserRouter([
       {
         index: true,
         element: (
-          <ProtectedRoute allowedRoles={["admin", "tecnico", "administrativo"]}>
+          <ProtectedRoute
+              allowedRoles={["admin", "tecnico", "administrativo"]}
+              requiredPermissions={["view-estadisticas"]}
+            >
             <EstadisticasPage />
           </ProtectedRoute>
         ),
@@ -37,7 +43,10 @@ const router = createBrowserRouter([
       {
         path: "busqueda-reportes",
         element: (
-          <ProtectedRoute allowedRoles={["admin", "tecnico", "administrativo"]}>
+          <ProtectedRoute
+              allowedRoles={["admin", "tecnico", "administrativo"]}
+              requiredPermissions={["view-busqueda-reportes"]}
+            >
             <BusquedaReportesPage />
           </ProtectedRoute>
         ),
@@ -45,7 +54,10 @@ const router = createBrowserRouter([
       {
         path: "registro-reportes",
         element: (
-          <ProtectedRoute allowedRoles={["admin", "administrativo"]}>
+          <ProtectedRoute
+              allowedRoles={["admin", "administrativo"]}
+              requiredPermissions={["view-registro-reportes"]}
+            >
             <RegistroReportesPage />
           </ProtectedRoute>
         ),
@@ -53,7 +65,10 @@ const router = createBrowserRouter([
       {
         path: "gestion-registros",
         element: (
-          <ProtectedRoute allowedRoles={["admin", "administrativo"]}>
+          <ProtectedRoute
+              allowedRoles={["admin", "administrativo"]}
+              requiredPermissions={["view-gestion-registros"]}
+            >
             <GestionRegistrosPage />
           </ProtectedRoute>
         ),
@@ -61,7 +76,10 @@ const router = createBrowserRouter([
       {
         path: "gestion-usuarios",
         element: (
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute
+              allowedRoles={["admin"]}
+              requiredPermissions={["view-gestion-usuarios"]}
+            >
             <GestionUsuariosPage />
           </ProtectedRoute>
         ),

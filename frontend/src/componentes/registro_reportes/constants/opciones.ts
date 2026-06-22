@@ -2,9 +2,14 @@
 
 export const CLIENTES = [
   { value: '', label: 'Selecciona un cliente' },
-  { value: 'cliente1', label: 'Cliente 1' },
-  { value: 'cliente2', label: 'Cliente 2' },
-  { value: 'cliente3', label: 'Cliente 3' },
+  { value: 'Admin 951', label: 'Admin 951' },
+  { value: 'Parking paraiso', label: 'Parking paraiso' },
+  { value: 'Admin maralva', label: 'Admin maralva' },
+  { value: 'Condominio torre la noria', label: 'Condominio torre la noria' },
+  { value: 'Altamira tennis club', label: 'Altamira tennis club' },
+  { value: 'Inv kk 2002', label: 'Inv kk 2002' },
+  { value: 'Admin omiwi', label: 'Admin omiwi' },
+  { value: 'Inv clamarxui', label: 'Inv clamarxui' },
 ];
 
 export const REPUESTOS = [
