@@ -1,0 +1,135 @@
+/* ======================================
+   ModalConfirmacion.css — Estilos del modal de confirmación
+   ====================================== */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--color-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+    animation: fadeInModal 0.15s ease-out;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-contenido {
+    background: var(--color-fondo-card);
+    border-radius: var(--border-radius2);
+    box-shadow: 0 10px 25px var(--color-sombra-modal);
+    max-width: 500px;
+    width: 100%;
+    position: relative;
+    animation: slideUpModal 0.2s ease-out;
+}
+
+@keyframes slideUpModal {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-cerrar {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-texto-terciario);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.modal-cerrar:hover {
+    background: var(--color-boton-secundario-fondo);
+    color: var(--color-texto-oscuro);
+}
+
+.modal-cerrar:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.modal-confirmacion {
+    text-align: center;
+    padding: 2rem 1.5rem 1.5rem;
+}
+
+.modal-confirmacion-icono {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.modal-confirmacion-titulo {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-texto-oscuro);
+    margin-bottom: 0.5rem;
+}
+
+.modal-confirmacion-mensaje {
+    font-size: 0.875rem;
+    color: var(--color-texto-secundario);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.modal-confirmacion-acciones {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.modal-btn-cancelar {
+    padding: 0.5rem 1.25rem;
+    border: 1px solid var(--color-input-borde);
+    border-radius: var(--border-radius2);
+    background: var(--color-fondo-card);
+    color: var(--color-texto-secundario);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.modal-btn-cancelar:hover:not(:disabled) {
+    background: var(--color-boton-secundario-fondo);
+    border-color: var(--color-texto-terciario);
+}
+
+.modal-btn-cancelar:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.modal-btn-confirmar {
+    padding: 0.5rem 1.25rem;
+    border: none;
+    border-radius: var(--border-radius2);
+    color: var(--color-texto-claro);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.modal-btn-confirmar:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}

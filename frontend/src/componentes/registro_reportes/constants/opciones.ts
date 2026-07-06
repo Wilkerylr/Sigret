@@ -1,57 +1,45 @@
-// Constantes para las opciones de los selects en el formulario
+/**
+ * Constantes para las opciones de los selects en el formulario
+ * Re-exporta desde la fuente de datos centralizada en @/data
+ *
+ * Mantiene compatibilidad con el formato { value, label } esperado por los componentes
+ */
 
-export const CLIENTES = [
-  { value: '', label: 'Selecciona un cliente' },
-  { value: 'Admin 951', label: 'Admin 951' },
-  { value: 'Parking paraiso', label: 'Parking paraiso' },
-  { value: 'Admin maralva', label: 'Admin maralva' },
-  { value: 'Condominio torre la noria', label: 'Condominio torre la noria' },
-  { value: 'Altamira tennis club', label: 'Altamira tennis club' },
-  { value: 'Inv kk 2002', label: 'Inv kk 2002' },
-  { value: 'Admin omiwi', label: 'Admin omiwi' },
-  { value: 'Inv clamarxui', label: 'Inv clamarxui' },
+import {
+  NOMBRES_CLIENTES,
+  NOMBRES_REPUESTOS,
+  NOMBRES_ETIQUETAS,
+  NOMBRES_TECNICOS,
+  NOMBRES_PLANTILLAS,
+  NOMBRES_DECLARACIONES,
+  NOMBRES_EMPLEADOS,
+} from '@/data';
+
+/** Convierte un string a formato value-label */
+const toOpcion = (nombre: string) => ({
+  value: nombre.toLowerCase().replace(/\s+/g, '_'),
+  label: nombre,
+});
+
+/** Convierte un array de nombres a opciones { value, label } para selects/comboboxes */
+const nombresToOpciones = (nombres: string[], placeholderLabel: string) => [
+  { value: '', label: placeholderLabel },
+  ...nombres.map(toOpcion),
 ];
 
-export const REPUESTOS = [
-  { value: '', label: 'Selecciona los repuestos empleados' },
-  { value: 'repuesto1', label: 'Repuesto 1' },
-  { value: 'repuesto2', label: 'Repuesto 2' },
-  { value: 'repuesto3', label: 'Repuesto 3' },
-];
+export const CLIENTES = nombresToOpciones(NOMBRES_CLIENTES, 'Selecciona un cliente');
 
-export const ETIQUETAS = [
-  { value: '', label: 'Seleccione las etiquetas correspondientes' },
-  { value: 'mantenimiento', label: 'Mantenimiento' },
-  { value: 'reparacion', label: 'Reparación' },
-  { value: 'inspeccion', label: 'Inspección' },
-  { value: 'mantenimiento_esporadico', label: 'Mantenimiento esporádico' },
-];
+export const REPUESTOS = nombresToOpciones(NOMBRES_REPUESTOS, 'Selecciona los repuestos empleados');
 
-export const TECNICOS = [
-  { value: '', label: 'Seleccione los técnicos correspondientes' },
-  { value: 'Victor', label: 'Victor' },
-  { value: 'Wilker', label: 'Wilker' },
-  { value: 'Alexis', label: 'Alexis' },
-];
+export const ETIQUETAS = nombresToOpciones(NOMBRES_ETIQUETAS, 'Seleccione las etiquetas correspondientes');
 
-export const PLANTILLAS = [
-  { value: '', label: 'Selecciona una plantilla' },
-  { value: 'plantilla1', label: 'Mantenimiento' },
-  { value: 'plantilla2', label: 'Inspección' },
-  { value: 'plantilla3', label: 'Reparación' },
-];
+export const TECNICOS = nombresToOpciones(NOMBRES_TECNICOS, 'Seleccione los técnicos correspondientes');
 
-export const DECLARACIONES = [
-  { value: 'operativo', label: 'Operativo' },
-  { value: 'inoperativo', label: 'Inoperativo' },
-  { value: 'no aplica', label: 'No aplica' },
-  { value: 'operativo bajo observacion', label: 'Operativo, bajo observación' },
-];
+export const PLANTILLAS = nombresToOpciones(NOMBRES_PLANTILLAS, 'Selecciona una plantilla');
 
-export const EMPLEADOS = [
-  { value: 'Encargado1', label: 'Encargado 1' },
-  { value: 'Encargado2', label: 'Encargado 2' },
-  { value: 'Parkero1', label: 'Parkero1'}]
+export const DECLARACIONES = NOMBRES_DECLARACIONES.map(toOpcion);
+
+export const EMPLEADOS = NOMBRES_EMPLEADOS.map(toOpcion);
 
 export const CAMPOS_REQUERIDOS: Array<keyof import('../types').FormReporteData> = [
   'cliente',

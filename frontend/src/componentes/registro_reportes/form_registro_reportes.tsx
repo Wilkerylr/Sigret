@@ -39,12 +39,22 @@ function FormRegistroReportes() {
     <div className="registro-reporte-contenedor">
       <form>
         <div className="registro-reporte-campos">
+          {/* ---- Sección: Datos del Cliente ---- */}
+          <h3 className="seccion-titulo">
+            Datos del Cliente
+          </h3>
           <DatosCliente
             cliente={formData.cliente}
             equipo={formData.equipo}
             onChange={handleChange}
           />
           
+          <hr className="seccion-divisor" />
+
+          {/* ---- Sección: Datos del Servicio ---- */}
+          <h3 className="seccion-titulo">
+            Datos del Servicio
+          </h3>
           <DatosServicio
             descripcionFalla={formData.descripcionFalla}
             trabajoRealizado={formData.trabajoRealizado}
@@ -54,6 +64,12 @@ function FormRegistroReportes() {
             onChange={handleChange}
           />
           
+          <hr className="seccion-divisor" />
+
+          {/* ---- Sección: Repuestos Empleados ---- */}
+          <h3 className="seccion-titulo">
+            Repuestos Empleados
+          </h3>
           <RepuestosEmpleados
             repuestoSeleccionado={formData.repuestoSeleccionado}
             cantidad={formData.cantidad}
@@ -64,11 +80,23 @@ function FormRegistroReportes() {
             onNumericChange={handleNumericInput}
           />
           
+          <hr className="seccion-divisor" />
+
+          {/* ---- Sección: Declaración ---- */}
+          <h3 className="seccion-titulo">
+            Declaración
+          </h3>
           <DeclaracionRadio
             declaracion={formData.declaracion}
             onChange={handleChange}
           />
           
+          <hr className="seccion-divisor" />
+
+          {/* ---- Sección: Etiquetas y Técnicos ---- */}
+          <h3 className="seccion-titulo">
+            Etiquetas y Técnicos
+          </h3>
           <EtiquetasTecnicos
             etiquetaSeleccionada={formData.etiquetaSeleccionada}
             etiquetas={formData.etiquetas}
@@ -83,6 +111,10 @@ function FormRegistroReportes() {
         </div>
         
         <div className="registro-reporte-control">
+          {/* ---- Sección: Datos de Control ---- */}
+          <h3 className="seccion-titulo">
+            Datos de Control
+          </h3>
           <DatosControl
             numeroReporte={formData.numeroReporte}
             plantilla={formData.plantilla}

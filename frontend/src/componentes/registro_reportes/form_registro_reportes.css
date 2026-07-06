@@ -1,15 +1,45 @@
 /* ======================================
    form_registro_reportes.css
    Estilos del formulario de registro de reportes
+   Versión mejorada con jerarquía visual, consistencia y responsive
    ====================================== */
 
-/* Contenedor principal del formulario */
+/* ==========================================
+   VARIABLES LOCALES (fallback)
+   ========================================== */
+.registro-reporte-contenedor {
+    --rr-color-fondo: var(--color-fondo-card, #ffffff);
+    --rr-color-borde: var(--color-borde-claro, #e2e8f0);
+    --rr-color-sombra: var(--color-sombra-card, rgba(0, 0, 0, 0.05));
+    --rr-color-texto: var(--color-texto-oscuro, #1e293b);
+    --rr-color-texto-sec: var(--color-texto-secundario, #64748b);
+    --rr-color-input-fondo: var(--color-input-fondo, #f8fafc);
+    --rr-color-input-borde: var(--color-input-borde, #cbd5e1);
+    --rr-color-focus: var(--color-fondo-oscuro, #1e293b);
+    --rr-color-focus-sombra: var(--color-input-focus-sombra, rgba(30, 41, 59, 0.15));
+    --rr-color-error: var(--color-error, #dc2626);
+    --rr-color-error-fondo: var(--color-error-fondo, #fef2f2);
+    --rr-color-error-borde: var(--color-error-borde, #fecaca);
+    --rr-color-exito: #16a34a;
+    --rr-color-exito-fondo: #f0fdf4;
+    --rr-color-boton-hover: var(--color-boton-hover, #334155);
+    --rr-color-sombra-hover: var(--color-sombra-hover, rgba(0, 0, 0, 0.15));
+    --rr-color-sombra-boton: var(--color-sombra-boton, rgba(30, 41, 59, 0.25));
+    --rr-color-tabla-head: var(--color-fondo-tabla-head, #f1f5f9);
+    --rr-color-texto-claro: var(--color-texto-claro, #ffffff);
+    --rr-radius: var(--border-radius2, 8px);
+    --rr-transition: 0.2s ease;
+}
+
+/* ==========================================
+   CONTENEDOR PRINCIPAL
+   ========================================== */
 .registro-reporte-contenedor {
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
     padding: 1.5rem;
-    padding-bottom: 6rem; /* Más espacio para los botones fijos */
+    padding-bottom: 6rem;
 }
 
 .registro-reporte-contenedor form {
@@ -18,32 +48,62 @@
     align-items: flex-start;
 }
 
-/* ---- Columna izquierda (campos del formulario) ---- */
+/* ==========================================
+   COLUMNA IZQUIERDA (campos del formulario)
+   ========================================== */
 .registro-reporte-campos {
     flex: 2;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
-    background: var(--color-fondo-card);
+    gap: 1.5rem;
+    background: var(--rr-color-fondo);
     padding: 1.5rem;
-    border-radius: var(--border-radius2);
-    box-shadow: 0 1px 3px var(--color-sombra-card);
-    border: 1px solid var(--color-borde-claro);
+    border-radius: var(--rr-radius);
+    box-shadow: 0 1px 3px var(--rr-color-sombra);
+    border: 1px solid var(--rr-color-borde);
 }
 
-/* ---- Columna derecha (datos de control del reporte) ---- */
+/* ---- Títulos de sección ---- */
+.seccion-titulo {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--rr-color-focus);
+    margin: 0 0 0.25rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--rr-color-focus);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: 0.01em;
+}
+
+/* Separador entre secciones */
+.seccion-divisor {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(to right, var(--rr-color-borde), transparent);
+    margin: 0.25rem 0;
+    border: none;
+}
+
+/* ==========================================
+   COLUMNA DERECHA (datos de control)
+   ========================================== */
 .registro-reporte-control {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    background: var(--color-fondo-card);
+    background: var(--rr-color-fondo);
     padding: 1.5rem;
-    border-radius: var(--border-radius2);
-    box-shadow: 0 1px 3px var(--color-sombra-card);
-    border: 1px solid var(--color-borde-claro);
+    border-radius: var(--rr-radius);
+    box-shadow: 0 1px 3px var(--rr-color-sombra);
+    border: 1px solid var(--rr-color-borde);
     position: sticky;
-    top: 5rem;
+    top: 1.5rem;
+    align-self: flex-start;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
 }
 
 /* ---- Numeros del reporte (columna derecha) ---- */
@@ -56,7 +116,7 @@
 .numero-reporte > label {
     font-size: 0.875rem;
     font-weight: 600;
-    color: var(--color-fondo-oscuro);
+    color: var(--rr-color-focus);
     letter-spacing: 0.01em;
     margin-top: 0.5rem;
 }
@@ -70,23 +130,25 @@
     width: 100%;
     padding: 0.625rem 0.875rem;
     font-size: 0.9rem;
-    color: var(--color-texto-oscuro);
-    background: var(--color-input-fondo);
-    border: 1px solid var(--color-input-borde);
-    border-radius: var(--border-radius2);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    color: var(--rr-color-texto);
+    background: var(--rr-color-input-fondo);
+    border: 1px solid var(--rr-color-input-borde);
+    border-radius: var(--rr-radius);
+    transition: border-color var(--rr-transition), box-shadow var(--rr-transition);
     outline: none;
     box-sizing: border-box;
 }
 
 .numero-reporte > input:focus,
 .numero-reporte > select:focus {
-    border-color: var(--color-fondo-oscuro);
-    box-shadow: 0 0 0 3px var(--color-input-focus-sombra);
-    background: var(--color-fondo-card);
+    border-color: var(--rr-color-focus);
+    box-shadow: 0 0 0 3px var(--rr-color-focus-sombra);
+    background: var(--rr-color-fondo);
 }
 
-/* ---- Grupo de campo (label + input/select/textarea) ---- */
+/* ==========================================
+   GRUPO DE CAMPO (label + input/select/textarea)
+   ========================================== */
 .campo-grupo {
     display: flex;
     flex-direction: column;
@@ -96,7 +158,7 @@
 .campo-grupo label {
     font-size: 0.875rem;
     font-weight: 600;
-    color: var(--color-fondo-oscuro);
+    color: var(--rr-color-focus);
     letter-spacing: 0.01em;
     display: flex;
     align-items: center;
@@ -105,8 +167,9 @@
 
 .campo-grupo label.requerido::after {
     content: '*';
-    color: var(--color-error);
+    color: var(--rr-color-error);
     font-weight: bold;
+    margin-left: 0.125rem;
 }
 
 .campo-grupo input,
@@ -115,11 +178,11 @@
     width: 100%;
     padding: 0.625rem 0.875rem;
     font-size: 0.9rem;
-    color: var(--color-texto-oscuro);
-    background: var(--color-input-fondo);
-    border: 1px solid var(--color-input-borde);
-    border-radius: var(--border-radius2);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    color: var(--rr-color-texto);
+    background: var(--rr-color-input-fondo);
+    border: 1px solid var(--rr-color-input-borde);
+    border-radius: var(--rr-radius);
+    transition: border-color var(--rr-transition), box-shadow var(--rr-transition), background var(--rr-transition);
     outline: none;
     box-sizing: border-box;
 }
@@ -127,9 +190,10 @@
 .campo-grupo input:focus,
 .campo-grupo select:focus,
 .campo-grupo textarea:focus {
-    border-color: var(--color-fondo-oscuro);
-    box-shadow: 0 0 0 3px var(--color-input-focus-sombra);
-    background: var(--color-fondo-card);
+    border-color: var(--rr-color-focus);
+    box-shadow: 0 0 0 3px var(--rr-color-focus-sombra);
+    background: var(--rr-color-fondo);
+    transform: translateY(0);
 }
 
 .campo-grupo textarea {
@@ -139,92 +203,152 @@
     font-family: inherit;
 }
 
-/* ---- Botones (Add, New) ---- */
-.agregar-repuesto,
-.Nuevo-repuesto,
-.agregar-etiqueta,
-.Nueva-etiqueta,
-.agregar-tecnico {
+/* ---- Mensajes de error inline ---- */
+.campo-grupo .mensaje-error {
+    font-size: 0.75rem;
+    color: var(--rr-color-error);
+    margin-top: 0.125rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    animation: fadeIn 0.2s ease;
+}
+
+/* ---- Estado de error en campos ---- */
+.campo-grupo input.input-error,
+.campo-grupo select.input-error,
+.campo-grupo textarea.input-error {
+    border-color: var(--rr-color-error);
+    background: var(--rr-color-error-fondo);
+}
+
+.campo-grupo input.input-error:focus,
+.campo-grupo select.input-error:focus,
+.campo-grupo textarea.input-error:focus {
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+    border-color: var(--rr-color-error);
+}
+
+/* ---- Estado de éxito en campos ---- */
+.campo-grupo input.input-exito,
+.campo-grupo select.input-exito,
+.campo-grupo textarea.input-exito {
+    border-color: var(--rr-color-exito);
+    background: var(--rr-color-exito-fondo);
+}
+
+/* ---- Campos requeridos (borde izquierdo) ---- */
+.campo-grupo input:required,
+.campo-grupo select:required {
+    border-left: 3px solid var(--rr-color-focus);
+}
+
+.campo-grupo input.input-error:required,
+.campo-grupo select.input-error:required {
+    border-left-color: var(--rr-color-error);
+}
+
+/* ---- Placeholder styling ---- */
+.campo-grupo input::placeholder,
+.campo-grupo textarea::placeholder {
+    color: var(--rr-color-texto-sec);
+    opacity: 0.7;
+    font-style: italic;
+}
+
+/* ==========================================
+   BOTONES (Add, New, Agregar)
+   ========================================== */
+.btn-agregar,
+.btn-nuevo-item {
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
     margin: 0.25rem;
     font-weight: 600;
     border: none;
-    border-radius: var(--border-radius2);
+    border-radius: var(--rr-radius);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--rr-transition);
     align-self: flex-start;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.375rem;
     min-width: 4rem;
+    white-space: nowrap;
 }
 
-.agregar-repuesto,
-.agregar-etiqueta,
-.agregar-tecnico {
-    background: var(--color-fondo-oscuro);
-    color: var(--color-texto-claro);
+.btn-agregar {
+    background: var(--rr-color-focus);
+    color: var(--rr-color-texto-claro);
 }
 
-.agregar-repuesto:hover,
-.agregar-etiqueta:hover,
-.agregar-tecnico:hover {
-    background: var(--color-boton-hover);
+.btn-agregar:hover {
+    background: var(--rr-color-boton-hover);
     transform: translateY(-1px);
-    box-shadow: 0 2px 6px var(--color-sombra-hover);
+    box-shadow: 0 2px 6px var(--rr-color-sombra-hover);
 }
 
-.agregar-repuesto:active,
-.agregar-etiqueta:active,
-.agregar-tecnico:active {
+.btn-agregar:active {
     transform: translateY(0);
 }
 
-.Nuevo-repuesto,
-.Nueva-etiqueta {
-    background: var(--color-boton-secundario-fondo);
-    color: var(--color-boton-secundario-texto);
-    border: 1px solid var(--color-input-borde);
+.btn-nuevo-item {
+    background: transparent;
+    color: var(--rr-color-texto-sec);
+    border: 1px solid var(--rr-color-input-borde);
 }
 
-.Nuevo-repuesto:hover,
-.Nueva-etiqueta:hover {
-    background: var(--color-input-borde);
+.btn-nuevo-item:hover {
+    background: var(--rr-color-input-fondo);
+    border-color: var(--rr-color-texto-sec);
     transform: translateY(-1px);
-    box-shadow: 0 2px 6px var(--color-sombra-hover);
+    box-shadow: 0 2px 6px var(--rr-color-sombra-hover);
 }
 
-/* ---- Tablas (repuestos, etiquetas, tecnicos) ---- */
+.btn-nuevo-item:active {
+    transform: translateY(0);
+}
+
+/* ==========================================
+   TABLAS (repuestos, etiquetas, técnicos)
+   ========================================== */
+.tabla-items {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-top: 0.5rem;
+    border-radius: var(--rr-radius);
+    border: 1px solid var(--rr-color-borde);
+}
+
 .tabla-repuestos,
 .tabla-etiquetas {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.85rem;
-    margin-top: 0.5rem;
+    min-width: 280px;
 }
 
 .tabla-repuestos th,
 .tabla-etiquetas th {
-    background: var(--color-fondo-tabla-head);
-    color: var(--color-fondo-oscuro);
+    background: var(--rr-color-tabla-head);
+    color: var(--rr-color-focus);
     font-weight: 600;
     text-align: left;
-    padding: 0.5rem 0.75rem;
-    border-bottom: 2px solid var(--color-borde-claro);
+    padding: 0.625rem 0.75rem;
+    border-bottom: 2px solid var(--rr-color-borde);
     white-space: nowrap;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
 .tabla-repuestos td,
 .tabla-etiquetas td {
     padding: 0.5rem 0.75rem;
-    border-bottom: 1px solid var(--color-fondo-tabla-head);
-}
-
-.tabla-repuestos tr:hover,
-.tabla-etiquetas tr:hover {
-    background: var(--color-input-fondo);
+    border-bottom: 1px solid var(--rr-color-tabla-head);
+    vertical-align: middle;
 }
 
 .tabla-repuestos tr:last-child td,
@@ -232,55 +356,99 @@
     border-bottom: none;
 }
 
-/* ---- Grupo de radios para la declaracion ---- */
+.tabla-repuestos tbody tr,
+.tabla-etiquetas tbody tr {
+    transition: background var(--rr-transition);
+}
+
+.tabla-repuestos tbody tr:hover,
+.tabla-etiquetas tbody tr:hover {
+    background: var(--rr-color-input-fondo);
+}
+
+.tabla-repuestos tbody tr:active,
+.tabla-etiquetas tbody tr:active {
+    background: var(--rr-color-tabla-head);
+}
+
+/* ---- Tabla vacía (mensaje) ---- */
+.tabla-items-vacia {
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--rr-color-texto-sec);
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+/* ==========================================
+   GRUPO DE RADIOS (declaración)
+   ========================================== */
 .declaracion-radio-grupo {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 0.75rem;
     align-items: center;
     padding: 0.75rem;
-    background: var(--color-input-fondo);
-    border-radius: var(--border-radius2);
-    border: 1px solid var(--color-borde-claro);
+    background: var(--rr-color-input-fondo);
+    border-radius: var(--rr-radius);
+    border: 1px solid var(--rr-color-borde);
 }
 
 .declaracion-radio-grupo label {
     font-size: 0.85rem;
     font-weight: 500;
-    color: var(--color-texto-secundario);
+    color: var(--rr-color-texto-sec);
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
     cursor: pointer;
-    padding: 0.25rem 0.5rem;
-    border-radius: var(--border-radius2);
-    transition: background 0.15s ease;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--rr-radius);
+    transition: all var(--rr-transition);
+    border: 1px solid transparent;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .declaracion-radio-grupo label:hover {
-    background: var(--color-sombra-sutil);
+    background: var(--rr-color-tabla-head);
+    border-color: var(--rr-color-input-borde);
+}
+
+/* Opción seleccionada - estilo tarjeta */
+.declaracion-radio-grupo label.radio-seleccionado {
+    background: var(--rr-color-fondo);
+    border-color: var(--rr-color-focus);
+    color: var(--rr-color-focus);
+    font-weight: 600;
+    box-shadow: 0 0 0 2px var(--rr-color-focus-sombra);
 }
 
 .declaracion-radio-grupo input[type="radio"] {
     width: auto;
-    accent-color: var(--color-fondo-oscuro);
+    accent-color: var(--rr-color-focus);
     cursor: pointer;
+    margin: 0;
 }
 
-/* ---- Contenedor de acciones en la parte inferior ---- */
+/* ==========================================
+   BARRA DE ACCIONES INFERIOR (fija)
+   ========================================== */
 .form-acciones-contenedor {
     position: fixed;
     bottom: 0;
-    left: 240px; /* Ancho típico del sidebar en desktop */
+    left: 240px;
     right: 0;
-    background: var(--color-fondo-card);
+    background: var(--rr-color-fondo);
     padding: 1rem 1.5rem;
-    border-top: 1px solid var(--color-borde-claro);
-    box-shadow: 0 -2px 10px var(--color-sombra-card);
+    border-top: 1px solid var(--rr-color-borde);
+    box-shadow: 0 -2px 10px var(--rr-color-sombra);
     z-index: 5;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.95);
 }
 
-/* ---- Barra de acciones ---- */
 .form-acciones {
     max-width: 1400px;
     margin: 0 auto;
@@ -294,9 +462,9 @@
     padding: 0.625rem 1.5rem;
     font-size: 0.9rem;
     font-weight: 600;
-    border-radius: var(--border-radius2);
+    border-radius: var(--rr-radius);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--rr-transition);
     border: none;
     display: inline-flex;
     align-items: center;
@@ -304,38 +472,41 @@
 }
 
 .btn-guardar:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
 .btn-guardar:disabled:hover {
     transform: none;
     box-shadow: none;
+    background: var(--rr-color-focus);
 }
 
 .btn-guardar {
-    background: var(--color-fondo-oscuro);
-    color: var(--color-texto-claro);
+    background: var(--rr-color-focus);
+    color: var(--rr-color-texto-claro);
 }
 
-.btn-guardar:hover {
-    background: var(--color-boton-hover);
+.btn-guardar:hover:not(:disabled) {
+    background: var(--rr-color-boton-hover);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px var(--color-sombra-boton);
+    box-shadow: 0 2px 8px var(--rr-color-sombra-boton);
 }
 
 .btn-cancelar {
     background: transparent;
-    color: var(--color-texto-secundario);
-    border: 1px solid var(--color-input-borde);
+    color: var(--rr-color-texto-sec);
+    border: 1px solid var(--rr-color-input-borde);
 }
 
 .btn-cancelar:hover {
-    background: var(--color-input-fondo);
-    border-color: var(--color-texto-secundario);
+    background: var(--rr-color-input-fondo);
+    border-color: var(--rr-color-texto-sec);
 }
 
-/* ---- Grupos en línea para botones ---- */
+/* ==========================================
+   GRUPOS EN LÍNEA (select + botones)
+   ========================================== */
 .grupo-repuestos-linea,
 .grupo-etiquetas-linea,
 .grupo-tecnicos-linea {
@@ -349,79 +520,73 @@
 .input-cantidad {
     padding: 0.5rem 0.75rem;
     font-size: 0.9rem;
-    width: 120px;
-    border: 1px solid var(--color-input-borde);
-    border-radius: var(--border-radius2);
-    background: var(--color-input-fondo);
+    width: 100px;
+    border: 1px solid var(--rr-color-input-borde);
+    border-radius: var(--rr-radius);
+    background: var(--rr-color-input-fondo);
+    transition: border-color var(--rr-transition), box-shadow var(--rr-transition);
+    outline: none;
+    box-sizing: border-box;
 }
 
 .input-cantidad:focus {
-    border-color: var(--color-fondo-oscuro);
+    border-color: var(--rr-color-focus);
     outline: none;
-    box-shadow: 0 0 0 3px var(--color-input-focus-sombra);
+    box-shadow: 0 0 0 3px var(--rr-color-focus-sombra);
 }
 
-/* ---- Botón de eliminar en tablas ---- */
+/* ==========================================
+   BOTÓN ELIMINAR (tablas)
+   ========================================== */
 .btn-eliminar {
-    background: var(--color-error-fondo);
-    color: var(--color-error-texto);
-    border: 1px solid var(--color-error-borde);
-    border-radius: 4px;
-    width: 28px;
-    height: 28px;
+    background: var(--rr-color-error-fondo);
+    color: var(--rr-color-error);
+    border: 1px solid var(--rr-color-error-borde);
+    border-radius: 6px;
+    width: 30px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.875rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--rr-transition);
+    opacity: 0.7;
 }
 
 .btn-eliminar:hover {
-    background: var(--color-error-fondo-hover);
+    background: var(--rr-color-error);
+    color: white;
     transform: scale(1.1);
+    opacity: 1;
 }
 
 .btn-eliminar:active {
     transform: scale(0.95);
 }
 
-/* ---- Espaciado para selects con botones adyacentes ---- */
-.campo-grupo:has(> select + button) {
+/* ==========================================
+   ESPACIADO PARA SELECTS CON BOTONES ADYACENTES
+   ========================================== */
+.campo-grupo:has(> select + div) {
     gap: 0.5rem;
 }
 
-.campo-grupo:has(> select + button) select {
-    margin-bottom: 0;
+/* ==========================================
+   ANIMACIONES
+   ========================================== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* ---- Mensajes de validacion ---- */
-.campo-grupo input:invalid:not(:placeholder-shown),
-.campo-grupo select:invalid:not(:placeholder-shown),
-.campo-grupo textarea:invalid:not(:placeholder-shown) {
-    border-color: var(--color-error);
-}
-
-.campo-grupo input:invalid:not(:placeholder-shown):focus,
-.campo-grupo select:invalid:not(:placeholder-shown):focus,
-.campo-grupo textarea:invalid:not(:placeholder-shown):focus {
-    box-shadow: 0 0 0 3px var(--color-error-sombra);
-}
-
-.campo-grupo input:required,
-.campo-grupo select:required {
-    border-left: 2px solid var(--color-fondo-oscuro);
-}
-
-/* ---- Placeholder styling ---- */
-.campo-grupo input::placeholder,
-.campo-grupo textarea::placeholder {
-    color: var(--color-texto-secundario);
-    opacity: 0.7;
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* ==========================================
-   RESPONSIVE - Adaptación a distintos tamaños
+   RESPONSIVE
    ========================================== */
 
 /* ---- Tablets y pantallas medianas (< 1024px) ---- */
@@ -432,14 +597,15 @@
 
     .registro-reporte-control {
         position: static;
+        max-height: none;
+        overflow-y: visible;
     }
 }
 
 /* ---- Cuando el sidebar se colapsa o pasa a modo mobile (< 768px) ---- */
-/* El sidebar de shadcn/ui usa md: (768px) como breakpoint para ocultarse */
 @media (max-width: 768px) {
     .form-acciones-contenedor {
-        left: 0; /* Sidebar ya no ocupa espacio, ocupa todo el ancho */
+        left: 0;
     }
 
     .registro-reporte-contenedor {
@@ -453,8 +619,12 @@
 
     .declaracion-radio-grupo {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
         gap: 0.5rem;
+    }
+
+    .declaracion-radio-grupo label {
+        justify-content: center;
     }
 
     .form-acciones {
@@ -467,12 +637,23 @@
         width: 100%;
         justify-content: center;
     }
+
+    .tabla-items {
+        border-radius: 6px;
+    }
+
+    .tabla-repuestos,
+    .tabla-etiquetas {
+        font-size: 0.8rem;
+        min-width: 240px;
+    }
 }
 
 /* ---- Móviles pequeños (< 480px) ---- */
 @media (max-width: 480px) {
     .registro-reporte-contenedor {
         padding: 0.75rem;
+        padding-bottom: 7rem;
     }
 
     .registro-reporte-campos,
@@ -496,11 +677,8 @@
         font-size: 0.85rem;
     }
 
-    .agregar-repuesto,
-    .Nuevo-repuesto,
-    .agregar-etiqueta,
-    .Nueva-etiqueta,
-    .agregar-tecnico {
+    .btn-agregar,
+    .btn-nuevo-item {
         padding: 0.375rem 0.75rem;
         font-size: 0.75rem;
         min-width: 3rem;
@@ -509,6 +687,7 @@
     .tabla-repuestos,
     .tabla-etiquetas {
         font-size: 0.75rem;
+        min-width: 200px;
     }
 
     .tabla-repuestos th,
@@ -520,12 +699,12 @@
 
     .declaracion-radio-grupo {
         padding: 0.5rem;
-        gap: 0.5rem;
+        gap: 0.375rem;
     }
 
     .declaracion-radio-grupo label {
         font-size: 0.75rem;
-        padding: 0.375rem;
+        padding: 0.375rem 0.5rem;
     }
 
     .form-acciones {
@@ -554,8 +733,12 @@
     }
 
     .btn-eliminar {
-        width: 24px;
-        height: 24px;
+        width: 26px;
+        height: 26px;
         font-size: 0.75rem;
+    }
+
+    .seccion-titulo {
+        font-size: 0.9rem;
     }
 }

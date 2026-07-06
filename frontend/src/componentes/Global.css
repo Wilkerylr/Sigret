@@ -56,11 +56,25 @@
     --color-sidebar-logout-fondo: rgba(220, 38, 38, 0.15);
     --color-sidebar-logout-texto: #ef4444;
 
+    /* === Colores para tags/campos === */
+    --color-tag-campo-fondo: #e0e7ff;
+    --color-tag-campo-texto: #4338ca;
+
+    /* === Colores para historial de cambios (valor antiguo/nuevo) === */
+    --color-historial-antiguo-fondo: #fef2f2;
+    --color-historial-antiguo-borde: #fecaca;
+    --color-historial-antiguo-texto: #991b1b;
+    --color-historial-nuevo-fondo: #f0fdf4;
+    --color-historial-nuevo-borde: #bbf7d0;
+    --color-historial-nuevo-texto: #166534;
+
     /* === Sombras === */
     --color-sombra-card: rgba(0, 0, 0, 0.08);
     --color-sombra-hover: rgba(0, 0, 0, 0.15);
     --color-sombra-boton: rgba(0, 0, 0, 0.2);
     --color-sombra-sutil: rgba(0, 0, 0, 0.04);
+    --color-sombra-modal: rgba(0, 0, 0, 0.2);
+    --color-overlay: rgba(0, 0, 0, 0.5);
 
     /* === Mapeo shadcn/ui sidebar === */
     --sidebar: var(--color-fondo-oscuro);

@@ -1,0 +1,313 @@
+/* ======================================
+   gestion_registros.css
+   Estilos base: contenedor principal, navegación de tabs, headers y filtros compartidos
+   ====================================== */
+
+/* ---- Contenedor principal ---- */
+.gestion-registros-container {
+    padding: 1.5rem;
+    width: 100%;
+}
+
+/* ---- Navegación de Tabs ---- */
+.gestion-tabs-nav {
+    display: flex;
+    gap: 0.375rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--color-borde-claro);
+    flex-wrap: wrap;
+}
+
+.gestion-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.125rem;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius2);
+    background: transparent;
+    color: var(--color-texto-secundario);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.gestion-tab-btn:hover {
+    background: var(--color-boton-secundario-fondo);
+    color: var(--color-fondo-oscuro);
+}
+
+.gestion-tab-btn.activo {
+    background: var(--color-fondo-oscuro);
+    color: var(--color-texto-claro);
+    border-color: var(--color-fondo-oscuro);
+}
+
+.gestion-tab-label {
+    font-size: 0.875rem;
+}
+
+.gestion-tab-content {
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Header de cada tab ---- */
+.tab-header {
+    margin-bottom: 1.25rem;
+}
+
+.tab-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.tab-titulo {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-texto-oscuro);
+    margin-bottom: 0.375rem;
+}
+
+.tab-descripcion {
+    font-size: 0.875rem;
+    color: var(--color-texto-terciario);
+}
+
+.tab-btn-agregar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.125rem;
+    border: none;
+    border-radius: var(--border-radius2);
+    background: var(--color-fondo-oscuro);
+    color: var(--color-texto-claro);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.tab-btn-agregar:hover {
+    background: var(--color-boton-hover);
+}
+
+/* ---- Filtros de cada tab ---- */
+.tab-filtros {
+    border: 1px solid var(--color-borde-claro);
+    border-radius: var(--border-radius2);
+    background: var(--color-fondo-card);
+    box-shadow: 0 1px 3px var(--color-sombra-card);
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.tab-filtros-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 640px) {
+    .tab-filtros-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .tab-filtros-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.tab-filtro-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.tab-filtro-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-texto-secundario);
+}
+
+.tab-filtro-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.tab-filtro-icono {
+    position: absolute;
+    left: 0.625rem;
+    color: var(--color-texto-terciario);
+    pointer-events: none;
+}
+
+.tab-filtro-icono + .tab-filtro-input {
+    padding-left: 2rem;
+}
+
+.tab-filtro-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-input-borde);
+    border-radius: var(--border-radius2);
+    background: var(--color-input-fondo);
+    font-size: 0.875rem;
+    color: var(--color-texto-oscuro);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+.tab-filtro-input:focus {
+    border-color: var(--color-fondo-oscuro);
+    box-shadow: 0 0 0 3px var(--color-input-focus-sombra);
+}
+
+.tab-filtro-input::placeholder {
+    color: var(--color-texto-terciario);
+    font-size: 0.8125rem;
+}
+
+.tab-filtro-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-input-borde);
+    border-radius: var(--border-radius2);
+    background: var(--color-input-fondo);
+    font-size: 0.875rem;
+    color: var(--color-texto-oscuro);
+    outline: none;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+    appearance: auto;
+}
+
+.tab-filtro-select:focus {
+    border-color: var(--color-fondo-oscuro);
+    box-shadow: 0 0 0 3px var(--color-input-focus-sombra);
+}
+
+.tab-filtro-rango {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.tab-filtro-rango .tab-filtro-input {
+    flex: 1;
+}
+
+.tab-filtro-separador {
+    font-size: 0.875rem;
+    color: var(--color-texto-terciario);
+}
+
+.tab-filtros-acciones {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    justify-content: flex-end;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-borde-claro);
+}
+
+.tab-btn-limpiar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-input-borde);
+    border-radius: var(--border-radius2);
+    background: var(--color-fondo-card);
+    color: var(--color-texto-secundario);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.tab-btn-limpiar:hover {
+    background: var(--color-boton-secundario-fondo);
+    border-color: var(--color-texto-terciario);
+}
+
+/* ---- Etiquetas (tags) dentro de la tabla ---- */
+.gestion-tags {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+
+.gestion-tag {
+    display: inline-flex;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    background: var(--color-fondo-claro);
+    color: var(--color-fondo-oscuro);
+    white-space: nowrap;
+}
+
+.gestion-tag-campo {
+    background: var(--color-tag-campo-fondo);
+    color: var(--color-tag-campo-texto);
+}
+
+.gestion-tag-vacio {
+    font-size: 0.75rem;
+    color: var(--color-texto-terciario);
+    font-style: italic;
+}
+
+/* ---- Etiquetas (tabla de etiquetas) ---- */
+.gestion-etiqueta-nombre {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.gestion-etiqueta-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.gestion-etiqueta-color-muestra {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.gestion-etiqueta-color-preview {
+    width: 20px;
+    height: 20px;
+    border-radius: var(--border-radius2);
+    display: inline-block;
+    border: 1px solid var(--color-borde-claro);
+    flex-shrink: 0;
+}
+
+.gestion-etiqueta-color-hex {
+    font-size: 0.75rem;
+    font-family: monospace;
+    color: var(--color-texto-terciario);
+}

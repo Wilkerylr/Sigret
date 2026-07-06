@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SelectConBotonesProps } from '../types';
+import ModalAgregarItem from './ModalAgregarItem';
+import './modal-agregar-item.css';
 
 const SelectConBotones: React.FC<SelectConBotonesProps> = ({
   label,
@@ -9,13 +11,49 @@ const SelectConBotones: React.FC<SelectConBotonesProps> = ({
   onChange,
   onAgregar,
   onEliminar,
+  onNuevo,
   items,
   botonNuevo = false,
   tipo = 'simple',
   requerido = true,
   inputCantidad,
 }) => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [opcionesExtra, setOpcionesExtra] = useState<Array<{ value: string; label: string }>>([]);
   const esRepuestos = tipo === 'conCantidad';
+
+  const todasLasOpciones = [...opciones, ...opcionesExtra];
+
+  const handleNuevoConfirm = (nombre: string) => {
+    const value = nombre.toLowerCase().replace(/\s+/g, '_');
+    const nuevaOpcion = { value, label: nombre };
+
+    // Agregar la nueva opción a las opciones extra
+    setOpcionesExtra(prev => [...prev, nuevaOpcion]);
+
+    // Seleccionar la nueva opción en el dropdown
+    if (onChange) {
+      const syntheticEvent = {
+        target: {
+          name: name,
+          value: value,
+        },
+      } as React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
+      onChange(syntheticEvent);
+    }
+
+    // Llamar al callback onNuevo si existe
+    if (onNuevo) {
+      onNuevo();
+    }
+
+    // Auto-agregar solo para etiquetas (tipo simple), no para repuestos que requieren cantidad
+    if (!esRepuestos) {
+      setTimeout(() => {
+        onAgregar();
+      }, 0);
+    }
+  };
 
   return (
     <div className="campo-grupo">
@@ -34,7 +72,7 @@ const SelectConBotones: React.FC<SelectConBotonesProps> = ({
         }}
         className="campo-input"
       >
-        {opciones.map((opcion) => (
+        {todasLasOpciones.map((opcion) => (
           <option key={opcion.value} value={opcion.value}>
             {opcion.label}
           </option>
@@ -43,13 +81,7 @@ const SelectConBotones: React.FC<SelectConBotonesProps> = ({
       
       {esRepuestos ? (
         <div className="grupo-repuestos-linea">
-          <button
-            type="button"
-            className="agregar-repuesto"
-            onClick={onAgregar}
-            aria-label="Agregar repuesto seleccionado"
-          >
-            {inputCantidad && (
+          {inputCantidad && (
             <input
               type="text"
               className="input-cantidad"
@@ -60,16 +92,23 @@ const SelectConBotones: React.FC<SelectConBotonesProps> = ({
               inputMode="numeric"
             />
           )}
+          <button
+            type="button"
+            className="btn-agregar"
+            onClick={onAgregar}
+            aria-label="Agregar repuesto seleccionado"
+          >
             Agregar
           </button>
           
           {botonNuevo && (
             <button
               type="button"
-              className="Nuevo-repuesto"
+              className="btn-nuevo-item"
+              onClick={() => setModalOpen(true)}
               aria-label="Crear nuevo repuesto"
             >
-              New
+              Nuevo
             </button>
           )}
           
@@ -78,26 +117,27 @@ const SelectConBotones: React.FC<SelectConBotonesProps> = ({
         <div className="grupo-etiquetas-linea">
           <button
             type="button"
-            className="agregar-etiqueta"
+            className="btn-agregar"
             onClick={onAgregar}
             aria-label="Agregar item seleccionado"
           >
-            Add
+            Agregar
           </button>
           
           {botonNuevo && (
             <button
               type="button"
-              className="Nueva-etiqueta"
+              className="btn-nuevo-item"
+              onClick={() => setModalOpen(true)}
               aria-label="Crear nuevo item"
             >
-              New
+              Nuevo
             </button>
           )}
         </div>
       )}
       
-      {items.length > 0 && (
+      {items.length > 0 ? (
         <div className="tabla-items">
           <table className={esRepuestos ? 'tabla-repuestos' : 'tabla-etiquetas'}>
             <thead>
@@ -125,7 +165,7 @@ const SelectConBotones: React.FC<SelectConBotonesProps> = ({
                       <td>{(item as any).cantidad}</td>
                     </>
                   ) : (
-                    <td>{opciones.find(op => op.value === item)?.label || item as string}</td>
+                    <td>{todasLasOpciones.find(op => op.value === item)?.label || item as string}</td>
                   )}
                   <td>
                     <button
@@ -142,7 +182,18 @@ const SelectConBotones: React.FC<SelectConBotonesProps> = ({
             </tbody>
           </table>
         </div>
+      ) : (
+        <div className="tabla-items-vacia">
+          No hay {label.toLowerCase()} agregados
+        </div>
       )}
+
+      <ModalAgregarItem
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onConfirm={handleNuevoConfirm}
+        tipo={esRepuestos ? 'repuesto' : 'etiqueta'}
+      />
     </div>
   );
 };

@@ -1,0 +1,504 @@
+/* ======================================
+   TabHistorial.css — Estilos del log de auditoría
+   ====================================== */
+
+.tab-historial-header {
+    margin-bottom: 1.25rem;
+}
+
+.tab-historial-titulo {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-texto-oscuro);
+    margin-bottom: 0.375rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tab-historial-descripcion {
+    font-size: 0.875rem;
+    color: var(--color-texto-terciario);
+}
+
+/* Filtros del historial */
+.tab-historial-filtros {
+    border: 1px solid var(--color-borde-claro);
+    border-radius: var(--border-radius2);
+    background: var(--color-fondo-card);
+    box-shadow: 0 1px 3px var(--color-sombra-card);
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.tab-historial-filtros-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 640px) {
+    .tab-historial-filtros-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .tab-historial-filtros-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.tab-historial-filtro-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.tab-historial-filtro-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-texto-secundario);
+}
+
+.tab-historial-filtro-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.tab-historial-filtro-icono {
+    position: absolute;
+    left: 0.625rem;
+    color: var(--color-texto-terciario);
+    pointer-events: none;
+}
+
+.tab-historial-filtro-icono + .tab-historial-filtro-input {
+    padding-left: 2rem;
+}
+
+.tab-historial-filtro-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-input-borde);
+    border-radius: var(--border-radius2);
+    background: var(--color-input-fondo);
+    font-size: 0.875rem;
+    color: var(--color-texto-oscuro);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+.tab-historial-filtro-input:focus {
+    border-color: var(--color-fondo-oscuro);
+    box-shadow: 0 0 0 3px var(--color-input-focus-sombra);
+}
+
+.tab-historial-filtro-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-input-borde);
+    border-radius: var(--border-radius2);
+    background: var(--color-input-fondo);
+    font-size: 0.875rem;
+    color: var(--color-texto-oscuro);
+    outline: none;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tab-historial-filtro-select:focus {
+    border-color: var(--color-fondo-oscuro);
+    box-shadow: 0 0 0 3px var(--color-input-focus-sombra);
+}
+
+.tab-historial-filtro-rango {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.tab-historial-filtro-rango .tab-historial-filtro-input {
+    flex: 1;
+}
+
+.tab-historial-filtro-separador {
+    font-size: 0.875rem;
+    color: var(--color-texto-terciario);
+}
+
+.tab-historial-filtros-acciones {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    justify-content: flex-end;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-borde-claro);
+}
+
+.tab-historial-btn-limpiar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-input-borde);
+    border-radius: var(--border-radius2);
+    background: var(--color-fondo-card);
+    color: var(--color-texto-secundario);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.tab-historial-btn-limpiar:hover {
+    background: var(--color-boton-secundario-fondo);
+    border-color: var(--color-texto-terciario);
+}
+
+/* Lista del historial */
+.tab-historial-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.tab-historial-item {
+    border: 1px solid var(--color-borde-claro);
+    border-radius: var(--border-radius2);
+    background: var(--color-fondo-card);
+    box-shadow: 0 1px 2px var(--color-sombra-card);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+
+.tab-historial-item:hover {
+    box-shadow: 0 2px 6px var(--color-sombra-hover);
+}
+
+.tab-historial-item-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+}
+
+.tab-historial-item-indicador {
+    flex-shrink: 0;
+}
+
+.tab-historial-item-badge {
+    display: inline-block;
+    padding: 0.1875rem 0.5rem;
+    border-radius: 9999px;
+    color: var(--color-texto-claro);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.tab-historial-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.tab-historial-item-reporte {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-fondo-oscuro);
+}
+
+.tab-historial-item-descripcion {
+    font-size: 0.75rem;
+    color: var(--color-texto-terciario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tab-historial-item-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.125rem;
+    flex-shrink: 0;
+}
+
+.tab-historial-item-usuario {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--color-texto-secundario);
+}
+
+.tab-historial-item-fecha {
+    font-size: 0.6875rem;
+    color: var(--color-texto-terciario);
+}
+
+.tab-historial-item-expandir {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-texto-terciario);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+
+.tab-historial-item-expandir:hover {
+    background: var(--color-boton-secundario-fondo);
+    color: var(--color-fondo-oscuro);
+}
+
+.tab-historial-item-expandir svg {
+    transition: transform 0.2s;
+}
+
+.tab-historial-item-expandir.abierto svg {
+    transform: rotate(180deg);
+}
+
+/* Detalle expandido */
+.tab-historial-item-detalle {
+    border-top: 1px solid var(--color-borde-claro);
+    padding: 1rem;
+    animation: slideDownHistorial 0.2s ease-out;
+}
+
+@keyframes slideDownHistorial {
+    from { opacity: 0; max-height: 0; }
+    to { opacity: 1; max-height: 500px; }
+}
+
+.tab-historial-detalle-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+    .tab-historial-detalle-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.tab-historial-detalle-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.tab-historial-detalle-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--color-texto-terciario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.tab-historial-detalle-valor {
+    font-size: 0.8125rem;
+    color: var(--color-texto-oscuro);
+}
+
+.tab-historial-detalle-campos {
+    margin-bottom: 1rem;
+}
+
+.tab-historial-detalle-tags {
+    display: flex;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+    margin-top: 0.375rem;
+}
+
+.tab-historial-detalle-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.1875rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    background: var(--color-fondo-claro);
+    color: var(--color-fondo-oscuro);
+}
+
+.tab-historial-detalle-cambio {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-borde-claro);
+}
+
+.tab-historial-detalle-cambio-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.tab-historial-detalle-cambio-valor {
+    padding: 0.5rem;
+    border-radius: var(--border-radius2);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    min-height: 2rem;
+}
+
+.tab-historial-detalle-cambio-valor.antiguo {
+    background: var(--color-historial-antiguo-fondo);
+    border: 1px solid var(--color-historial-antiguo-borde);
+    color: var(--color-historial-antiguo-texto);
+}
+
+.tab-historial-detalle-cambio-valor.nuevo {
+    background: var(--color-historial-nuevo-fondo);
+    border: 1px solid var(--color-historial-nuevo-borde);
+    color: var(--color-historial-nuevo-texto);
+}
+
+.tab-historial-vacio {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--color-texto-terciario);
+    font-size: 0.875rem;
+}
+
+/* Paginación del historial */
+.tab-historial-paginacion {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-borde-claro);
+}
+
+@media (min-width: 640px) {
+    .tab-historial-paginacion {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.tab-historial-paginacion-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.8125rem;
+    color: var(--color-texto-terciario);
+}
+
+.tab-historial-paginacion-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    color: var(--color-texto-secundario);
+}
+
+.tab-historial-paginacion-select {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--color-input-borde);
+    border-radius: 6px;
+    background: var(--color-input-fondo);
+    font-size: 0.8125rem;
+    color: var(--color-texto-oscuro);
+    outline: none;
+    cursor: pointer;
+}
+
+.tab-historial-paginacion-select:focus {
+    border-color: var(--color-fondo-oscuro);
+    box-shadow: 0 0 0 2px var(--color-input-focus-sombra);
+}
+
+.tab-historial-paginacion-controles {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.tab-historial-paginacion-btn {
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--color-borde-claro);
+    border-radius: 6px;
+    background: var(--color-fondo-card);
+    color: var(--color-texto-secundario);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.tab-historial-paginacion-btn:hover:not(:disabled) {
+    background: var(--color-boton-secundario-fondo);
+    color: var(--color-fondo-oscuro);
+    border-color: var(--color-fondo-oscuro);
+}
+
+.tab-historial-paginacion-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.tab-historial-paginacion-numero {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.375rem;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-texto-secundario);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.tab-historial-paginacion-numero:hover {
+    background: var(--color-boton-secundario-fondo);
+    color: var(--color-fondo-oscuro);
+}
+
+.tab-historial-paginacion-numero.activo {
+    background: var(--color-fondo-oscuro);
+    color: var(--color-texto-claro);
+    border-color: var(--color-fondo-oscuro);
+    font-weight: 600;
+}
+
+.tab-historial-paginacion-dots {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 2rem;
+    font-size: 0.8125rem;
+    color: var(--color-texto-terciario);
+    letter-spacing: 0.1em;
+}

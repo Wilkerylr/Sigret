@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FormReporteData, Repuesto } from '../types';
 import { validarFechas, validarHoras, validarNumeroPositivo } from '../utils/validaciones';
+import { PLANTILLAS } from '@/data';
 
 const estadoInicial: FormReporteData = {
   cliente: '',
@@ -25,15 +26,73 @@ const estadoInicial: FormReporteData = {
   horaFinalizacion: '',
 };
 
+/**
+ * Busca una plantilla por su nombre y retorna los valores por defecto.
+ * Si el nombre tiene formato value (ej: "mantenimiento"), busca también por label.
+ */
+function obtenerValoresPlantilla(nombrePlantilla: string): Record<string, string> | null {
+  if (!nombrePlantilla) return null;
+
+  // Buscar por nombre exacto del value (formato: "mantenimiento", "reparacion", etc.)
+  const buscarPorLabel = (label: string) =>
+    PLANTILLAS.find(
+      (p) => p.nombre.toLowerCase() === label.toLowerCase()
+    );
+
+  // Intentar búsqueda normalizada: convertir value a nombre (mantenimiento → Mantenimiento)
+  const plantilla = PLANTILLAS.find(
+    (p) => p.nombre.toLowerCase().replace(/\s+/g, '_') === nombrePlantilla.toLowerCase()
+  ) || buscarPorLabel(nombrePlantilla);
+
+  return plantilla?.valoresPorDefecto ?? null;
+}
+
 export const useFormReporte = () => {
   const [formData, setFormData] = useState<FormReporteData>(estadoInicial);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+
+    setFormData(prev => {
+      // Si el campo cambiado es "plantilla", auto-llenar campos con valores de la plantilla
+      if (name === 'plantilla') {
+        const valoresPlantilla = obtenerValoresPlantilla(value);
+
+        // Buscar la plantilla completa para obtener etiquetas predefinidas
+        const plantillaEncontrada = value
+          ? PLANTILLAS.find(
+              (p) =>
+                p.nombre.toLowerCase().replace(/\s+/g, '_') === value.toLowerCase() ||
+                p.nombre.toLowerCase() === value.toLowerCase()
+            )
+          : undefined;
+
+        const etiquetasPredefinidas = plantillaEncontrada?.etiquetasPredefinidas ?? [];
+
+        return {
+          ...prev,
+          plantilla: value,
+          ...(valoresPlantilla
+            ? {
+                descripcionFalla: valoresPlantilla.descripcionFalla ?? prev.descripcionFalla,
+                trabajoRealizado: valoresPlantilla.trabajoRealizado ?? prev.trabajoRealizado,
+                posibleCausa: valoresPlantilla.posibleCausa ?? prev.posibleCausa,
+                anotaciones: valoresPlantilla.anotaciones ?? prev.anotaciones,
+                // Auto-llenar la declaración (estado del equipo)
+                declaracion: valoresPlantilla.declaracion ?? prev.declaracion,
+              }
+            : {}),
+          // Auto-llenar las etiquetas predefinidas de la plantilla
+          etiquetas: etiquetasPredefinidas,
+        };
+      }
+
+      // Para cualquier otro campo, comportamiento normal
+      return {
+        ...prev,
+        [name]: value,
+      };
+    });
   };
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./componentes/ProtectedRoute";
 import "./componentes/Global.css"
@@ -11,6 +12,17 @@ import Layout from "./componentes/layout/mainlayout.tsx";
 import RegistroReportesPage from "./pages/Registro_reportes.tsx";
 import GestionRegistrosPage from "./pages/Gestion_registros.tsx";
 import GestionUsuariosPage from "./pages/Gestion_usuarios.tsx";
+
+// Configuración de React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,        // 5 min antes de considerar datos obsoletos
+      retry: 2,                          // Reintentar 2 veces en caso de error
+      refetchOnWindowFocus: false,       // No recargar al enfocar ventana
+    },
+  },
+});
 
 // Define las rutas de la aplicación
 const router = createBrowserRouter([
@@ -94,9 +106,11 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 

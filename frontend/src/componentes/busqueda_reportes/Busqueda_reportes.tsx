@@ -9,85 +9,9 @@ import './busqueda_reportes.css';
 import FiltrosBusqueda from './components/FiltrosBusqueda';
 import ResultadosBusqueda from './components/ResultadosBusqueda';
 import { FiltrosBusqueda as FiltrosBusquedaType, ReporteResumen, FILTROS_INICIALES } from './types';
-
-// ─── Datos de prueba: 100 reportes ───────────────────────────────────────────
-const CLIENTES_REALES = [
-  'Admin 951', 'Parking paraiso', 'Admin maralva',
-  'Condominio torre la noria', 'Altamira tennis club',
-  'Inv kk 2002', 'Admin omiwi', 'Inv clamarxui',
-];
-
-const EQUIPOS = [
-  'Servidor HP ProLiant DL380', 'Switch Cisco 2960', 'UPS APC 1500VA',
-  'Router MikroTik RB951', 'Cámara Hikvision DS-2CD', 'PC Dell Optiplex 3070',
-  'Impresora HP LaserJet', 'NAS Synology DS220+', 'Access Point Ubiquiti UAP-AC',
-  'Monitor LG 24"', 'Laptop Lenovo ThinkPad', 'Firewall FortiGate 60F',
-];
-
-const ETIQUETAS_DISP = ['Mantenimiento', 'Reparación', 'Inspección', 'Mantenimiento esporádico'];
-const TECNICOS_DISP = ['Victor', 'Wilker', 'Alexis'];
-const REPUESTOS_DISP = ['Batería', 'Disco Duro SSD', 'Memoria RAM', 'Fuente de Poder', 'Ventilador', 'Cable HDMI', 'Teclado', 'Mouse', 'Monitor', 'Router'];
-const PLANTILLAS_DISP = ['Mantenimiento', 'Inspección', 'Reparación'];
-const DECLARACIONES_DISP = ['Operativo', 'Inoperativo', 'No aplica', 'Operativo bajo observación'];
-
-function randItem<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function randItems<T>(arr: T[], max: number): T[] {
-  const count = Math.floor(Math.random() * max) + 1;
-  const shuffled = [...arr].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count);
-}
-
-function randDate(start: Date, end: Date): string {
-  const d = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-  return d.toISOString().split('T')[0];
-}
-
-function pad(n: number): string {
-  return n.toString().padStart(3, '0');
-}
-
-function generarReportesPrueba(): ReporteResumen[] {
-  const reportes: ReporteResumen[] = [];
-  const startDate = new Date('2025-01-01');
-  const endDate = new Date('2026-06-21');
-
-  for (let i = 1; i <= 100; i++) {
-    const cliente = randItem(CLIENTES_REALES);
-    const equipo = randItem(EQUIPOS);
-    const etiquetas = randItems(ETIQUETAS_DISP, 2);
-    const tecnicos = randItems(TECNICOS_DISP, 2);
-    const repuestos = Math.random() > 0.4 ? randItems(REPUESTOS_DISP, 3) : [];
-    const fechaReporte = randDate(startDate, endDate);
-    const fechaAtencion = new Date(new Date(fechaReporte).getTime() + Math.random() * 3 * 86400000).toISOString().split('T')[0];
-    const plantilla = randItem(PLANTILLAS_DISP);
-    const declaracion = randItem(DECLARACIONES_DISP);
-
-    reportes.push({
-      id: String(i),
-      numeroReporte: `REP-${pad(i)}`,
-      cliente,
-      equipo,
-      fechaReporte,
-      fechaAtencion,
-      horaInicio: `${String(7 + Math.floor(Math.random() * 10)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
-      horaFinalizacion: `${String(8 + Math.floor(Math.random() * 10)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
-      descripcionFalla: `Falla detectada en ${equipo} - ${randItem(['No enciende', 'Sobrecalentamiento', 'Ruido anormal', 'Error de conexión', 'Pantalla azul', 'Lento rendimiento', 'Sin señal', 'Corte intermitente'])}`,
-      trabajoRealizado: `Se realizó ${randItem(['mantenimiento preventivo', 'cambio de pieza', 'revisión general', 'actualización de firmware', 'limpieza interna', 'reconfiguración'])} en ${equipo}`,
-      etiquetas,
-      tecnicos,
-      repuestos,
-      declaracion,
-      plantilla,
-    });
-  }
-
-  return reportes;
-}
-
-const REPORTES_PRUEBA = generarReportesPrueba();
+import { FormularioEdicion, CONFIG_REPORTE_EDICION } from '@/componentes/formulario_edicion';
+import type { EntidadEditable } from '@/componentes/formulario_edicion';
+import { REPORTES_PRUEBA } from '@/data';
 
 // ─── Componente principal ────────────────────────────────────────────────────
 const BusquedaReportes: React.FC = () => {
@@ -178,8 +102,31 @@ const BusquedaReportes: React.FC = () => {
     setFiltros({ ...FILTROS_INICIALES });
   };
 
+  // ─── Estado para el modal de edición ────────────────────────────────
+  const [reporteEditar, setReporteEditar] = useState<ReporteResumen | null>(null);
+
   const handleEditarReporte = (reporte: ReporteResumen) => {
-    alert(`Editar reporte: ${reporte.numeroReporte}\nCliente: ${reporte.cliente}\n\nLa funcionalidad de edición estará disponible próximamente.`);
+    setReporteEditar(reporte);
+  };
+
+  const handleGuardarEdicion = async (datos: EntidadEditable): Promise<boolean> => {
+    // Simular guardado en API
+    console.log('📝 Guardando cambios del reporte:', datos);
+    
+    // Actualizar el reporte en la lista de resultados
+    setResultadosCompletos((prev) =>
+      prev.map((r) =>
+        r.id === datos.id
+          ? ({ ...r, ...datos } as ReporteResumen)
+          : r
+      )
+    );
+
+    return true;
+  };
+
+  const handleCerrarEdicion = () => {
+    setReporteEditar(null);
   };
 
   const handleCambiarPagina = (pagina: number) => {
@@ -257,6 +204,19 @@ const BusquedaReportes: React.FC = () => {
         onCambiarPagina={handleCambiarPagina}
         onCambiarItemsPorPagina={handleCambiarItemsPorPagina}
       />
+
+      {/* Modal de edición de reporte */}
+      {reporteEditar && (
+        <FormularioEdicion
+          titulo="Reporte"
+          entidad={reporteEditar as unknown as EntidadEditable}
+          configuracion={CONFIG_REPORTE_EDICION}
+          onGuardar={handleGuardarEdicion}
+          onCancelar={handleCerrarEdicion}
+          modo="editar"
+          modal={true}
+        />
+      )}
     </div>
   );
 };

@@ -1,12 +1,12 @@
 import React from "react"
-
+import { GestionUsuarios } from "@/componentes/gestion_usuarios"
 
 const GestionUsuariosPage: React.FC = () => {
-    return(
-        <div>
-            <h1>Aca se podran administrar usuarios y niveles de acceso</h1>
-        </div>
-    )
+  return (
+    <div className="gestion-usuarios-page">
+      <GestionUsuarios />
+    </div>
+  )
 }
 
 export default GestionUsuariosPage;

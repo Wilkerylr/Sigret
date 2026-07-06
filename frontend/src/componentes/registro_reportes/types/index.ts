@@ -58,6 +58,7 @@ export interface SelectConBotonesProps {
   onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   items: string[] | Repuesto[];
   botonNuevo?: boolean;
+  onNuevo?: () => void;
   tipo?: 'simple' | 'conCantidad';
   requerido?: boolean;
   inputCantidad?: {

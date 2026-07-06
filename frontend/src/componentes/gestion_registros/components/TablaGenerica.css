@@ -1,0 +1,249 @@
+/* ======================================
+   TablaGenerica.css — Estilos de tabla genérica y paginación
+   ====================================== */
+
+.tabla-generica-contenedor {
+    border: 1px solid var(--color-borde-claro);
+    border-radius: var(--border-radius2);
+    background: var(--color-fondo-card);
+    box-shadow: 0 1px 3px var(--color-sombra-card);
+    overflow: hidden;
+}
+
+.tabla-generica-scroll {
+    overflow-x: auto;
+}
+
+.tabla-generica {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+}
+
+.tabla-generica thead {
+    background: var(--color-fondo-tabla-head);
+}
+
+.tabla-generica-th {
+    padding: 0.625rem 0.875rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-texto-secundario);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--color-borde-claro);
+    white-space: nowrap;
+}
+
+.tabla-generica-th-acciones {
+    text-align: center;
+    width: 120px;
+}
+
+.tabla-generica-tr {
+    transition: background 0.15s;
+}
+
+.tabla-generica-tr:hover {
+    background: var(--color-sombra-sutil);
+}
+
+.tabla-generica-tr:not(:last-child) .tabla-generica-td {
+    border-bottom: 1px solid var(--color-borde-claro);
+}
+
+.tabla-generica-td {
+    padding: 0.625rem 0.875rem;
+    color: var(--color-texto-oscuro);
+    vertical-align: middle;
+}
+
+.tabla-generica-td-acciones {
+    text-align: center;
+}
+
+.tabla-generica-acciones {
+    display: flex;
+    gap: 0.375rem;
+    justify-content: center;
+}
+
+.tabla-generica-btn-accion {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.625rem;
+    border: 1px solid var(--color-borde-claro);
+    border-radius: 6px;
+    background: var(--color-fondo-card);
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.tabla-generica-btn-texto {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .tabla-generica-btn-texto {
+        display: inline;
+    }
+}
+
+.tabla-generica-btn-primary {
+    color: var(--color-fondo-oscuro);
+}
+
+.tabla-generica-btn-primary:hover {
+    background: var(--color-fondo-claro);
+    border-color: var(--color-fondo-oscuro);
+}
+
+.tabla-generica-btn-danger {
+    color: var(--color-error);
+}
+
+.tabla-generica-btn-danger:hover {
+    background: var(--color-error-fondo);
+    border-color: var(--color-error);
+}
+
+.tabla-generica-btn-secondary {
+    color: var(--color-texto-secundario);
+}
+
+.tabla-generica-btn-secondary:hover {
+    background: var(--color-boton-secundario-fondo);
+}
+
+.tabla-generica-vacio {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--color-texto-terciario);
+    font-size: 0.875rem;
+}
+
+/* ---- Paginación ---- */
+.tabla-generica-paginacion {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem 0.875rem;
+    border-top: 1px solid var(--color-borde-claro);
+}
+
+@media (min-width: 640px) {
+    .tabla-generica-paginacion {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.tabla-generica-paginacion-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.8125rem;
+    color: var(--color-texto-terciario);
+}
+
+.tabla-generica-paginacion-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    color: var(--color-texto-secundario);
+}
+
+.tabla-generica-paginacion-select {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--color-input-borde);
+    border-radius: 6px;
+    background: var(--color-input-fondo);
+    font-size: 0.8125rem;
+    color: var(--color-texto-oscuro);
+    outline: none;
+    cursor: pointer;
+}
+
+.tabla-generica-paginacion-select:focus {
+    border-color: var(--color-fondo-oscuro);
+    box-shadow: 0 0 0 2px var(--color-input-focus-sombra);
+}
+
+.tabla-generica-paginacion-controles {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.tabla-generica-paginacion-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--color-borde-claro);
+    border-radius: 6px;
+    background: var(--color-fondo-card);
+    color: var(--color-texto-secundario);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.tabla-generica-paginacion-btn:hover:not(:disabled) {
+    background: var(--color-boton-secundario-fondo);
+    color: var(--color-fondo-oscuro);
+    border-color: var(--color-fondo-oscuro);
+}
+
+.tabla-generica-paginacion-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.tabla-generica-paginacion-numero {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.375rem;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-texto-secundario);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.tabla-generica-paginacion-numero:hover {
+    background: var(--color-boton-secundario-fondo);
+    color: var(--color-fondo-oscuro);
+}
+
+.tabla-generica-paginacion-numero.activo {
+    background: var(--color-fondo-oscuro);
+    color: var(--color-texto-claro);
+    border-color: var(--color-fondo-oscuro);
+    font-weight: 600;
+}
+
+.tabla-generica-paginacion-dots {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 2rem;
+    font-size: 0.8125rem;
+    color: var(--color-texto-terciario);
+    letter-spacing: 0.1em;
+}

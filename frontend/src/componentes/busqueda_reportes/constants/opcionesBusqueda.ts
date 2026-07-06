@@ -1,38 +1,22 @@
-/* ======================================
-   constants/opcionesBusqueda.ts
-   Opciones para los filtros de búsqueda de reportes
-   ====================================== */
+/**
+ * constants/opcionesBusqueda.ts
+ * Opciones para los filtros de búsqueda de reportes
+ * Re-exporta desde la fuente de datos centralizada en @/data
+ */
 
 import { OpcionCombobox } from '../types';
+import { NOMBRES_ETIQUETAS, NOMBRES_TECNICOS, NOMBRES_REPUESTOS } from '@/data';
 
-export const OPCIONES_ETIQUETAS: OpcionCombobox[] = [
-  { value: '', label: 'Todas las etiquetas' },
-  { value: 'Mantenimiento', label: 'Mantenimiento' },
-  { value: 'Reparación', label: 'Reparación' },
-  { value: 'Inspección', label: 'Inspección' },
-  { value: 'Mantenimiento esporádico', label: 'Mantenimiento esporádico' },
+const toOpcionConPlaceholder = (nombres: string[], placeholder: string): OpcionCombobox[] => [
+  { value: '', label: placeholder },
+  ...nombres.map((nombre) => ({ value: nombre, label: nombre })),
 ];
 
-export const OPCIONES_TECNICOS: OpcionCombobox[] = [
-  { value: '', label: 'Todos los técnicos' },
-  { value: 'Victor', label: 'Victor' },
-  { value: 'Wilker', label: 'Wilker' },
-  { value: 'Alexis', label: 'Alexis' },
-];
+export const OPCIONES_ETIQUETAS: OpcionCombobox[] = toOpcionConPlaceholder(NOMBRES_ETIQUETAS, 'Todas las etiquetas');
 
-export const OPCIONES_REPUESTOS: OpcionCombobox[] = [
-  { value: '', label: 'Todos los repuestos' },
-  { value: 'Batería', label: 'Batería' },
-  { value: 'Disco Duro SSD', label: 'Disco Duro SSD' },
-  { value: 'Memoria RAM', label: 'Memoria RAM' },
-  { value: 'Fuente de Poder', label: 'Fuente de Poder' },
-  { value: 'Ventilador', label: 'Ventilador' },
-  { value: 'Cable HDMI', label: 'Cable HDMI' },
-  { value: 'Teclado', label: 'Teclado' },
-  { value: 'Mouse', label: 'Mouse' },
-  { value: 'Monitor', label: 'Monitor' },
-  { value: 'Router', label: 'Router' },
-];
+export const OPCIONES_TECNICOS: OpcionCombobox[] = toOpcionConPlaceholder(NOMBRES_TECNICOS, 'Todos los técnicos');
+
+export const OPCIONES_REPUESTOS: OpcionCombobox[] = toOpcionConPlaceholder(NOMBRES_REPUESTOS, 'Todos los repuestos');
 
 export const OPCIONES_CANTIDAD_REPORTES: OpcionCombobox[] = [
   { value: '', label: 'Cualquier cantidad' },

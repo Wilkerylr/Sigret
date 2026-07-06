@@ -15,7 +15,10 @@ const GrupoRadio: React.FC<GrupoRadioProps> = ({
       </label>
       <div className="declaracion-radio-grupo">
         {opciones.map((opcion) => (
-          <label key={opcion.value}>
+          <label
+            key={opcion.value}
+            className={valor === opcion.value ? 'radio-seleccionado' : ''}
+          >
             <input
               type="radio"
               name={name}
