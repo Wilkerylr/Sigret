@@ -1,10 +1,11 @@
 import React from 'react';
 import { CampoFormulario } from '../components';
-import { PLANTILLAS } from '../constants/opciones';
+import type { Opcion } from '../constants/opciones';
 
 interface DatosControlProps {
   numeroReporte: string;
   plantilla: string;
+  opcionesPlantillas: Opcion[];
   fechaReporte: string;
   fechaAtencion: string;
   horaInicio: string;
@@ -16,6 +17,7 @@ interface DatosControlProps {
 const DatosControl: React.FC<DatosControlProps> = ({
   numeroReporte,
   plantilla,
+  opcionesPlantillas,
   fechaReporte,
   fechaAtencion,
   horaInicio,
@@ -35,17 +37,17 @@ const DatosControl: React.FC<DatosControlProps> = ({
         required={true}
         min="1"
       />
-      
+
       <CampoFormulario
         label="Plantilla"
         name="plantilla"
         value={plantilla}
         onChange={onChange}
         type="select"
-        opciones={PLANTILLAS}
+        opciones={opcionesPlantillas}
         required={false}
       />
-      
+
       <CampoFormulario
         label="Fecha reporte"
         name="fechaReporte"
@@ -53,8 +55,9 @@ const DatosControl: React.FC<DatosControlProps> = ({
         onChange={onChange}
         type="date"
         required={true}
+        max={new Date().toISOString().split('T')[0]}
       />
-      
+
       <CampoFormulario
         label="Fecha atención"
         name="fechaAtencion"
@@ -62,8 +65,9 @@ const DatosControl: React.FC<DatosControlProps> = ({
         onChange={onChange}
         type="date"
         required={true}
+        max={new Date().toISOString().split('T')[0]}
       />
-      
+
       <CampoFormulario
         label="Hora de inicio"
         name="horaInicio"
@@ -72,7 +76,7 @@ const DatosControl: React.FC<DatosControlProps> = ({
         type="time"
         required={true}
       />
-      
+
       <CampoFormulario
         label="Hora de finalización"
         name="horaFinalizacion"

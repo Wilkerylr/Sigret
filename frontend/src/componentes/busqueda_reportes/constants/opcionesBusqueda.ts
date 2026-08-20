@@ -1,24 +1,12 @@
 /**
  * constants/opcionesBusqueda.ts
- * Opciones para los filtros de búsqueda de reportes
- * Re-exporta desde la fuente de datos centralizada en @/data
+ * Opciones estáticas para los filtros de búsqueda de reportes.
+ *
+ * Las opciones de etiquetas, técnicos y repuestos ahora se obtienen
+ * de la API real mediante useOpcionesBusqueda() (ver ../hooks).
  */
 
-import { OpcionCombobox } from '../types';
-import { NOMBRES_ETIQUETAS, NOMBRES_TECNICOS, NOMBRES_REPUESTOS } from '@/data';
-
-const toOpcionConPlaceholder = (nombres: string[], placeholder: string): OpcionCombobox[] => [
-  { value: '', label: placeholder },
-  ...nombres.map((nombre) => ({ value: nombre, label: nombre })),
-];
-
-export const OPCIONES_ETIQUETAS: OpcionCombobox[] = toOpcionConPlaceholder(NOMBRES_ETIQUETAS, 'Todas las etiquetas');
-
-export const OPCIONES_TECNICOS: OpcionCombobox[] = toOpcionConPlaceholder(NOMBRES_TECNICOS, 'Todos los técnicos');
-
-export const OPCIONES_REPUESTOS: OpcionCombobox[] = toOpcionConPlaceholder(NOMBRES_REPUESTOS, 'Todos los repuestos');
-
-export const OPCIONES_CANTIDAD_REPORTES: OpcionCombobox[] = [
+export const OPCIONES_CANTIDAD_REPORTES: { value: string; label: string }[] = [
   { value: '', label: 'Cualquier cantidad' },
   { value: '10', label: '10 reportes' },
   { value: '25', label: '25 reportes' },

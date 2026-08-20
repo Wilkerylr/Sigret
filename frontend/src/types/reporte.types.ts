@@ -46,7 +46,7 @@ export interface ReporteResumen extends ReporteBase {
 }
 
 /** Payload para crear un reporte (sin campos auxiliares de UI) */
-export interface CreateReporteRequest extends ReporteBase {}
+export type CreateReporteRequest = ReporteBase;
 
 /** Payload para actualizar un reporte */
 export interface UpdateReporteRequest extends Partial<ReporteBase> {

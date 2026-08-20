@@ -7,19 +7,23 @@ export const ENDPOINTS = {
     LOGIN: '/auth/login',
     LOGOUT: '/auth/logout',
     PROFILE: '/auth/perfil',
-    CAMBIAR_CONTRASEÑA: '/auth/cambiar-contraseña',
+    CAMBIAR_CONTRASEÑA: '/auth/cambiar-password',
+    REFRESH_PERMISSIONS: '/auth/refresh-permissions',
+    PREGUNTAS_SEGURIDAD: '/auth/preguntas-seguridad',
+    REGISTRAR_PREGUNTAS: '/auth/registrar-preguntas',
+    VERIFICAR_PREGUNTAS: '/auth/verificar-preguntas',
+    RECUPERAR_CONTRASEÑA: '/auth/recuperar-password',
   },
   REPORTES: {
     BASE: '/reportes',
     BY_ID: (id: string) => `/reportes/${id}`,
+    RESTORE: (id: string) => `/reportes/${id}/restaurar`,
   },
   CLIENTES: {
     BASE: '/clientes',
     BY_ID: (id: string) => `/clientes/${id}`,
-  },
-  EQUIPOS: {
-    BASE: '/equipos',
-    BY_ID: (id: string) => `/equipos/${id}`,
+    RESTORE: (id: string) => `/clientes/${id}/restaurar`,
+    LIMPIEZA: '/clientes/inactivos-sin-reportes',
   },
   REPUESTOS: {
     BASE: '/repuestos',
@@ -29,9 +33,9 @@ export const ENDPOINTS = {
     BASE: '/etiquetas',
     BY_ID: (id: string) => `/etiquetas/${id}`,
   },
-  TECNICOS: {
-    BASE: '/tecnicos',
-    BY_ID: (id: string) => `/tecnicos/${id}`,
+  ESTADOS_EQUIPOS: {
+    BASE: '/estados-equipos',
+    BY_ID: (id: string) => `/estados-equipos/${id}`,
   },
   PLANTILLAS: {
     BASE: '/plantillas',
@@ -40,6 +44,7 @@ export const ENDPOINTS = {
   USUARIOS: {
     BASE: '/usuarios',
     BY_ID: (id: string) => `/usuarios/${id}`,
+    RESTORE: (id: string) => `/usuarios/${id}/restaurar`,
     REGISTER: '/usuarios/register',
     PERMISOS_ADICIONALES: '/usuarios/permisos-adicionales',
     ROLES: '/usuarios/roles',
@@ -50,7 +55,7 @@ export const ENDPOINTS = {
     TECNICOS_TOP: '/estadisticas/tecnicos-top',
   },
   HISTORIAL: {
-    BASE: '/historial',
-    POR_REPORTE: (id: string) => `/historial/reporte/${id}`,
+    BASE: '/modificaciones',
+    POR_REPORTE: (id: string) => `/modificaciones/reporte/${id}`,
   },
 } as const;

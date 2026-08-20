@@ -25,7 +25,7 @@ export interface CampoConfig {
   /** Ancho del campo: 'completo' | 'mitad' | 'tercio' */
   ancho?: 'completo' | 'mitad' | 'tercio';
   /** Función de validación: retorna null si es válido, o un string con el error */
-  validacion?: (valor: any, datosCompletos?: EntidadEditable) => string | null;
+  validacion?: (valor: unknown, datosCompletos?: EntidadEditable) => string | null;
   /** Valor mínimo (para number, date) */
   min?: string | number;
   /** Valor máximo (para number, date) */

@@ -8,6 +8,7 @@ import "./componentes/Global.css"
 import EstadisticasPage from "./pages/Estadisticas_page.tsx"
 import BusquedaReportesPage from './pages/Busqueda_reportes_page.tsx'
 import LoginPage from './pages/Login_page.tsx'
+import PrimerLoginPage from './pages/PrimerLogin_page.tsx'
 import Layout from "./componentes/layout/mainlayout.tsx";
 import RegistroReportesPage from "./pages/Registro_reportes.tsx";
 import GestionRegistrosPage from "./pages/Gestion_registros.tsx";
@@ -29,6 +30,16 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <LoginPage />,
+  },
+  {
+    path: "/primer-login",
+    element: (
+      <ProtectedRoute
+        allowedRoles={["admin", "tecnico", "administrativo"]}
+      >
+        <PrimerLoginPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/home",

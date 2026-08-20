@@ -1,0 +1,310 @@
+/* ======================================
+   PrimerLogin.css — Estilos para la configuración inicial
+   ====================================== */
+
+.primer-login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  min-width: 100vw;
+  background: linear-gradient(
+    135deg,
+    var(--color-fondo-oscuro) 0%,
+    color-mix(in srgb, var(--color-fondo-oscuro) 80%, var(--color-fondo-claro) 20%) 50%,
+    var(--color-fondo-oscuro) 100%
+  );
+  padding: 2rem;
+}
+
+.primer-login-card {
+  background: var(--color-texto-claro);
+  border-radius: var(--border-radius1);
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 480px;
+  box-shadow:
+    0 20px 60px color-mix(in srgb, var(--color-fondo-oscuro) 30%, transparent),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.primer-login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.primer-login-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-texto-oscuro);
+  margin: 0 0 0.75rem 0;
+}
+
+.primer-login-header p {
+  font-size: 0.95rem;
+  color: color-mix(in srgb, var(--color-texto-oscuro) 70%, transparent);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* === Iconos === */
+.primer-login-icono {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(
+    135deg,
+    var(--color-fondo-oscuro) 0%,
+    color-mix(in srgb, var(--color-fondo-oscuro) 80%, var(--color-fondo-claro) 20%) 100%
+  );
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-texto-claro);
+  margin: 0 auto 1.25rem auto;
+}
+
+.primer-login-icono-exito {
+  width: 88px;
+  height: 88px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin: 0 auto 1.25rem auto;
+  animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* === Indicador de pasos === */
+.primer-login-steps {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+.step.active {
+  opacity: 1;
+}
+
+.step-number {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-texto-oscuro) 10%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--color-texto-oscuro);
+}
+
+.step.active .step-number {
+  background: var(--color-fondo-oscuro);
+  color: var(--color-texto-claro);
+}
+
+.step-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-texto-oscuro);
+}
+
+/* === Inputs === */
+.input-group {
+  margin-bottom: 1.25rem;
+}
+
+.input-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-texto-oscuro);
+  margin-bottom: 0.5rem;
+}
+
+.input-group label svg {
+  color: var(--color-fondo-oscuro);
+  opacity: 0.6;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 2px solid color-mix(in srgb, var(--color-texto-oscuro) 15%, transparent);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: var(--color-texto-oscuro);
+  background: color-mix(in srgb, var(--color-texto-oscuro) 3%, var(--color-texto-claro) 97%);
+  outline: none;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.input-wrapper input:focus {
+  border-color: var(--color-fondo-oscuro);
+  background: var(--color-texto-claro);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-fondo-oscuro) 10%, transparent);
+}
+
+.input-wrapper input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input-wrapper input::placeholder {
+  color: color-mix(in srgb, var(--color-texto-oscuro) 40%, transparent);
+}
+
+/* === Botón toggle de contraseña === */
+.password-toggle {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: color-mix(in srgb, var(--color-texto-oscuro) 40%, transparent);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.password-toggle:hover {
+  color: var(--color-fondo-oscuro);
+}
+
+/* === Info de preguntas === */
+.preguntas-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: color-mix(in srgb, var(--color-fondo-oscuro) 5%, transparent);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--color-texto-oscuro);
+}
+
+.preguntas-info svg {
+  color: var(--color-fondo-oscuro);
+  flex-shrink: 0;
+}
+
+/* === Mensaje de error === */
+.primer-login-error {
+  background-color: color-mix(in srgb, #dc2626 8%, transparent);
+  color: #dc2626;
+  border: 1px solid color-mix(in srgb, #dc2626 20%, transparent);
+  border-radius: var(--border-radius2);
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* === Botón principal === */
+.primer-login-button {
+  width: 100%;
+  padding: 0.9rem;
+  background: linear-gradient(
+    135deg,
+    var(--color-fondo-oscuro) 0%,
+    color-mix(in srgb, var(--color-fondo-oscuro) 80%, var(--color-fondo-claro) 20%) 100%
+  );
+  color: var(--color-texto-claro);
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--color-fondo-oscuro) 30%, transparent);
+}
+
+.primer-login-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px color-mix(in srgb, var(--color-fondo-oscuro) 40%, transparent);
+}
+
+.primer-login-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.primer-login-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* === Spinner de carga === */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid color-mix(in srgb, var(--color-texto-claro) 30%, transparent);
+  border-top-color: var(--color-texto-claro);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .primer-login-container {
+    padding: 1rem;
+  }
+
+  .primer-login-card {
+    padding: 2rem;
+  }
+
+  .primer-login-header h1 {
+    font-size: 1.5rem;
+  }
+}

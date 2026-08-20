@@ -3,18 +3,32 @@
    Página principal de búsqueda de reportes con paginación
    ====================================== */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Filter, Search } from 'lucide-react';
 import './busqueda_reportes.css';
 import FiltrosBusqueda from './components/FiltrosBusqueda';
 import ResultadosBusqueda from './components/ResultadosBusqueda';
 import { FiltrosBusqueda as FiltrosBusquedaType, ReporteResumen, FILTROS_INICIALES } from './types';
-import { FormularioEdicion, CONFIG_REPORTE_EDICION } from '@/componentes/formulario_edicion';
+import { FormularioEdicion } from '@/componentes/formulario_edicion';
+import { crearConfigReporteEdicion } from '@/componentes/formulario_edicion/configuraciones';
+import { useOpcionesFormulario } from '@/componentes/formulario_edicion/hooks/useOpcionesFormulario';
 import type { EntidadEditable } from '@/componentes/formulario_edicion';
-import { REPORTES_PRUEBA } from '@/data';
+
+interface BusquedaReportesProps {
+  /** Datos iniciales desde una fuente externa (API) */
+  datosIniciales?: ReporteResumen[];
+  /** Si es true, oculta el título "Búsqueda de Reportes" (modo embebido) */
+  modoEmbebido?: boolean;
+  /** Callback cuando se guarda un reporte editado */
+  onGuardar?: (datos: EntidadEditable) => Promise<boolean>;
+}
 
 // ─── Componente principal ────────────────────────────────────────────────────
-const BusquedaReportes: React.FC = () => {
+const BusquedaReportes: React.FC<BusquedaReportesProps> = ({
+  datosIniciales,
+  modoEmbebido = false,
+  onGuardar,
+}) => {
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
   const [filtrosVisibles, setFiltrosVisibles] = useState(false);
   const [filtros, setFiltros] = useState<FiltrosBusquedaType>({ ...FILTROS_INICIALES });
@@ -22,6 +36,23 @@ const BusquedaReportes: React.FC = () => {
   const [busquedaRealizada, setBusquedaRealizada] = useState(false);
   const [paginaActual, setPaginaActual] = useState(1);
   const [itemsPorPagina, setItemsPorPagina] = useState(10);
+
+  const { opciones: opcionesFormulario } = useOpcionesFormulario();
+  const configuracionEdicion = useMemo(
+    () => crearConfigReporteEdicion(opcionesFormulario),
+    [opcionesFormulario]
+  );
+
+  // Si se proveen datos iniciales, usarlos como fuente
+  const fuenteDatos = useMemo(() => datosIniciales || [], [datosIniciales]);
+
+  // Actualizar resultados cuando cambian los datos iniciales
+  useEffect(() => {
+    if (datosIniciales && datosIniciales.length > 0) {
+      setResultadosCompletos(datosIniciales);
+      setBusquedaRealizada(true);
+    }
+  }, [datosIniciales]);
 
   const toggleFiltros = () => {
     setFiltrosVisibles((prev) => !prev);
@@ -35,7 +66,7 @@ const BusquedaReportes: React.FC = () => {
   };
 
   const realizarBusqueda = useCallback(() => {
-    let filtrados = [...REPORTES_PRUEBA];
+    let filtrados = [...fuenteDatos];
 
     // Búsqueda por texto libre (busca en todas las propiedades)
     if (terminoBusqueda.trim()) {
@@ -89,7 +120,7 @@ const BusquedaReportes: React.FC = () => {
     setResultadosCompletos(filtrados);
     setPaginaActual(1);
     setBusquedaRealizada(true);
-  }, [terminoBusqueda, filtros]);
+  }, [terminoBusqueda, filtros, fuenteDatos]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -103,17 +134,41 @@ const BusquedaReportes: React.FC = () => {
   };
 
   // ─── Estado para el modal de edición ────────────────────────────────
-  const [reporteEditar, setReporteEditar] = useState<ReporteResumen | null>(null);
+  const [reporteEditar, setReporteEditar] = useState<EntidadEditable | null>(null);
+
+  const aIdTexto = (valor: number | null | undefined): string =>
+    valor === null || valor === undefined ? '' : String(valor);
 
   const handleEditarReporte = (reporte: ReporteResumen) => {
-    setReporteEditar(reporte);
+    // Los IDs de la API son números; las opciones del formulario usan strings
+    setReporteEditar({
+      id: reporte.id,
+      numeroReporte: reporte.numeroReporte,
+      cliente: reporte.cliente,
+      clienteId: aIdTexto(reporte.clienteId),
+      equipo: reporte.equipo,
+      fechaReporte: reporte.fechaReporte,
+      fechaAtencion: reporte.fechaAtencion,
+      horaInicio: reporte.horaInicio,
+      horaFinalizacion: reporte.horaFinalizacion,
+      descripcionFalla: reporte.descripcionFalla,
+      trabajoRealizado: reporte.trabajoRealizado,
+      etiquetaId: aIdTexto(reporte.etiquetaId),
+      tecnicoId: aIdTexto(reporte.tecnicoId),
+      estadoId: aIdTexto(reporte.estadoId),
+      repuestoId: aIdTexto(reporte.repuestoId),
+      plantilla: reporte.plantilla,
+      posibleCausa: reporte.posibleCausa || '',
+      anotaciones: reporte.anotaciones || '',
+      reportadoPor: reporte.reportadoPor || '',
+    });
   };
 
   const handleGuardarEdicion = async (datos: EntidadEditable): Promise<boolean> => {
-    // Simular guardado en API
-    console.log('📝 Guardando cambios del reporte:', datos);
-    
-    // Actualizar el reporte en la lista de resultados
+    if (onGuardar) {
+      return await onGuardar(datos);
+    }
+    // Modo independiente: actualizar localmente
     setResultadosCompletos((prev) =>
       prev.map((r) =>
         r.id === datos.id
@@ -121,7 +176,6 @@ const BusquedaReportes: React.FC = () => {
           : r
       )
     );
-
     return true;
   };
 
@@ -151,7 +205,7 @@ const BusquedaReportes: React.FC = () => {
 
   return (
     <div className="busqueda-contenedor">
-      <h1 className="busqueda-titulo">Búsqueda de Reportes</h1>
+      {!modoEmbebido && <h1 className="busqueda-titulo">Búsqueda de Reportes</h1>}
 
       {/* Barra de búsqueda superior */}
       <div className="busqueda-barra-superior">
@@ -209,8 +263,8 @@ const BusquedaReportes: React.FC = () => {
       {reporteEditar && (
         <FormularioEdicion
           titulo="Reporte"
-          entidad={reporteEditar as unknown as EntidadEditable}
-          configuracion={CONFIG_REPORTE_EDICION}
+          entidad={reporteEditar}
+          configuracion={configuracionEdicion}
           onGuardar={handleGuardarEdicion}
           onCancelar={handleCerrarEdicion}
           modo="editar"

@@ -31,6 +31,12 @@ const bcrypt = require('bcrypt');
 // Cliente de Supabase (reemplaza el pool de pg)
 const { supabase } = require('../db/supabase');
 
+// Middleware de autenticación (reutilizado desde middlewares/auth.js)
+const { verificarToken, requiereAdmin } = require('../middlewares/auth');
+
+// Middleware de caché HTTP (datos no volátiles)
+const { cacheMiddleware } = require('../middlewares/cache');
+
 // ==========================================
 // CONSTANTES
 // ==========================================
@@ -104,25 +110,27 @@ async function resolverPermisos(permisos) {
     } else if (typeof permiso === 'string' && permiso.trim()) {
       const nombre = permiso.trim();
 
-      // Buscar si ya existe en permisos_adicionales
-      const { data: existente } = await supabase
+      // Usar upsert para evitar race conditions al crear permisos duplicados
+      const { data, error } = await supabase
         .from('permisos_adicionales')
+        .upsert(
+          { nombre_permiso: nombre, valor_permiso: 1 },
+          { onConflict: 'nombre_permiso', ignoreDuplicates: false }
+        )
         .select('id')
-        .eq('nombre_permiso', nombre)
         .maybeSingle();
 
-      if (existente) {
-        permisoId = existente.id;
-      } else {
-        // Crear el permiso si no existe
-        const { data: nuevo } = await supabase
+      if (!error && data) {
+        permisoId = data.id;
+      } else if (error) {
+        // Si el upsert falla por duplicado, buscar el existente
+        const { data: existente } = await supabase
           .from('permisos_adicionales')
-          .insert({ nombre_permiso: nombre, valor_permiso: 1 })
           .select('id')
+          .eq('nombre_permiso', nombre)
           .maybeSingle();
-
-        if (nuevo) {
-          permisoId = nuevo.id;
+        if (existente) {
+          permisoId = existente.id;
         }
       }
     }
@@ -188,7 +196,7 @@ function formatearUsuario(usuario, permisos = []) {
  *   409 - Conflicto (el email ya está registrado)
  *   500 - Error interno del servidor
  */
-router.post('/register', async (req, res) => {
+router.post('/register', verificarToken, requiereAdmin, async (req, res) => {
   try {
     // ==========================================
     // PASO 1: Validar campos obligatorios
@@ -332,7 +340,7 @@ router.post('/register', async (req, res) => {
  *   200 - Lista de usuarios (puede ser vacía)
  *   500 - Error interno del servidor
  */
-router.get('/', async (req, res) => {
+router.get('/', verificarToken, cacheMiddleware(900), async (req, res) => {
   try {
     // Consultar usuarios activos con su rol
     const { data: usuarios, error } = await supabase
@@ -381,7 +389,7 @@ router.get('/', async (req, res) => {
  * Obtiene la lista de permisos adicionales desde la base de datos.
  * DEBE ir antes de /:id para evitar que Express lo interprete como un ID
  */
-router.get('/permisos-adicionales', async (req, res) => {
+router.get('/permisos-adicionales', verificarToken, cacheMiddleware(3600), async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('permisos_adicionales')
@@ -406,7 +414,7 @@ router.get('/permisos-adicionales', async (req, res) => {
  * Obtiene la lista de roles desde la base de datos.
  * DEBE ir antes de /:id para evitar que Express lo interprete como un ID
  */
-router.get('/roles', async (req, res) => {
+router.get('/roles', verificarToken, cacheMiddleware(3600), async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('roles')
@@ -440,7 +448,7 @@ router.get('/roles', async (req, res) => {
  *   404 - Usuario no encontrado o eliminado
  *   500 - Error interno del servidor
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', verificarToken, async (req, res) => {
   try {
     const usuarioId = Number(req.params.id);
 
@@ -517,7 +525,7 @@ router.get('/:id', async (req, res) => {
  *   409 - Email ya registrado por otro usuario
  *   500 - Error interno del servidor
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
   try {
     const usuarioId = Number(req.params.id);
 
@@ -532,12 +540,22 @@ router.put('/:id', async (req, res) => {
     // ==========================================
     const { data: usuarioActual, error: findError } = await supabase
       .from('usuarios')
-      .select('id, email_usuario, is_delete')
+      .select('id, email_usuario, rol_usuario, is_delete')
       .eq('id', usuarioId)
       .single();
 
     if (findError || !usuarioActual || usuarioActual.is_delete) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Prevenir modificar otro admin (solo el propio admin puede cambiarse la contraseña)
+    if (usuarioActual.rol_usuario === 1 && usuarioId !== req.usuario.id) {
+      return res.status(403).json({ error: 'No se permiten modificar cuentas de administrador' });
+    }
+
+    // Prevenir que un admin se cambie su propio rol
+    if (usuarioId === req.usuario.id && rol_usuario && Number(rol_usuario) !== 1) {
+      return res.status(400).json({ error: 'No puedes cambiar tu propio rol de administrador' });
     }
 
     // ==========================================
@@ -591,6 +609,16 @@ router.put('/:id', async (req, res) => {
     // PASO 5: Reemplazar permisos si se proporcionaron
     // ==========================================
     if (permisos && Array.isArray(permisos)) {
+      // Obtener permisos actuales para poder restaurarlos si algo falla
+      const { data: permisosActuales } = await supabase
+        .from('permisos_usuarios')
+        .select('permiso_usuario')
+        .eq('usuario_permiso', usuarioId);
+      const idsActuales = (permisosActuales || []).map(p => p.permiso_usuario);
+
+      // Resolver nuevos permisos ANTES de borrar (las fallas ocurren temprano)
+      const permisosResueltos = await resolverPermisos(permisos);
+
       // Eliminar permisos actuales (DELETE en lote)
       const { error: deletePermisosError } = await supabase
         .from('permisos_usuarios')
@@ -599,11 +627,10 @@ router.put('/:id', async (req, res) => {
 
       if (deletePermisosError) {
         console.error('[USUARIOS] Error al eliminar permisos anteriores:', deletePermisosError.message);
+        return res.status(500).json({ error: 'Error al actualizar los permisos del usuario' });
       }
 
-      // Resolver y insertar nuevos permisos
-      const permisosResueltos = await resolverPermisos(permisos);
-
+      // Insertar nuevos permisos; si falla, restaurar los anteriores
       if (permisosResueltos.length > 0) {
         const nuevosPermisos = permisosResueltos.map(permisoId => ({
           permiso_usuario: permisoId,
@@ -615,7 +642,16 @@ router.put('/:id', async (req, res) => {
           .insert(nuevosPermisos);
 
         if (insertPermisosError) {
+          if (idsActuales.length > 0) {
+            await supabase.from('permisos_usuarios').insert(
+              idsActuales.map(permisoId => ({
+                permiso_usuario: permisoId,
+                usuario_permiso: usuarioId,
+              }))
+            );
+          }
           console.error('[USUARIOS] Error al asignar nuevos permisos:', insertPermisosError.message);
+          return res.status(500).json({ error: 'Error al asignar los nuevos permisos del usuario' });
         }
       }
     }
@@ -671,12 +707,33 @@ router.put('/:id', async (req, res) => {
  *   404 - Usuario no encontrado
  *   500 - Error interno del servidor
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
   try {
     const usuarioId = Number(req.params.id);
 
     if (isNaN(usuarioId)) {
       return res.status(400).json({ error: 'El ID debe ser un número válido' });
+    }
+
+    // Prevenir que el admin se elimine a sí mismo
+    if (usuarioId === req.usuario.id) {
+      return res.status(400).json({ error: 'No puedes eliminar tu propia cuenta' });
+    }
+
+    // Verificar que el usuario a eliminar exista y esté activo
+    const { data: usuarioDestino, error: findError } = await supabase
+      .from('usuarios')
+      .select('id, rol_usuario, is_delete')
+      .eq('id', usuarioId)
+      .single();
+
+    if (findError || !usuarioDestino || usuarioDestino.is_delete) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Prevenir que un admin elimine a otro admin
+    if (usuarioDestino.rol_usuario === 1) {
+      return res.status(403).json({ error: 'No se permiten eliminar cuentas de administrador' });
     }
 
     // Soft delete: actualizar is_delete = true
@@ -698,6 +755,51 @@ router.delete('/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('[USUARIOS] Error inesperado en DELETE /:id:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
+ * PATCH /api/usuarios/:id/restaurar
+ *
+ * Restaura un usuario eliminado lógicamente (is_delete = false).
+ */
+router.patch('/:id/restaurar', verificarToken, requiereAdmin, async (req, res) => {
+  try {
+    const usuarioId = Number(req.params.id);
+
+    if (isNaN(usuarioId)) {
+      return res.status(400).json({ error: 'El ID debe ser un número válido' });
+    }
+
+    const { data: usuario } = await supabase
+      .from('usuarios')
+      .select('id, nombre_usuario, apellido_usuario')
+      .eq('id', usuarioId)
+      .eq('is_delete', true)
+      .maybeSingle();
+
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado o no está eliminado' });
+    }
+
+    const { error } = await supabase
+      .from('usuarios')
+      .update({ is_delete: false })
+      .eq('id', usuarioId)
+      .eq('is_delete', true);
+
+    if (error) {
+      console.error('[USUARIOS] Error al restaurar:', error.message);
+      return res.status(500).json({ error: 'Error al restaurar el usuario' });
+    }
+
+    res.json({
+      message: 'Usuario restaurado exitosamente',
+      usuarioId: usuario.id,
+    });
+  } catch (error) {
+    console.error('[USUARIOS] Error inesperado en PATCH /:id/restaurar:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

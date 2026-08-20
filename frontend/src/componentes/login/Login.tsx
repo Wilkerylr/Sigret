@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { LogIn, User, Lock, Eye, EyeOff } from "lucide-react";
+import { LogIn, User, Lock, Eye, EyeOff, KeyRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "@/context/AuthContext";
+import RecuperarContraseña from "./RecuperarContraseña";
 import "./Login.css";
 import "../Global.css";
 
@@ -14,7 +15,8 @@ const LoginForm: React.FC = () => {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const { login, isLoading } = useAuthContext();
+    const [mostrarRecuperacion, setMostrarRecuperacion] = useState(false);
+    const { login, isLoading, primerLogin } = useAuthContext();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -24,11 +26,30 @@ const LoginForm: React.FC = () => {
         const success = await login(email, password);
 
         if (success) {
-            navigate("/home");
+            if (primerLogin) {
+                navigate("/primer-login");
+            } else {
+                navigate("/home");
+            }
         } else {
             setError("Credenciales incorrectas. Intenta de nuevo.");
         }
     };
+
+    if (mostrarRecuperacion) {
+        return (
+            <div className="pantalla-login">
+                <div className="login-branding">
+                    <div className="branding-icon">
+                        <KeyRound size={48} />
+                    </div>
+                    <h1 className="branding-title">Sigret</h1>
+                    <p className="branding-subtitle">Sistema de Gestión de Reportes Tecnicos</p>
+                </div>
+                <RecuperarContraseña onVolver={() => setMostrarRecuperacion(false)} />
+            </div>
+        );
+    }
 
     return (
         <div className="pantalla-login">
@@ -111,6 +132,16 @@ const LoginForm: React.FC = () => {
                         )}
                     </button>
                 </form>
+
+                <button
+                    type="button"
+                    className="login-forgot-button"
+                    onClick={() => setMostrarRecuperacion(true)}
+                    disabled={isLoading}
+                >
+                    <KeyRound size={16} aria-hidden="true" />
+                    ¿Olvidaste tu contraseña?
+                </button>
             </div>
         </div>
     );

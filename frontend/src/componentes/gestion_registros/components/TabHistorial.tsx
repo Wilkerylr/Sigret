@@ -3,9 +3,11 @@
    Log de auditoría: muestra el historial de cambios de los reportes
    ====================================== */
 
-import React from 'react';
-import { Search, RotateCcw, Clock, User, FileText, Tag } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, RotateCcw, Clock, User, FileText, Tag, Undo2 } from 'lucide-react';
 import { useHistorialCambios } from '../hooks/useHistorialCambios';
+import ModalConfirmacion from './ModalConfirmacion';
+import type { EntradaHistorial } from '../types';
 import './TabHistorial.css';
 
 const TabHistorial: React.FC = () => {
@@ -24,7 +26,11 @@ const TabHistorial: React.FC = () => {
     toggleExpandir,
     getColorAccion,
     getTextoAccion,
+    recuperarEntrada,
   } = useHistorialCambios();
+
+  const [entradaRecuperar, setEntradaRecuperar] = useState<EntradaHistorial | null>(null);
+  const [recuperando, setRecuperando] = useState(false);
 
   return (
     <div className="tab-historial">
@@ -143,12 +149,12 @@ const TabHistorial: React.FC = () => {
           historialPagina.map((entrada) => (
             <div
               key={entrada.id}
-              className={`tab-historial-item ${entradaExpandida === entrada.id ? 'expandido' : ''}`}
+              className={`tab-historial-item ${entradaExpandida === String(entrada.id) ? 'expandido' : ''}`}
             >
               {/* Cabecera de la entrada */}
               <div
                 className="tab-historial-item-header"
-                onClick={() => toggleExpandir(entrada.id)}
+                onClick={() => toggleExpandir(String(entrada.id))}
               >
                 <div className="tab-historial-item-indicador">
                   <span
@@ -162,7 +168,7 @@ const TabHistorial: React.FC = () => {
                 <div className="tab-historial-item-info">
                   <span className="tab-historial-item-reporte">
                     <FileText size={14} />
-                    {entrada.numeroReporte}
+                    {entrada.numeroReporte || 'Sin reporte'}
                   </span>
                   <span className="tab-historial-item-descripcion">
                     {entrada.descripcion}
@@ -181,8 +187,8 @@ const TabHistorial: React.FC = () => {
 
                 <button
                   type="button"
-                  className={`tab-historial-item-expandir ${entradaExpandida === entrada.id ? 'abierto' : ''}`}
-                  aria-label={entradaExpandida === entrada.id ? 'Cerrar detalle' : 'Ver detalle'}
+                  className={`tab-historial-item-expandir ${entradaExpandida === String(entrada.id) ? 'abierto' : ''}`}
+                  aria-label={entradaExpandida === String(entrada.id) ? 'Cerrar detalle' : 'Ver detalle'}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M6 9l6 6 6-6" />
@@ -191,7 +197,7 @@ const TabHistorial: React.FC = () => {
               </div>
 
               {/* Detalle expandido */}
-              {entradaExpandida === entrada.id && (
+              {entradaExpandida === String(entrada.id) && (
                 <div className="tab-historial-item-detalle">
                   <div className="tab-historial-detalle-grid">
                     <div className="tab-historial-detalle-campo">
@@ -253,6 +259,23 @@ const TabHistorial: React.FC = () => {
                           {entrada.valorNuevo}
                         </div>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Botón de recuperar (solo para eliminaciones con reporteId) */}
+                  {entrada.accion === 'eliminacion' && entrada.reporteId && (
+                    <div className="tab-historial-detalle-accion">
+                      <button
+                        type="button"
+                        className="tab-historial-btn-recuperar"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEntradaRecuperar(entrada);
+                        }}
+                      >
+                        <Undo2 size={14} />
+                        Recuperar este registro
+                      </button>
                     </div>
                   )}
                 </div>
@@ -335,6 +358,29 @@ const TabHistorial: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de confirmación para recuperar desde historial */}
+      <ModalConfirmacion
+        abierto={!!entradaRecuperar}
+        titulo="Recuperar Registro"
+        mensaje={
+          entradaRecuperar
+            ? `¿Estás seguro de recuperar el registro ${entradaRecuperar.numeroReporte || 'N/A'}? Esta acción revertirá la eliminación.`
+            : ''
+        }
+        textoConfirmar="Recuperar"
+        textoCancelar="Cancelar"
+        variant="info"
+        onConfirmar={async () => {
+          if (!entradaRecuperar) return;
+          setRecuperando(true);
+          const ok = await recuperarEntrada(entradaRecuperar);
+          setRecuperando(false);
+          if (ok) setEntradaRecuperar(null);
+        }}
+        onCancelar={() => setEntradaRecuperar(null)}
+        cargando={recuperando}
+      />
     </div>
   );
 };

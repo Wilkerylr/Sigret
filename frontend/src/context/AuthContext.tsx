@@ -25,11 +25,14 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  refreshPermissions: () => Promise<void>;
   isLoading: boolean;
   hasAccess: (allowedRoles: UserRole[]) => boolean;
   hasPermission: (perm: Permission) => boolean;
   hasAnyPermission: (perms: Permission[]) => boolean;
   userPermissions: Permission[];
+  primerLogin: boolean;
+  setPrimerLogin: (value: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -55,6 +58,7 @@ function getStoredUser(): User | null {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(getStoredUser);
   const [isLoading, setIsLoading] = useState(false);
+  const [primerLogin, setPrimerLogin] = useState(false);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
@@ -152,6 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(userData);
       sessionStorage.setItem(USER_KEY, JSON.stringify(userData));
+      setPrimerLogin(data.primer_login === true);
       return true;
     } catch (error) {
       console.error("[AUTH] Error en login:", error);
@@ -165,6 +170,99 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(USER_KEY);
+  };
+
+  const refreshPermissions = async () => {
+    try {
+      const token = sessionStorage.getItem(TOKEN_KEY);
+      if (!token) return;
+
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_API_URL || "http://localhost:3001/api"
+        }/auth/refresh-permissions`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+
+      // Guardar nuevo token
+      sessionStorage.setItem(TOKEN_KEY, data.token);
+
+      // Mapear datos actualizados
+      const rolNombre = (data.usuario.rol?.nombre || "tecnico").toLowerCase();
+      const userRole: UserRole = DB_ROLE_TO_FRONTEND[rolNombre] || "tecnico";
+
+      const permisosBackend = data.usuario.permisos || [];
+      const VALID_PERMISSIONS: Permission[] = [
+        "view-estadisticas",
+        "view-registro-reportes",
+        "view-busqueda-reportes",
+        "view-gestion-registros",
+        "view-gestion-usuarios",
+      ];
+
+      const permisosFrontend: Permission[] = permisosBackend
+        .map((p: { nombre: string }) => {
+          const nombre = p.nombre;
+          if (VALID_PERMISSIONS.includes(nombre as Permission)) {
+            return nombre as Permission;
+          }
+          const permMap: Record<string, Permission> = {
+            ver_usuarios: "view-gestion-usuarios",
+            crear_usuarios: "view-gestion-usuarios",
+            editar_usuarios: "view-gestion-usuarios",
+          };
+          return permMap[nombre] || null;
+        })
+        .filter(Boolean);
+
+      // Agregar permisos por defecto según el rol
+      if (userRole === "admin") {
+        if (!permisosFrontend.includes("view-estadisticas"))
+          permisosFrontend.push("view-estadisticas");
+        if (!permisosFrontend.includes("view-registro-reportes"))
+          permisosFrontend.push("view-registro-reportes");
+        if (!permisosFrontend.includes("view-busqueda-reportes"))
+          permisosFrontend.push("view-busqueda-reportes");
+        if (!permisosFrontend.includes("view-gestion-registros"))
+          permisosFrontend.push("view-gestion-registros");
+        if (!permisosFrontend.includes("view-gestion-usuarios"))
+          permisosFrontend.push("view-gestion-usuarios");
+      } else if (userRole === "tecnico") {
+        if (!permisosFrontend.includes("view-estadisticas"))
+          permisosFrontend.push("view-estadisticas");
+        if (!permisosFrontend.includes("view-busqueda-reportes"))
+          permisosFrontend.push("view-busqueda-reportes");
+      } else if (userRole === "administrativo") {
+        if (!permisosFrontend.includes("view-estadisticas"))
+          permisosFrontend.push("view-estadisticas");
+        if (!permisosFrontend.includes("view-registro-reportes"))
+          permisosFrontend.push("view-registro-reportes");
+        if (!permisosFrontend.includes("view-busqueda-reportes"))
+          permisosFrontend.push("view-busqueda-reportes");
+        if (!permisosFrontend.includes("view-gestion-registros"))
+          permisosFrontend.push("view-gestion-registros");
+      }
+
+      const userData: User = {
+        id: data.usuario.id,
+        username: data.usuario.nombre_usuario,
+        nombre_completo: `${data.usuario.nombre_usuario} ${data.usuario.apellido_usuario}`,
+        email: data.usuario.email,
+        role: userRole,
+        permissions: permisosFrontend,
+      };
+
+      setUser(userData);
+      sessionStorage.setItem(USER_KEY, JSON.stringify(userData));
+    } catch (error) {
+      console.error("[AUTH] Error al refrescar permisos:", error);
+    }
   };
 
   const hasAccess = (allowedRoles: UserRole[]): boolean => {
@@ -188,11 +286,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         login,
         logout,
+        refreshPermissions,
         isLoading,
         hasAccess,
         hasPermission,
         hasAnyPermission,
         userPermissions: user?.permissions ?? [],
+        primerLogin,
+        setPrimerLogin,
       }}
     >
       {children}

@@ -3,14 +3,16 @@
    Administración de plantillas predefinidas de reportes
    ====================================== */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Edit3, Plus, Trash2, Search, RotateCcw } from 'lucide-react';
 import { useGestionPlantillas } from '../hooks/useGestionPlantillas';
 import TablaGenerica from './TablaGenerica';
 import ModalConfirmacion from './ModalConfirmacion';
-import { FormularioEdicion, CONFIG_PLANTILLA } from '@/componentes/formulario_edicion';
-import type { ColumnaTabla, AccionFila } from '../types';
-import type { Plantilla } from '@/data/plantillas';
+import { FormularioEdicion } from '@/componentes/formulario_edicion';
+import { crearConfigPlantilla } from '@/componentes/formulario_edicion/configuraciones';
+import { useOpcionesFormulario } from '@/componentes/formulario_edicion/hooks/useOpcionesFormulario';
+import type { EntidadEditable } from '@/componentes/formulario_edicion';
+import type { ColumnaTabla, AccionFila, Plantilla } from '../types';
 
 const TabPlantillas: React.FC = () => {
   const {
@@ -31,6 +33,24 @@ const TabPlantillas: React.FC = () => {
     cancelarEliminar,
   } = useGestionPlantillas();
 
+  const { opciones: opcionesFormulario } = useOpcionesFormulario();
+
+  const configuracionPlantilla = useMemo(
+    () => crearConfigPlantilla(opcionesFormulario),
+    [opcionesFormulario]
+  );
+
+  // Precargar estadoId/etiquetaId desde los objetos anidados que devuelve el backend
+  const entidadPlantilla = useMemo<EntidadEditable | null>(() => {
+    if (!plantillaEditando) return null;
+    return {
+      ...plantillaEditando,
+      id: String(plantillaEditando.id),
+      estadoId: plantillaEditando.estado?.id != null ? String(plantillaEditando.estado.id) : '',
+      etiquetaId: plantillaEditando.etiqueta?.id != null ? String(plantillaEditando.etiqueta.id) : '',
+    };
+  }, [plantillaEditando]);
+
   const columnas: ColumnaTabla<Plantilla>[] = [
     { key: 'nombre', titulo: 'Nombre', minWidth: '150px' },
     {
@@ -46,33 +66,28 @@ const TabPlantillas: React.FC = () => {
       render: (v: string) => v || '—',
     },
     {
-      key: 'declaracion',
+      key: 'estado',
       titulo: 'Estado',
       minWidth: '100px',
-      render: (v: string) => {
+      render: (v: any) => {
         if (!v) return '—';
+        const nombre = v.nombre || v;
         return (
-          <span className={`gestion-tag ${v === 'operativo' ? 'gestion-tag--exito' : 'gestion-tag--peligro'}`}>
-            {v === 'operativo' ? 'Operativo' : 'Inoperativo'}
+          <span className={`gestion-tag ${nombre === 'operativo' ? 'gestion-tag--exito' : 'gestion-tag--peligro'}`}>
+            {nombre}
           </span>
         );
       },
     },
     {
-      key: 'etiquetasPredefinidas',
-      titulo: 'Etiquetas',
+      key: 'etiqueta',
+      titulo: 'Etiqueta',
       minWidth: '150px',
-      render: (etiquetas?: string[]) => (
-        <div className="gestion-tags">
-          {!etiquetas || etiquetas.length === 0 ? (
-            <span className="gestion-tag-vacio">Sin etiquetas</span>
-          ) : (
-            etiquetas.map((e) => (
-              <span key={e} className="gestion-tag">{e}</span>
-            ))
-          )}
-        </div>
-      ),
+      render: (v: any) => {
+        if (!v) return <span className="gestion-tag-vacio">Sin etiqueta</span>;
+        const nombre = v.nombre || v;
+        return <span className="gestion-tag">{nombre}</span>;
+      },
     },
   ];
 
@@ -161,11 +176,11 @@ const TabPlantillas: React.FC = () => {
       />
 
       {/* Modal de edición/creación */}
-      {plantillaEditando && (
+      {entidadPlantilla && (
         <FormularioEdicion
-          titulo={modoCrear ? 'Nueva Plantilla' : `Editar Plantilla ${plantillaEditando.nombre}`}
-          entidad={plantillaEditando}
-          configuracion={CONFIG_PLANTILLA}
+          titulo={modoCrear ? 'Nueva Plantilla' : `Editar Plantilla ${plantillaEditando?.nombre || ''}`}
+          entidad={entidadPlantilla}
+          configuracion={configuracionPlantilla}
           onGuardar={guardarEdicion}
           onCancelar={cancelarEdicion}
           modo={modoCrear ? 'crear' : 'editar'}

@@ -184,3 +184,44 @@
     font-size: 0.875rem;
     color: var(--color-texto-terciario);
 }
+
+/* ---- Responsive: móviles ---- */
+@media (max-width: 480px) {
+    .combobox-con-buscador-input {
+        padding: 0.625rem 0.75rem;
+        font-size: 1rem;
+    }
+
+    .combobox-con-buscador-clear,
+    .combobox-con-buscador-trigger {
+        width: 44px;
+        height: 44px;
+    }
+
+    .combobox-con-buscador-dropdown {
+        max-height: 200px;
+    }
+
+    .combobox-con-buscador-item {
+        padding: 0.625rem 0.75rem;
+        min-height: 44px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .combobox-con-buscador-dropdown {
+        animation: none;
+    }
+
+    .combobox-con-buscador-trigger svg {
+        transition: none;
+    }
+
+    .combobox-con-buscador-input-wrapper {
+        transition: none;
+    }
+
+    .combobox-con-buscador-item {
+        transition: none;
+    }
+}

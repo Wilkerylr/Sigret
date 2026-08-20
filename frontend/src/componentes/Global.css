@@ -76,7 +76,8 @@
     --color-sombra-modal: rgba(0, 0, 0, 0.2);
     --color-overlay: rgba(0, 0, 0, 0.5);
 
-    /* === Mapeo shadcn/ui sidebar === */
+    /* === Sidebar layout === */
+    --sidebar-width: 240px;
     --sidebar: var(--color-fondo-oscuro);
     --sidebar-foreground: var(--color-texto-claro);
     --sidebar-primary: var(--color-fondo-oscuro);

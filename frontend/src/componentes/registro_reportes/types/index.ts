@@ -46,6 +46,7 @@ export interface CampoFormularioProps {
   type?: 'text' | 'number' | 'date' | 'time' | 'textarea' | 'select' | 'radio' | 'combobox';
   opciones?: Array<{ value: string; label: string }>;
   min?: string | number;
+  max?: string | number;
 }
 
 export interface SelectConBotonesProps {
@@ -53,12 +54,12 @@ export interface SelectConBotonesProps {
   name: string;
   seleccionado: string;
   opciones: Array<{ value: string; label: string }>;
-  onAgregar: () => void;
+  onAgregar: (value?: string) => void;
   onEliminar: (index: number) => void;
   onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   items: string[] | Repuesto[];
   botonNuevo?: boolean;
-  onNuevo?: () => void;
+  onNuevo?: (nombre: string) => Promise<{ value: string; label: string }>;
   tipo?: 'simple' | 'conCantidad';
   requerido?: boolean;
   inputCantidad?: {

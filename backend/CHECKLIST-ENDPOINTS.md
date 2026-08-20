@@ -38,7 +38,7 @@
 | PUT | `/api/clientes/:id` | Actualizar cliente | ✅ |
 | DELETE | `/api/clientes/:id` | Soft delete (is_delete = true) | ✅ |
 | PATCH | `/api/clientes/:id/restaurar` | Reactivar cliente (requiereAdmin) | ✅ |
-
+ 
 ---
 
 ## ✅ Módulo 4: Reportes (`/api/reportes`) — COMPLETADO
@@ -124,16 +124,6 @@
 
 ---
 
-## ✅ Módulo 12: Preguntas de Seguridad (`/api/auth`) — COMPLETADO
-| Método | Ruta | Descripción | Estado |
-|--------|------|-------------|--------|
-| GET | `/api/auth/preguntas-seguridad` | Lista preguntas activas (requiere token) | ✅ |
-| POST | `/api/auth/registrar-preguntas` | Registra respuestas hasheadas (primer login) | ✅ |
-| POST | `/api/auth/verificar-preguntas` | Verifica respuestas → token temporal (público) | ✅ |
-| POST | `/api/auth/recuperar-contraseña` | Establece nueva contraseña (token temporal) | ✅ |
-
----
-
 ## Resumen
 
 | Módulo | Endpoints | Estado |
@@ -149,8 +139,7 @@
 | Repuestos | 5/5 | ✅ Completado |
 | Servicios Técnicos | 4/4 | ✅ Completado |
 | Estadísticas | 3/3 | ✅ Completado |
-| Preguntas de Seguridad | 4/4 | ✅ Completado |
-| **Total** | **58** | **58/58 completados (100%)** |
+| **Total** | **54** | **54/54 completados (100%)** |
 
 ---
 

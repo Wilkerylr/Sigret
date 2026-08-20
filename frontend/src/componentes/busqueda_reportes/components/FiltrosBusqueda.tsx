@@ -5,12 +5,8 @@
 
 import React from 'react';
 import { FiltrosBusqueda as FiltrosBusquedaType } from '../types';
-import {
-  OPCIONES_ETIQUETAS,
-  OPCIONES_TECNICOS,
-  OPCIONES_REPUESTOS,
-  OPCIONES_CANTIDAD_REPORTES,
-} from '../constants/opcionesBusqueda';
+import { useOpcionesBusqueda } from '../hooks/useOpcionesBusqueda';
+import { OPCIONES_CANTIDAD_REPORTES } from '../constants/opcionesBusqueda';
 
 interface FiltrosBusquedaProps {
   filtros: FiltrosBusquedaType;
@@ -27,6 +23,8 @@ const FiltrosBusqueda: React.FC<FiltrosBusquedaProps> = ({
   onLimpiar,
   visible,
 }) => {
+  const { etiquetas, tecnicos, repuestos } = useOpcionesBusqueda();
+
   if (!visible) return null;
 
   return (
@@ -60,8 +58,8 @@ const FiltrosBusqueda: React.FC<FiltrosBusquedaProps> = ({
             value={filtros.etiqueta}
             onChange={onChange}
           >
-            {OPCIONES_ETIQUETAS.map((opcion) => (
-              <option key={opcion.value} value={opcion.value}>
+            {etiquetas.map((opcion) => (
+              <option key={opcion.value || 'vacio'} value={opcion.value}>
                 {opcion.label}
               </option>
             ))}
@@ -100,8 +98,8 @@ const FiltrosBusqueda: React.FC<FiltrosBusquedaProps> = ({
             value={filtros.repuesto}
             onChange={onChange}
           >
-            {OPCIONES_REPUESTOS.map((opcion) => (
-              <option key={opcion.value} value={opcion.value}>
+            {repuestos.map((opcion) => (
+              <option key={opcion.value || 'vacio'} value={opcion.value}>
                 {opcion.label}
               </option>
             ))}
@@ -150,8 +148,8 @@ const FiltrosBusqueda: React.FC<FiltrosBusquedaProps> = ({
             value={filtros.tecnico}
             onChange={onChange}
           >
-            {OPCIONES_TECNICOS.map((opcion) => (
-              <option key={opcion.value} value={opcion.value}>
+            {tecnicos.map((opcion) => (
+              <option key={opcion.value || 'vacio'} value={opcion.value}>
                 {opcion.label}
               </option>
             ))}

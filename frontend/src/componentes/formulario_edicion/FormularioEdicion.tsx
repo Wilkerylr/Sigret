@@ -5,7 +5,7 @@
    ====================================== */
 
 import React, { useEffect, useState } from 'react';
-import { FormularioEdicionProps, EntidadEditable } from './types';
+import { FormularioEdicionProps } from './types';
 import { useFormularioDinamico } from './hooks/useFormularioDinamico';
 import CampoGenerico from './components/CampoGenerico';
 import './FormularioEdicion.css';

@@ -28,5 +28,4 @@ export * from './empleados';
 export * from './usuarios';
 export { REPORTES_PRUEBA, FALLAS_EJEMPLO, TRABAJOS_EJEMPLO } from './reportes';
 export type { ReporteResumen } from './reportes';
-export { HISTORIAL_PRUEBA } from './historial';
 export type { EntradaHistorial } from '@/componentes/gestion_registros/types';

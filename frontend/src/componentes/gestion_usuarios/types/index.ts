@@ -2,7 +2,16 @@
    types/index.ts — Tipos específicos para Gestión de Usuarios
    ====================================== */
 
-import type { UserRole, Permission } from '@/data/usuarios';
+/** Roles de usuario */
+export type UserRole = "admin" | "tecnico" | "administrativo";
+
+/** Permisos disponibles en el sistema */
+export type Permission =
+  | "view-estadisticas"
+  | "view-registro-reportes"
+  | "view-busqueda-reportes"
+  | "view-gestion-registros"
+  | "view-gestion-usuarios";
 
 /** Filtros para la tabla de usuarios */
 export interface FiltrosUsuarios {
@@ -21,5 +30,3 @@ export interface UsuarioFormData {
   nombreCompleto: string;
   email: string;
 }
-
-export type { UserRole, Permission };

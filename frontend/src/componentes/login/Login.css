@@ -282,6 +282,106 @@
     to { transform: rotate(360deg); }
 }
 
+/* === Botón "Olvidé mi contraseña" === */
+.login-forgot-button {
+    width: 100%;
+    padding: 0.75rem;
+    background: transparent;
+    color: color-mix(in srgb, var(--color-fondo-oscuro) 70%, transparent);
+    border: 2px solid color-mix(in srgb, var(--color-texto-oscuro) 15%, transparent);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.login-forgot-button:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-fondo-oscuro) 5%, transparent);
+    border-color: var(--color-fondo-oscuro);
+    color: var(--color-fondo-oscuro);
+}
+
+.login-forgot-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* === Iconos de recuperación === */
+.recuperacion-icono {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(
+        135deg,
+        var(--color-fondo-oscuro) 0%,
+        color-mix(in srgb, var(--color-fondo-oscuro) 80%, var(--color-fondo-claro) 20%) 100%
+    );
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-texto-claro);
+    margin: 0 auto 1rem auto;
+}
+
+.recuperacion-icono-exito {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin: 0 auto 1rem auto;
+    animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* === Botón volver === */
+.login-back-button {
+    width: 100%;
+    padding: 0.75rem;
+    background: transparent;
+    color: color-mix(in srgb, var(--color-texto-oscuro) 60%, transparent);
+    border: none;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.login-back-button:hover:not(:disabled) {
+    color: var(--color-texto-oscuro);
+    background: color-mix(in srgb, var(--color-texto-oscuro) 5%, transparent);
+}
+
+.login-back-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* === Responsive: móviles === */
 @media (max-width: 768px) {
     .pantalla-login {

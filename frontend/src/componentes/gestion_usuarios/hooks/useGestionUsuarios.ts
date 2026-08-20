@@ -80,10 +80,6 @@ export function useGestionUsuarios() {
   const [cargando, setCargando] = useState(false);
   const [cargandoInicial, setCargandoInicial] = useState(true);
 
-  useEffect(() => {
-    cargarUsuarios();
-  }, []);
-
   const cargarUsuarios = async () => {
     try {
       setCargandoInicial(true);
@@ -96,6 +92,11 @@ export function useGestionUsuarios() {
       setCargandoInicial(false);
     }
   };
+
+  useEffect(() => {
+    cargarUsuarios();
+     
+  }, []);
 
   const actualizarFiltro = useCallback((
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>

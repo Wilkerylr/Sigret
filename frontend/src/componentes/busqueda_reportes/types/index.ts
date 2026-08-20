@@ -18,6 +18,14 @@ export interface ReporteResumen {
   repuestos: string[];
   declaracion: string;
   plantilla: string;
+  clienteId?: number | null;
+  etiquetaId?: number | null;
+  tecnicoId?: number | null;
+  estadoId?: number | null;
+  repuestoId?: number | null;
+  posibleCausa?: string;
+  anotaciones?: string;
+  reportadoPor?: string;
 }
 
 export interface FiltrosBusqueda {

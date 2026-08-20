@@ -1,11 +1,12 @@
 import React from 'react';
 import { CampoFormulario } from '../components';
 import ComboboxConBuscador from '@/componentes/ui/combobox-con-buscador';
-import { CLIENTES } from '../constants/opciones';
+import type { Opcion } from '../constants/opciones';
 
 interface DatosClienteProps {
   cliente: string;
   equipo: string;
+  opcionesClientes: Opcion[];
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   onClienteChange?: (value: string) => void;
 }
@@ -13,6 +14,7 @@ interface DatosClienteProps {
 const DatosCliente: React.FC<DatosClienteProps> = ({
   cliente,
   equipo,
+  opcionesClientes,
   onChange,
   onClienteChange,
 }) => {
@@ -20,7 +22,6 @@ const DatosCliente: React.FC<DatosClienteProps> = ({
     if (onClienteChange) {
       onClienteChange(value);
     } else {
-      // Fallback: simular un evento change si no se provee onClienteChange
       const event = {
         target: { name: 'cliente', value },
       } as React.ChangeEvent<HTMLInputElement>;
@@ -35,11 +36,11 @@ const DatosCliente: React.FC<DatosClienteProps> = ({
         nombre="cliente"
         valor={cliente}
         onChange={handleClienteChange}
-        opciones={CLIENTES.filter((c) => c.value !== '')}
+        opciones={opcionesClientes}
         placeholder="Buscar cliente..."
         requerido={true}
       />
-      
+
       <CampoFormulario
         label="Equipo"
         name="equipo"

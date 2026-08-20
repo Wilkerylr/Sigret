@@ -1,4 +1,4 @@
-import { TrendingUp } from "lucide-react"
+import { TrendingUp, TrendingDown } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 
 import {
@@ -15,33 +15,44 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/componentes/ui/chart"
-
-const chartData = [
-  { month: "Enero", Mantenimientos: 186, Fallas: 80 },
-  { month: "Febrero", Mantenimientos: 305, Fallas: 200 },
-  { month: "Marzo", Mantenimientos: 237, Fallas: 120 },
-  { month: "Abril", Mantenimientos: 73, Fallas: 190 },
-  { month: "Mayo", Mantenimientos: 209, Fallas: 130 },
-  { month: "Junio", Mantenimientos: 214, Fallas: 140 },
-]
+import type { ReportesPorMes } from "@/types/estadistica.types"
 
 const chartConfig = {
-  Mantenimientos: {
-    label: "Mantenimientos",
+  Reportes: {
+    label: "Reportes",
     color: "var(--chart-1)",
-  },
-  Fallas: {
-    label: "Fallas",
-    color: "var(--chart-2)",
   },
 } satisfies ChartConfig
 
-function ChartBarMultiple() {
+interface ChartBarMultipleProps {
+  porMes: ReportesPorMes;
+}
+
+function ChartBarMultiple({ porMes }: ChartBarMultipleProps) {
+  const chartData = porMes.meses.map((m) => ({ month: m.mes, Reportes: m.cantidad }))
+
+  const conDatos = chartData.filter((d) => d.Reportes > 0)
+  const total = chartData.reduce((acc, d) => acc + d.Reportes, 0)
+
+  const calcularIncremento = (): number | null => {
+    if (conDatos.length < 2) return null;
+    const ultimo = conDatos[conDatos.length - 1].Reportes;
+    const anterior = conDatos[conDatos.length - 2].Reportes;
+    if (anterior === 0) return null;
+    return Number((((ultimo - anterior) / anterior) * 100).toFixed(1));
+  };
+
+  const incremento = calcularIncremento();
+
   return (
     <Card className="estadisticas-card">
       <CardHeader className="estadisticas-card-header">
-        <CardTitle className="estadisticas-card-titulo">Reportes por Tipo</CardTitle>
-        <CardDescription className="estadisticas-card-descripcion">Enero - Junio 2026</CardDescription>
+        <CardTitle className="estadisticas-card-titulo">Reportes por mes</CardTitle>
+        <CardDescription className="estadisticas-card-descripcion">
+          {conDatos.length > 0
+            ? `${chartData[0].month} - ${chartData[chartData.length - 1].month} ${porMes.año}`
+            : `Año ${porMes.año}`}
+        </CardDescription>
       </CardHeader>
       <CardContent className="estadisticas-chart-wrapper">
         <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
@@ -58,17 +69,26 @@ function ChartBarMultiple() {
               cursor={false}
               content={<ChartTooltipContent indicator="dashed" />}
             />
-            <Bar dataKey="Mantenimientos" fill="var(--color-Mantenimientos)" radius={4} />
-            <Bar dataKey="Fallas" fill="var(--color-Fallas)" radius={4} />
+            <Bar dataKey="Reportes" fill="var(--color-Reportes)" radius={4} />
           </BarChart>
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 leading-none font-medium">
-          Incremento del 5.2% este mes <TrendingUp className="h-4 w-4" />
-        </div>
+        {incremento === null ? (
+          <div className="flex gap-2 leading-none font-medium">
+            Sin datos suficientes para comparar meses
+          </div>
+        ) : incremento >= 0 ? (
+          <div className="flex gap-2 leading-none font-medium">
+            Incremento del {incremento}% este mes <TrendingUp className="h-4 w-4" />
+          </div>
+        ) : (
+          <div className="flex gap-2 leading-none font-medium">
+            Disminución del {Math.abs(incremento)}% este mes <TrendingDown className="h-4 w-4" />
+          </div>
+        )}
         <div className="leading-none text-muted-foreground">
-          Total de reportes de los últimos 6 meses
+          {total} reportes registrados en el año {porMes.año}
         </div>
       </CardFooter>
     </Card>

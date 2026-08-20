@@ -25,6 +25,6 @@ export interface UsuarioData {
 // Usuarios mock eliminados - ahora los datos vienen del backend via API
 export const USUARIOS_REGISTRADOS: UsuarioData[] = [];
 
-export function findUsuario(username: string): UsuarioData | undefined {
+export function findUsuario(_username: string): UsuarioData | undefined {
   return undefined;
 }

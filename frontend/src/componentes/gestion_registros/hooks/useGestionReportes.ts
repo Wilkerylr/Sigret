@@ -1,12 +1,13 @@
 /* ======================================
    hooks/useGestionReportes.ts
    Hook para CRUD de reportes técnicos con filtros y paginación
+   Conectado al backend real (/api/reportes)
    ====================================== */
 
-import { useState, useMemo, useCallback } from 'react';
-import { REPORTES_PRUEBA } from '@/data/reportes';
-import type { ReporteResumen } from '@/data/reportes';
-import type { FiltrosReportes } from '../types';
+import { useState, useCallback, useEffect } from 'react';
+import apiClient from '@/api/client';
+import { ENDPOINTS } from '@/api/endpoints';
+import type { ReporteResumen, FiltrosReportes } from '../types';
 
 const FILTROS_INICIALES: FiltrosReportes = {
   numeroReporte: '',
@@ -18,13 +19,58 @@ const FILTROS_INICIALES: FiltrosReportes = {
 };
 
 export function useGestionReportes() {
-  const [reportes, setReportes] = useState<ReporteResumen[]>(REPORTES_PRUEBA);
+  const [reportes, setReportes] = useState<ReporteResumen[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
   const [filtros, setFiltros] = useState<FiltrosReportes>({ ...FILTROS_INICIALES });
   const [paginaActual, setPaginaActual] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
   const [itemsPorPagina, setItemsPorPagina] = useState(10);
   const [reporteEditando, setReporteEditando] = useState<ReporteResumen | null>(null);
   const [reporteEliminar, setReporteEliminar] = useState<ReporteResumen | null>(null);
   const [cargando, setCargando] = useState(false);
+  const [cargandoInicial, setCargandoInicial] = useState(true);
+
+  const cargarReportes = async () => {
+    try {
+      if (totalItems === 0) setCargandoInicial(true);
+      else setCargando(true);
+
+      const params: Record<string, any> = {
+        pagina: paginaActual,
+        items: itemsPorPagina,
+      };
+
+      if (filtros.numeroReporte.trim()) params.numero = filtros.numeroReporte.trim();
+      if (filtros.cliente.trim()) params.cliente = filtros.cliente.trim();
+      if (filtros.equipo.trim()) params.equipo = filtros.equipo.trim();
+      if (filtros.etiqueta.trim()) params.etiqueta = filtros.etiqueta.trim();
+      if (filtros.fechaDesde) params.desde = filtros.fechaDesde;
+      if (filtros.fechaHasta) params.hasta = filtros.fechaHasta;
+
+      const { data } = await apiClient.get(ENDPOINTS.REPORTES.BASE, { params });
+
+      setReportes(data.reportes || []);
+      setTotalItems(data.paginacion?.totalItems || 0);
+      setTotalPaginas(data.paginacion?.totalPaginas || 1);
+    } catch (error) {
+      console.error('[REPORTES] Error al cargar:', error);
+    } finally {
+      setCargando(false);
+      setCargandoInicial(false);
+    }
+  };
+
+  // Cargar reportes al montar
+  useEffect(() => {
+    cargarReportes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Recargar cuando cambian filtros, página o items por página
+  useEffect(() => {
+    cargarReportes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtros, paginaActual, itemsPorPagina]);
 
   const actualizarFiltro = useCallback((
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -39,51 +85,6 @@ export function useGestionReportes() {
     setPaginaActual(1);
   }, []);
 
-  const reportesFiltrados = useMemo(() => {
-    let resultado = [...reportes];
-
-    if (filtros.numeroReporte.trim()) {
-      const term = filtros.numeroReporte.toLowerCase().trim();
-      resultado = resultado.filter(r => r.numeroReporte.toLowerCase().includes(term));
-    }
-    if (filtros.cliente.trim()) {
-      const term = filtros.cliente.toLowerCase().trim();
-      resultado = resultado.filter(r => r.cliente.toLowerCase().includes(term));
-    }
-    if (filtros.equipo.trim()) {
-      const term = filtros.equipo.toLowerCase().trim();
-      resultado = resultado.filter(r => r.equipo.toLowerCase().includes(term));
-    }
-    if (filtros.etiqueta.trim()) {
-      const term = filtros.etiqueta.toLowerCase().trim();
-      resultado = resultado.filter(r =>
-        r.etiquetas.some(e => e.toLowerCase().includes(term))
-      );
-    }
-    if (filtros.fechaDesde) {
-      resultado = resultado.filter(r => r.fechaReporte >= filtros.fechaDesde);
-    }
-    if (filtros.fechaHasta) {
-      resultado = resultado.filter(r => r.fechaReporte <= filtros.fechaHasta);
-    }
-
-    return resultado;
-  }, [reportes, filtros]);
-
-  const totalPaginas = useMemo(() => {
-    return Math.max(1, Math.ceil(reportesFiltrados.length / itemsPorPagina));
-  }, [reportesFiltrados.length, itemsPorPagina]);
-
-  const paginaSegura = useMemo(() => {
-    if (paginaActual > totalPaginas) return totalPaginas;
-    return paginaActual;
-  }, [paginaActual, totalPaginas]);
-
-  const reportesPagina = useMemo(() => {
-    const inicio = (paginaSegura - 1) * itemsPorPagina;
-    return reportesFiltrados.slice(inicio, inicio + itemsPorPagina);
-  }, [reportesFiltrados, paginaSegura, itemsPorPagina]);
-
   const cambiarPagina = useCallback((pagina: number) => {
     setPaginaActual(pagina);
   }, []);
@@ -93,70 +94,98 @@ export function useGestionReportes() {
     setPaginaActual(1);
   }, []);
 
-  /** Iniciar edición de un reporte */
   const iniciarEdicion = useCallback((reporte: ReporteResumen) => {
     setReporteEditando(reporte);
   }, []);
 
-  /** Guardar cambios de edición */
-  const guardarEdicion = useCallback(async (datos: Record<string, any>): Promise<boolean> => {
+  const guardarEdicion = async (datos: Record<string, any>): Promise<boolean> => {
     setCargando(true);
     try {
-      // Simular llamada API
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setReportes(prev =>
-        prev.map(r =>
-          r.id === datos.id
-            ? ({ ...r, ...datos } as ReporteResumen)
-            : r
-        )
-      );
+      await apiClient.put(ENDPOINTS.REPORTES.BY_ID(String(datos.id)), {
+        clienteId: datos.clienteId,
+        equipo: datos.equipo,
+        fechaReporte: datos.fechaReporte,
+        fechaAtencion: datos.fechaAtencion,
+        horaInicio: datos.horaInicio,
+        horaFinalizacion: datos.horaFinalizacion,
+        descripcionFalla: datos.descripcionFalla,
+        trabajoRealizado: datos.trabajoRealizado,
+        etiquetaId: datos.etiquetaId,
+        tecnicoId: datos.tecnicoId,
+        estadoId: datos.estadoId,
+        repuestoId: datos.repuestoId,
+        posibleCausa: datos.posibleCausa,
+        anotaciones: datos.anotaciones,
+        reportadoPor: datos.reportadoPor,
+        motivoModificacion: datos.motivoModificacion,
+      });
+      await cargarReportes();
       setReporteEditando(null);
       return true;
+    } catch (error: any) {
+      const msg = error.response?.data?.error || 'Error al guardar el reporte';
+      console.error('[REPORTES] Error al guardar:', msg);
+      return false;
     } finally {
       setCargando(false);
     }
-  }, []);
+  };
 
-  /** Cancelar edición */
   const cancelarEdicion = useCallback(() => {
     setReporteEditando(null);
   }, []);
 
-  /** Solicitar confirmación para eliminar */
   const solicitarEliminar = useCallback((reporte: ReporteResumen) => {
     setReporteEliminar(reporte);
   }, []);
 
-  /** Confirmar eliminación */
-  const confirmarEliminar = useCallback(async (): Promise<boolean> => {
+  const confirmarEliminar = async (): Promise<boolean> => {
     if (!reporteEliminar) return false;
     setCargando(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setReportes(prev => prev.filter(r => r.id !== reporteEliminar.id));
+      await apiClient.delete(ENDPOINTS.REPORTES.BY_ID(String(reporteEliminar.id)));
+      await cargarReportes();
       setReporteEliminar(null);
       return true;
+    } catch (error: any) {
+      const msg = error.response?.data?.error || 'Error al eliminar el reporte';
+      console.error('[REPORTES] Error al eliminar:', msg);
+      return false;
     } finally {
       setCargando(false);
     }
-  }, [reporteEliminar]);
+  };
 
-  /** Cancelar eliminación */
   const cancelarEliminar = useCallback(() => {
     setReporteEliminar(null);
   }, []);
 
+  const recuperar = async (id: string): Promise<boolean> => {
+    setCargando(true);
+    try {
+      await apiClient.patch(ENDPOINTS.REPORTES.RESTORE(id));
+      await cargarReportes();
+      return true;
+    } catch (error: any) {
+      const msg = error.response?.data?.error || 'Error al recuperar el reporte';
+      console.error('[REPORTES] Error al recuperar:', msg);
+      return false;
+    } finally {
+      setCargando(false);
+    }
+  };
+
   return {
-    reportes: reportesPagina,
-    reportesTotal: reportesFiltrados.length,
+    reportes,
+    reportesTotal: totalItems,
     filtros,
-    paginaActual: paginaSegura,
+    paginaActual,
     totalPaginas,
     itemsPorPagina,
     reporteEditando,
     reporteEliminar,
     cargando,
+    cargandoInicial,
 
     actualizarFiltro,
     limpiarFiltros,
@@ -168,5 +197,6 @@ export function useGestionReportes() {
     solicitarEliminar,
     confirmarEliminar,
     cancelarEliminar,
+    recuperar,
   };
 }

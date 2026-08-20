@@ -2,30 +2,21 @@
    types/index.ts — Tipos específicos para Gestión de Registros
    ====================================== */
 
-import type { ReporteResumen } from '@/data/reportes';
-import type { Cliente } from '@/data/clientes';
-import type { Plantilla } from '@/data/plantillas';
-import type { Etiqueta } from '@/data/etiquetas';
-
 /** Acción realizada en el historial */
-export type AccionHistorial = 'creacion' | 'edicion' | 'eliminacion';
+export type AccionHistorial = 'creacion' | 'edicion' | 'eliminacion' | 'restauracion';
 
 /** Entrada individual del historial de cambios */
 export interface EntradaHistorial {
-  id: string;
-  reporteId: string;
-  numeroReporte: string;
+  id: number;
+  reporteId: number | null;
+  numeroReporte: string | null;
   accion: AccionHistorial;
   usuario: string;
   fecha: string;
-  hora: string;
-  /** Descripción del cambio realizado */
+  hora?: string;
   descripcion: string;
-  /** Campos que fueron modificados (solo para edición) */
   camposModificados?: string[];
-  /** Valor anterior (solo para edición) */
   valorAnterior?: string;
-  /** Valor nuevo (solo para edición) */
   valorNuevo?: string;
 }
 
@@ -53,6 +44,9 @@ export interface FiltrosClientes {
   nombre: string;
   rif: string;
   telefono: string;
+  estado: 'todos' | 'activos' | 'inactivos';
+  ordenarPor: 'id' | 'nombre';
+  ordenDireccion: 'asc' | 'desc';
 }
 
 /** Filtros para la tabla de plantillas */
@@ -73,13 +67,9 @@ export type TabActivo = 'reportes' | 'clientes' | 'plantillas' | 'historial' | '
 export interface ColumnaTabla<T = any> {
   key: string;
   titulo: string;
-  /** Función para renderizar el valor (opcional) */
   render?: (valor: any, fila: T) => React.ReactNode;
-  /** Si la columna es ordenable */
   ordenable?: boolean;
-  /** Clase CSS adicional */
   className?: string;
-  /** Ancho mínimo */
   minWidth?: string;
 }
 
@@ -89,8 +79,61 @@ export interface AccionFila<T = any> {
   icono?: React.ReactNode;
   onClick: (fila: T) => void;
   variant?: 'primary' | 'danger' | 'secondary';
-  /** Función para ocultar/mostrar la acción según la fila */
   visible?: (fila: T) => boolean;
 }
 
-export type { ReporteResumen, Cliente, Plantilla, Etiqueta };
+// ==========================================
+// Tipos de entidades (responden del backend)
+// ==========================================
+
+export interface Cliente {
+  id: number;
+  nombre: string;
+  rif?: string;
+  telefono?: string;
+  direccion?: string;
+  email?: string;
+  activo: boolean;
+}
+
+export interface Etiqueta {
+  id: number;
+  nombre: string;
+  color?: string;
+}
+
+export interface Plantilla {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+  equipo?: string;
+  descripcionFalla?: string;
+  trabajoRealizado?: string;
+  estado?: { id: number; nombre: string } | null;
+  etiqueta?: { id: number; nombre: string } | null;
+}
+
+export interface ReporteResumen {
+  id: number;
+  numeroReporte: string;
+  cliente: string;
+  clienteId: number;
+  equipo: string;
+  fechaReporte: string;
+  fechaAtencion: string;
+  horaInicio: string;
+  horaFinalizacion: string;
+  descripcionFalla: string;
+  trabajoRealizado: string;
+  etiqueta: string;
+  etiquetaId: number;
+  tecnico: string;
+  tecnicoId: number;
+  estado: string;
+  estadoId: number;
+  repuesto: string;
+  repuestoId: number;
+  posibleCausa?: string;
+  anotaciones?: string;
+  reportadoPor?: string;
+}

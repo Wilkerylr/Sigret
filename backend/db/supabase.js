@@ -15,7 +15,13 @@ const { createClient } = require('@supabase/supabase-js');
 
 // --- Validar que las variables de entorno existan ---
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+// Preferir la service_role key para el backend (ignora RLS y permite
+// todas las operaciones de administración). Si no está definida, se usa
+// la publishable key como fallback para desarrollo.
+const supabaseKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 if (!supabaseUrl) {
   console.error('[SUPABASE] Error: NEXT_PUBLIC_SUPABASE_URL no está definida en .env');
@@ -23,8 +29,12 @@ if (!supabaseUrl) {
 }
 
 if (!supabaseKey) {
-  console.error('[SUPABASE] Error: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY no está definida en .env');
+  console.error('[SUPABASE] Error: SUPABASE_SERVICE_ROLE_KEY o NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY no están definidas en .env');
   process.exit(1);
+}
+
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn('[SUPABASE] Advertencia: se usa la publishable key. Se recomienda definir SUPABASE_SERVICE_ROLE_KEY en .env para el backend.');
 }
 
 // --- Crear el cliente de Supabase ---
@@ -44,7 +54,7 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
  */
 async function testConnection() {
   try {
-    const { data, error } = await supabase.from('roles').select('id', { count: 'exact', head: true });
+    const { error } = await supabase.from('roles').select('id', { count: 'exact', head: true });
     
     if (error) {
       console.error('[SUPABASE] Error de conexión:', error.message);

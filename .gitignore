@@ -26,8 +26,6 @@ build
 *.njsproj
 *.sln
 *.sw?
-.DS_Store
-Thumbs.db
 
 # === Logs ===
 logs
@@ -40,3 +38,13 @@ coverage
 # === OS ===
 .DS_Store
 Thumbs.db
+
+# === AI Agent tools ===
+.sixth/
+backend/.agents/
+skills-lock.json
+
+# === Backend ad-hoc scripts (not part of the app) ===
+backend/test-*.js
+backend/verificar-usuarios.js
+backend/registrar-*.js

@@ -1,6 +1,12 @@
 /**
  * Tipos para el módulo de Estadísticas
+ * Alineados con el contrato real del backend GET /api/estadisticas
  */
+export interface DatosPorDia {
+  date: string;
+  total: number;
+}
+
 export interface DatosGrafico {
   mes: string;
   cantidad: number;
@@ -22,6 +28,7 @@ export interface EstadisticasDashboard {
   reportesEsteMes: number;
   tecnicosActivos: number;
   clientesAtendidos: number;
-  reportesPorMes: ReportesPorMes;
+  porDia: DatosPorDia[];
+  porMes: ReportesPorMes;
   tecnicosTop: TecnicoTop[];
 }

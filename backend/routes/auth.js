@@ -6,7 +6,7 @@
  *   POST   /api/auth/login              → Iniciar sesión (email + contraseña → JWT)
  *   POST   /api/auth/logout             → Cerrar sesión
  *   GET    /api/auth/perfil             → Obtener perfil del usuario autenticado
- *   PUT    /api/auth/cambiar-contraseña → Cambiar contraseña
+ *   PUT    /api/auth/cambiar-password → Cambiar contraseña
  */
 
 const express = require('express');
@@ -19,42 +19,11 @@ const { supabase } = require('../db/supabase');
 // CONSTANTES
 // ==========================================
 
-/** Clave secreta para firmar JWT (debería ir en .env en producción) */
-const JWT_SECRET = process.env.JWT_SECRET || 'sgrT_secret_key_2026_dev';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
+/** Clave secreta y expiración del JWT (cargadas desde .env, obligatorias) */
+const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config');
 
-// ==========================================
-// FUNCIONES AUXILIARES
-// ==========================================
-
-/**
- * Middleware para verificar token JWT
- * Extrae y valida el token del header Authorization: Bearer <token>
- */
-function verificarToken(req, res, next) {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader) {
-    return res.status(401).json({ error: 'Token de autenticación requerido' });
-  }
-
-  const token = authHeader.split(' ')[1]; // "Bearer <token>"
-
-  if (!token) {
-    return res.status(401).json({ error: 'Formato de token inválido' });
-  }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.usuario = decoded; // { id, email, rol }
-    next();
-  } catch (error) {
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token expirado', codigo: 'TOKEN_EXPIRED' });
-    }
-    return res.status(401).json({ error: 'Token inválido' });
-  }
-}
+/** Verificación de token compartida (middlewares/auth.js) */
+const { verificarToken } = require('../middlewares/auth');
 
 // ==========================================
 // ENDPOINTS
@@ -115,11 +84,21 @@ router.post('/login', async (req, res) => {
       query = query.eq('nombre_usuario', credencial.trim());
     }
 
-    const { data: usuario, error } = await query.single();
+    const { data: usuarios, error } = await query;
 
-    if (error || !usuario) {
+    if (error) {
+      console.error('[AUTH] Error al buscar usuario:', error.message);
+      return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+
+    // Si no se encontró ningún usuario
+    if (!usuarios || usuarios.length === 0) {
       return res.status(401).json({ error: 'Credenciales incorrectas' });
     }
+
+    // Si hay múltiples usuarios con el mismo nombre, tomar el primero
+    // (esto no debería pasar si la DB tiene restricción de unicidad)
+    const usuario = usuarios[0];
 
     // Verificar contraseña
     const contraseñaValida = await bcrypt.compare(contraseña, usuario.contraseña_usuario);
@@ -146,22 +125,34 @@ router.post('/login', async (req, res) => {
       valor: p.permisos_adicionales.valor_permiso,
     }));
 
-    // Generar token JWT
+    // Generar token JWT (incluye permisos para que el backend los tenga disponibles)
     const token = jwt.sign(
       {
         id: usuario.id,
         email: usuario.email_usuario,
+        nombre_usuario: usuario.nombre_usuario,
+        apellido_usuario: usuario.apellido_usuario,
         rol_id: usuario.rol_usuario,
         rol_nombre: usuario.roles?.nombre_rol || null,
+        permisos: permisos.map(p => p.nombre),
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
 
+    // Verificar si el usuario tiene preguntas de seguridad registradas
+    const { count } = await supabase
+      .from('respuestas_seguridad')
+      .select('id', { count: 'exact', head: true })
+      .eq('usuario_respuesta', usuario.id);
+
+    const primerLogin = !count || count === 0;
+
     // Responder con token y datos del usuario
     res.json({
       message: 'Inicio de sesión exitoso',
       token,
+      primer_login: primerLogin,
       usuario: {
         id: usuario.id,
         nombre_usuario: usuario.nombre_usuario,
@@ -265,13 +256,13 @@ router.get('/perfil', verificarToken, async (req, res) => {
  * Cambia la contraseña del usuario autenticado.
  * Requiere la contraseña actual y la nueva contraseña.
  */
-router.put('/cambiar-contraseña', verificarToken, async (req, res) => {
+router.put('/cambiar-password', verificarToken, async (req, res) => {
   try {
     const { contraseña_actual, nueva_contraseña } = req.body;
     const usuarioId = req.usuario.id;
 
-    if (!contraseña_actual || !nueva_contraseña) {
-      return res.status(400).json({ error: 'La contraseña actual y la nueva son obligatorias' });
+    if (!nueva_contraseña) {
+      return res.status(400).json({ error: 'La nueva contraseña es obligatoria' });
     }
 
     if (nueva_contraseña.length < 6) {
@@ -289,10 +280,12 @@ router.put('/cambiar-contraseña', verificarToken, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // Verificar contraseña actual
-    const valida = await bcrypt.compare(contraseña_actual, usuario.contraseña_usuario);
-    if (!valida) {
-      return res.status(401).json({ error: 'La contraseña actual no es correcta' });
+    // Verificar contraseña actual (si se proporciona)
+    if (contraseña_actual) {
+      const valida = await bcrypt.compare(contraseña_actual, usuario.contraseña_usuario);
+      if (!valida) {
+        return res.status(401).json({ error: 'La contraseña actual no es correcta' });
+      }
     }
 
     // Hashear y actualizar nueva contraseña
@@ -310,6 +303,94 @@ router.put('/cambiar-contraseña', verificarToken, async (req, res) => {
     res.json({ message: 'Contraseña actualizada exitosamente' });
   } catch (error) {
     console.error('[AUTH] Error inesperado en cambiar-contraseña:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
+ * GET /api/auth/refresh-permissions
+ *
+ * Refresca los permisos del usuario autenticado desde la base de datos.
+ * Útil cuando los permisos cambian (ej: un admin modifica permisos de otro usuario)
+ * y se necesita actualizar el token sin cerrar sesión.
+ */
+router.get('/refresh-permissions', verificarToken, async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+
+    // Obtener datos actualizados del usuario
+    const { data: usuario, error } = await supabase
+      .from('usuarios')
+      .select(`
+        id,
+        nombre_usuario,
+        apellido_usuario,
+        email_usuario,
+        rol_usuario,
+        is_delete,
+        roles!inner (
+          id,
+          nombre_rol
+        )
+      `)
+      .eq('id', usuarioId)
+      .eq('is_delete', false)
+      .single();
+
+    if (error || !usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Obtener permisos actualizados
+    const { data: permisosData } = await supabase
+      .from('permisos_usuarios')
+      .select(`
+        permiso_usuario,
+        permisos_adicionales!inner (
+          id,
+          nombre_permiso,
+          valor_permiso
+        )
+      `)
+      .eq('usuario_permiso', usuarioId);
+
+    const permisos = (permisosData || []).map(p => ({
+      id: p.permisos_adicionales.id,
+      nombre: p.permisos_adicionales.nombre_permiso,
+      valor: p.permisos_adicionales.valor_permiso,
+    }));
+
+    // Generar nuevo token con permisos actualizados
+    const token = jwt.sign(
+      {
+        id: usuario.id,
+        email: usuario.email_usuario,
+        nombre_usuario: usuario.nombre_usuario,
+        apellido_usuario: usuario.apellido_usuario,
+        rol_id: usuario.rol_usuario,
+        rol_nombre: usuario.roles?.nombre_rol || null,
+        permisos: permisos.map(p => p.nombre),
+      },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
+
+    res.json({
+      token,
+      usuario: {
+        id: usuario.id,
+        nombre_usuario: usuario.nombre_usuario,
+        apellido_usuario: usuario.apellido_usuario,
+        email: usuario.email_usuario,
+        rol: {
+          id: usuario.rol_usuario,
+          nombre: usuario.roles?.nombre_rol || null,
+        },
+        permisos,
+      },
+    });
+  } catch (error) {
+    console.error('[AUTH] Error inesperado en refresh-permissions:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

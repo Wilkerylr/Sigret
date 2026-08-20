@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { X } from 'lucide-react';
-import type { Etiqueta } from '@/data/etiquetas';
+import type { Etiqueta } from '../types';
 import './SelectorEtiquetas.css';
 
 interface SelectorEtiquetasProps {

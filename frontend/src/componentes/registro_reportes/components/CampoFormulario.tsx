@@ -11,6 +11,7 @@ const CampoFormulario: React.FC<CampoFormularioProps> = ({
   type = 'text',
   opciones = [],
   min,
+  max,
 }) => {
   const renderInput = () => {
     switch (type) {
@@ -69,6 +70,7 @@ const CampoFormulario: React.FC<CampoFormularioProps> = ({
             value={value}
             onChange={onChange}
             required={required}
+            max={max}
             className="campo-input"
           />
         );

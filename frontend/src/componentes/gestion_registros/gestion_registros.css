@@ -247,6 +247,27 @@
     border-color: var(--color-texto-terciario);
 }
 
+.tab-btn-limpiar.tab-btn-activo {
+    background: #dbeafe;
+    border-color: #3b82f6;
+    color: #1d4ed8;
+}
+
+.tab-btn-limpiar.tab-btn-activo:hover {
+    background: #bfdbfe;
+    border-color: #2563eb;
+}
+
+.tab-btn-limpiar.tab-btn-peligro {
+    border-color: #fca5a5;
+    color: #dc2626;
+}
+
+.tab-btn-limpiar.tab-btn-peligro:hover {
+    background: #fee2e2;
+    border-color: #ef4444;
+}
+
 /* ---- Etiquetas (tags) dentro de la tabla ---- */
 .gestion-tags {
     display: flex;

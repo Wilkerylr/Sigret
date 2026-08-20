@@ -18,7 +18,6 @@ interface CampoGenericoProps {
 const CampoGenerico: React.FC<CampoGenericoProps> = ({
   config,
   valor,
-  datosCompletos,
   error,
   onChange,
 }) => {

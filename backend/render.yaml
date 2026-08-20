@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: sgrt-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        sync: false  # Configurar manualmente con la URL de Netlify
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false  # Copiar del .env actual
+      - key: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+        sync: false  # Copiar del .env actual
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false  # Copiar del .env actual

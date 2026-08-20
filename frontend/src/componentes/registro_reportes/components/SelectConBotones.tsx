@@ -22,11 +22,24 @@ const SelectConBotones: React.FC<SelectConBotonesProps> = ({
   const [opcionesExtra, setOpcionesExtra] = useState<Array<{ value: string; label: string }>>([]);
   const esRepuestos = tipo === 'conCantidad';
 
-  const todasLasOpciones = [...opciones, ...opcionesExtra];
+  const todasLasOpciones = [...opciones, ...opcionesExtra]
+    .filter((opcion, index, arr) => arr.findIndex(o => o.value === opcion.value) === index);
 
-  const handleNuevoConfirm = (nombre: string) => {
-    const value = nombre.toLowerCase().replace(/\s+/g, '_');
-    const nuevaOpcion = { value, label: nombre };
+  const handleNuevoConfirm = async (nombre: string) => {
+    let nuevaOpcion: { value: string; label: string };
+
+    if (onNuevo) {
+      try {
+        nuevaOpcion = await onNuevo(nombre);
+      } catch (err) {
+        const msg = (err as any)?.response?.data?.error || 'Error al crear el item';
+        alert(msg);
+        return;
+      }
+    } else {
+      const value = nombre.toLowerCase().replace(/\s+/g, '_');
+      nuevaOpcion = { value, label: nombre };
+    }
 
     // Agregar la nueva opción a las opciones extra
     setOpcionesExtra(prev => [...prev, nuevaOpcion]);
@@ -36,22 +49,15 @@ const SelectConBotones: React.FC<SelectConBotonesProps> = ({
       const syntheticEvent = {
         target: {
           name: name,
-          value: value,
+          value: nuevaOpcion.value,
         },
       } as React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
       onChange(syntheticEvent);
     }
 
-    // Llamar al callback onNuevo si existe
-    if (onNuevo) {
-      onNuevo();
-    }
-
     // Auto-agregar solo para etiquetas (tipo simple), no para repuestos que requieren cantidad
     if (!esRepuestos) {
-      setTimeout(() => {
-        onAgregar();
-      }, 0);
+      onAgregar(nuevaOpcion.value);
     }
   };
 
@@ -72,6 +78,7 @@ const SelectConBotones: React.FC<SelectConBotonesProps> = ({
         }}
         className="campo-input"
       >
+        <option value="">Seleccione...</option>
         {todasLasOpciones.map((opcion) => (
           <option key={opcion.value} value={opcion.value}>
             {opcion.label}
@@ -95,7 +102,7 @@ const SelectConBotones: React.FC<SelectConBotonesProps> = ({
           <button
             type="button"
             className="btn-agregar"
-            onClick={onAgregar}
+            onClick={() => onAgregar()}
             aria-label="Agregar repuesto seleccionado"
           >
             Agregar
@@ -118,7 +125,7 @@ const SelectConBotones: React.FC<SelectConBotonesProps> = ({
           <button
             type="button"
             className="btn-agregar"
-            onClick={onAgregar}
+            onClick={() => onAgregar()}
             aria-label="Agregar item seleccionado"
           >
             Agregar
@@ -161,7 +168,9 @@ const SelectConBotones: React.FC<SelectConBotonesProps> = ({
                 <tr key={index}>
                   {esRepuestos ? (
                     <>
-                      <td>{(item as any).repuesto}</td>
+                      <td>
+                        {todasLasOpciones.find(op => op.value === (item as any).repuesto)?.label || (item as any).repuesto}
+                      </td>
                       <td>{(item as any).cantidad}</td>
                     </>
                   ) : (

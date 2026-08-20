@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { FormReporteData, Repuesto } from '../types';
 import { validarFechas, validarHoras, validarNumeroPositivo } from '../utils/validaciones';
-import { PLANTILLAS } from '@/data';
+import apiClient from '@/api/client';
+import type { PlantillaData } from './useOpcionesReporte';
 
 const estadoInicial: FormReporteData = {
   cliente: '',
@@ -27,74 +28,69 @@ const estadoInicial: FormReporteData = {
   horaFinalizacion: '',
 };
 
-/**
- * Busca una plantilla por su nombre y retorna los valores predefinidos.
- * Si el nombre tiene formato value (ej: "mantenimiento"), busca también por label.
- * Los valores ahora están directamente en la raíz del objeto Plantilla.
- */
-function obtenerValoresPlantilla(nombrePlantilla: string): Record<string, string> | null {
-  if (!nombrePlantilla) return null;
+function obtenerValoresPlantilla(
+  nombrePlantilla: string,
+  plantillasData: PlantillaData[]
+): Record<string, string> | null {
+  if (!nombrePlantilla || plantillasData.length === 0) return null;
 
-  // Buscar por nombre exacto del value (formato: "mantenimiento", "reparacion", etc.)
-  const buscarPorLabel = (label: string) =>
-    PLANTILLAS.find(
-      (p) => p.nombre.toLowerCase() === label.toLowerCase()
-    );
-
-  // Intentar búsqueda normalizada: convertir value a nombre (mantenimiento → Mantenimiento)
-  const plantilla = PLANTILLAS.find(
-    (p) => p.nombre.toLowerCase().replace(/\s+/g, '_') === nombrePlantilla.toLowerCase()
-  ) || buscarPorLabel(nombrePlantilla);
+  const plantilla = plantillasData.find(
+    (p) => String(p.id) === nombrePlantilla || p.nombre.toLowerCase() === nombrePlantilla.toLowerCase()
+  );
 
   if (!plantilla) return null;
 
-  // Extraer solo los campos de valor predefinido (excluyendo metadatos de la plantilla)
-  const { id, nombre, descripcion, etiquetasPredefinidas, ...valores } = plantilla;
-  return Object.keys(valores).length > 0 ? (valores as Record<string, string>) : null;
+  const valores: Record<string, string> = {};
+  if (plantilla.equipo) valores.equipo = plantilla.equipo;
+  if (plantilla.descripcionFalla) valores.descripcionFalla = plantilla.descripcionFalla;
+  if (plantilla.trabajoRealizado) valores.trabajoRealizado = plantilla.trabajoRealizado;
+  if (plantilla.estado?.nombre) valores.declaracion = String(plantilla.estado.id);
+  return Object.keys(valores).length > 0 ? valores : null;
 }
 
-export const useFormReporte = () => {
+function obtenerEtiquetaPrefill(
+  nombrePlantilla: string,
+  plantillasData: PlantillaData[]
+): string[] {
+  if (!nombrePlantilla || plantillasData.length === 0) return [];
+  const plantilla = plantillasData.find(
+    (p) => String(p.id) === nombrePlantilla || p.nombre.toLowerCase() === nombrePlantilla.toLowerCase()
+  );
+  if (plantilla?.etiqueta?.id) {
+    return [String(plantilla.etiqueta.id)];
+  }
+  return [];
+}
+
+interface UseFormReporteOptions {
+  plantillasData: PlantillaData[];
+  onSuccess?: () => void;
+  onError?: (error: string) => void;
+}
+
+export const useFormReporte = (options?: UseFormReporteOptions) => {
   const [formData, setFormData] = useState<FormReporteData>(estadoInicial);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const plantillasData = options?.plantillasData || [];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
 
     setFormData(prev => {
-      // Si el campo cambiado es "plantilla", auto-llenar campos con valores de la plantilla
       if (name === 'plantilla') {
-        const valoresPlantilla = obtenerValoresPlantilla(value);
-
-        // Buscar la plantilla completa para obtener etiquetas predefinidas
-        const plantillaEncontrada = value
-          ? PLANTILLAS.find(
-              (p) =>
-                p.nombre.toLowerCase().replace(/\s+/g, '_') === value.toLowerCase() ||
-                p.nombre.toLowerCase() === value.toLowerCase()
-            )
-          : undefined;
-
-        const etiquetasPredefinidas = plantillaEncontrada?.etiquetasPredefinidas ?? [];
+        const valoresPlantilla = obtenerValoresPlantilla(value, plantillasData);
+        const etiquetasPrefill = obtenerEtiquetaPrefill(value, plantillasData);
 
         return {
           ...prev,
           plantilla: value,
-          ...(valoresPlantilla
-            ? {
-                equipo: valoresPlantilla.equipo ?? prev.equipo,
-                descripcionFalla: valoresPlantilla.descripcionFalla ?? prev.descripcionFalla,
-                trabajoRealizado: valoresPlantilla.trabajoRealizado ?? prev.trabajoRealizado,
-                posibleCausa: valoresPlantilla.posibleCausa ?? prev.posibleCausa,
-                anotaciones: valoresPlantilla.anotaciones ?? prev.anotaciones,
-                // Auto-llenar la declaración (estado del equipo)
-                declaracion: valoresPlantilla.declaracion ?? prev.declaracion,
-              }
-            : {}),
-          // Auto-llenar las etiquetas predefinidas de la plantilla
-          etiquetas: etiquetasPredefinidas,
+          ...(valoresPlantilla || {}),
+          etiquetas: etiquetasPrefill,
         };
       }
 
-      // Para cualquier otro campo, comportamiento normal
       return {
         ...prev,
         [name]: value,
@@ -144,11 +140,12 @@ export const useFormReporte = () => {
     }));
   };
 
-  const agregarEtiqueta = () => {
-    if (formData.etiquetaSeleccionada) {
+  const agregarEtiqueta = (value?: string) => {
+    const seleccionada = value ?? formData.etiquetaSeleccionada;
+    if (seleccionada) {
       setFormData(prev => ({
         ...prev,
-        etiquetas: [...prev.etiquetas, formData.etiquetaSeleccionada],
+        etiquetas: [...prev.etiquetas, seleccionada],
         etiquetaSeleccionada: ''
       }));
     }
@@ -178,37 +175,74 @@ export const useFormReporte = () => {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async (): Promise<boolean> => {
     const validacionFechas = validarFechas(formData.fechaReporte, formData.fechaAtencion);
     if (!validacionFechas.valido) {
-      alert(validacionFechas.mensaje);
+      setSubmitError(validacionFechas.mensaje || null);
       return false;
     }
 
     const validacionHoras = validarHoras(formData.horaInicio, formData.horaFinalizacion);
     if (!validacionHoras.valido) {
-      alert(validacionHoras.mensaje);
+      setSubmitError(validacionHoras.mensaje || null);
       return false;
-    }
-
-    if (validacionHoras.mensaje) {
-      alert(validacionHoras.mensaje);
     }
 
     const validacionNumero = validarNumeroPositivo(formData.numeroReporte);
     if (!validacionNumero.valido) {
-      alert('❌ Error: El número de reporte debe ser positivo');
+      setSubmitError(validacionNumero.mensaje || null);
       return false;
     }
 
-    console.log('Formulario enviado:', formData);
-    alert('✅ Reporte guardado correctamente');
-    
-    return true;
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const payload = {
+        numeroReporte: Number(formData.numeroReporte),
+        clienteId: Number(formData.cliente),
+        equipo: formData.equipo,
+        fechaReporte: formData.fechaReporte,
+        fechaAtencion: formData.fechaAtencion,
+        horaInicio: formData.horaInicio,
+        horaFinalizacion: formData.horaFinalizacion,
+        descripcionFalla: formData.descripcionFalla,
+        trabajoRealizado: formData.trabajoRealizado,
+        etiquetaId: Number(formData.etiquetas[0]),
+        tecnicoId: Number(formData.tecnicos[0]),
+        estadoId: Number(formData.declaracion),
+        posibleCausa: formData.posibleCausa || undefined,
+        anotaciones: formData.anotaciones || undefined,
+        reportadoPor: formData.reportadoPor || undefined,
+        tecnicos: formData.tecnicos.map(Number),
+        repuestos: formData.repuestos.map(r => ({
+          repuestoId: Number(r.repuesto),
+          cantidad: Number(r.cantidad),
+        })),
+      };
+
+      await apiClient.post('/reportes', payload);
+      setFormData(estadoInicial);
+      options?.onSuccess?.();
+      return true;
+    } catch (err: any) {
+      const msg = err?.response?.data?.error
+        || (err?.response?.data?.detalles && Array.isArray(err.response.data.detalles)
+          ? err.response.data.detalles.join(', ')
+          : null)
+        || err?.message
+        || 'Error al guardar el reporte';
+      setSubmitError(msg);
+      options?.onError?.(msg);
+      return false;
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const limpiarFormulario = () => {
     setFormData(estadoInicial);
+    setSubmitError(null);
   };
 
   const validarCamposRequeridos = () => {
@@ -243,5 +277,7 @@ export const useFormReporte = () => {
     handleSubmit,
     limpiarFormulario,
     validarCamposRequeridos,
+    submitting,
+    submitError,
   };
 };

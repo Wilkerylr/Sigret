@@ -4,7 +4,7 @@
    Responsabilidad única: Orquestar subcomponentes y estado global
    ====================================== */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Plus, Edit3, Trash2 } from 'lucide-react';
 import { useGestionUsuarios } from './hooks/useGestionUsuarios';
 import { TablaGenerica, ModalConfirmacion } from '@/componentes/gestion_registros';
@@ -44,8 +44,8 @@ const GestionUsuarios: React.FC = () => {
 
   const [usuarioEliminar, setUsuarioEliminar] = useState<any | null>(null);
 
-  const configCrear = useMemo(() => crearConfigUsuarioCrear(), []);
-  const configEditar = useMemo(() => crearConfigUsuarioEditar(), []);
+  const configCrear = crearConfigUsuarioCrear();
+  const configEditar = crearConfigUsuarioEditar();
 
   const columnas: ColumnaTabla<any>[] = [
     {

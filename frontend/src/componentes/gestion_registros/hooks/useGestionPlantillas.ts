@@ -1,41 +1,44 @@
 /* ======================================
    hooks/useGestionPlantillas.ts
    Hook para administrar plantillas predefinidas de reportes
+   Conectado al backend real (/api/plantillas)
    ====================================== */
 
-import { useState, useMemo, useCallback } from 'react';
-import { PLANTILLAS } from '@/data/plantillas';
-import type { Plantilla } from '@/data/plantillas';
-import type { FiltrosPlantillas } from '../types';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import apiClient from '@/api/client';
+import { ENDPOINTS } from '@/api/endpoints';
+import type { Plantilla, FiltrosPlantillas } from '../types';
 
 const FILTROS_INICIALES: FiltrosPlantillas = {
   nombre: '',
   descripcion: '',
 };
 
-/** Plantilla para nueva plantilla */
-const PLANTILLA_VACIA: Plantilla = {
-  id: '',
-  nombre: '',
-  descripcion: '',
-  equipo: '',
-  descripcionFalla: '',
-  trabajoRealizado: '',
-  posibleCausa: '',
-  anotaciones: '',
-  declaracion: '',
-  etiquetasPredefinidas: [],
-};
-
-let siguienteId = PLANTILLAS.length + 1;
-
 export function useGestionPlantillas() {
-  const [plantillas, setPlantillas] = useState<Plantilla[]>(PLANTILLAS);
+  const [plantillas, setPlantillas] = useState<Plantilla[]>([]);
   const [filtros, setFiltros] = useState<FiltrosPlantillas>({ ...FILTROS_INICIALES });
   const [plantillaEditando, setPlantillaEditando] = useState<Plantilla | null>(null);
   const [modoCrear, setModoCrear] = useState(false);
   const [plantillaEliminar, setPlantillaEliminar] = useState<Plantilla | null>(null);
   const [cargando, setCargando] = useState(false);
+  const [cargandoInicial, setCargandoInicial] = useState(true);
+
+  const cargarPlantillas = async () => {
+    try {
+      setCargandoInicial(true);
+      const { data } = await apiClient.get(ENDPOINTS.PLANTILLAS.BASE);
+      setPlantillas(data);
+    } catch (error) {
+      console.error('[PLANTILLAS] Error al cargar:', error);
+    } finally {
+      setCargandoInicial(false);
+    }
+  };
+
+  useEffect(() => {
+    cargarPlantillas();
+     
+  }, []);
 
   const actualizarFiltro = useCallback((
     e: React.ChangeEvent<HTMLInputElement>
@@ -69,32 +72,44 @@ export function useGestionPlantillas() {
   }, []);
 
   const iniciarCreacion = useCallback(() => {
-    setPlantillaEditando({ ...PLANTILLA_VACIA, id: `PLT-NEW-${siguienteId++}` });
+    setPlantillaEditando({
+      id: 0, nombre: '', descripcion: '', equipo: '',
+      descripcionFalla: '', trabajoRealizado: '',
+      estado: null, etiqueta: null,
+    });
     setModoCrear(true);
   }, []);
 
-  const guardarEdicion = useCallback(async (datos: Record<string, any>): Promise<boolean> => {
+  const guardarEdicion = async (datos: Record<string, any>): Promise<boolean> => {
     setCargando(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const payload = {
+        nombre: datos.nombre,
+        descripcion: datos.descripcion,
+        equipo: datos.equipo,
+        descripcionFalla: datos.descripcionFalla,
+        trabajoRealizado: datos.trabajoRealizado,
+        estadoId: datos.estadoId || datos.estado?.id,
+        etiquetaId: datos.etiquetaId || datos.etiqueta?.id,
+      };
+
       if (modoCrear) {
-        setPlantillas(prev => [...prev, datos as Plantilla]);
+        await apiClient.post(ENDPOINTS.PLANTILLAS.BASE, payload);
       } else {
-        setPlantillas(prev =>
-          prev.map(p =>
-            p.id === datos.id
-              ? ({ ...p, ...datos } as Plantilla)
-              : p
-          )
-        );
+        await apiClient.put(ENDPOINTS.PLANTILLAS.BY_ID(String(datos.id)), payload);
       }
+      await cargarPlantillas();
       setPlantillaEditando(null);
       setModoCrear(false);
       return true;
+    } catch (error: any) {
+      const msg = error.response?.data?.error || 'Error al guardar la plantilla';
+      console.error('[PLANTILLAS] Error al guardar:', msg);
+      return false;
     } finally {
       setCargando(false);
     }
-  }, [modoCrear]);
+  };
 
   const cancelarEdicion = useCallback(() => {
     setPlantillaEditando(null);
@@ -105,18 +120,22 @@ export function useGestionPlantillas() {
     setPlantillaEliminar(plantilla);
   }, []);
 
-  const confirmarEliminar = useCallback(async (): Promise<boolean> => {
+  const confirmarEliminar = async (): Promise<boolean> => {
     if (!plantillaEliminar) return false;
     setCargando(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setPlantillas(prev => prev.filter(p => p.id !== plantillaEliminar.id));
+      await apiClient.delete(ENDPOINTS.PLANTILLAS.BY_ID(String(plantillaEliminar.id)));
+      await cargarPlantillas();
       setPlantillaEliminar(null);
       return true;
+    } catch (error: any) {
+      const msg = error.response?.data?.error || 'Error al eliminar la plantilla';
+      console.error('[PLANTILLAS] Error al eliminar:', msg);
+      return false;
     } finally {
       setCargando(false);
     }
-  }, [plantillaEliminar]);
+  };
 
   const cancelarEliminar = useCallback(() => {
     setPlantillaEliminar(null);
@@ -128,6 +147,7 @@ export function useGestionPlantillas() {
     plantillaEditando,
     plantillaEliminar,
     cargando,
+    cargandoInicial,
     modoCrear,
 
     actualizarFiltro,
