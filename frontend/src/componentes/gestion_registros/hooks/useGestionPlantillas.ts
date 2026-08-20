@@ -18,9 +18,13 @@ const PLANTILLA_VACIA: Plantilla = {
   id: '',
   nombre: '',
   descripcion: '',
-  camposPredefinidos: [],
+  equipo: '',
+  descripcionFalla: '',
+  trabajoRealizado: '',
+  posibleCausa: '',
+  anotaciones: '',
+  declaracion: '',
   etiquetasPredefinidas: [],
-  valoresPorDefecto: {},
 };
 
 let siguienteId = PLANTILLAS.length + 1;

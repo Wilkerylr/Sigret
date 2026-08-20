@@ -40,20 +40,23 @@ const TabPlantillas: React.FC = () => {
       render: (v: string) => v || '—',
     },
     {
-      key: 'camposPredefinidos',
-      titulo: 'Campos predefinidos',
-      minWidth: '200px',
-      render: (campos?: string[]) => (
-        <div className="gestion-tags">
-          {!campos || campos.length === 0 ? (
-            <span className="gestion-tag-vacio">Ninguno</span>
-          ) : (
-            campos.map((c) => (
-              <span key={c} className="gestion-tag gestion-tag-campo">{c}</span>
-            ))
-          )}
-        </div>
-      ),
+      key: 'equipo',
+      titulo: 'Equipo',
+      minWidth: '120px',
+      render: (v: string) => v || '—',
+    },
+    {
+      key: 'declaracion',
+      titulo: 'Estado',
+      minWidth: '100px',
+      render: (v: string) => {
+        if (!v) return '—';
+        return (
+          <span className={`gestion-tag ${v === 'operativo' ? 'gestion-tag--exito' : 'gestion-tag--peligro'}`}>
+            {v === 'operativo' ? 'Operativo' : 'Inoperativo'}
+          </span>
+        );
+      },
     },
     {
       key: 'etiquetasPredefinidas',

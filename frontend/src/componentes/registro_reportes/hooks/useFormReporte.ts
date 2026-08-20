@@ -13,6 +13,7 @@ const estadoInicial: FormReporteData = {
   cantidad: '',
   posibleCausa: '',
   anotaciones: '',
+  reportadoPor: '',
   declaracion: '',
   etiquetas: [],
   etiquetaSeleccionada: '',
@@ -27,8 +28,9 @@ const estadoInicial: FormReporteData = {
 };
 
 /**
- * Busca una plantilla por su nombre y retorna los valores por defecto.
+ * Busca una plantilla por su nombre y retorna los valores predefinidos.
  * Si el nombre tiene formato value (ej: "mantenimiento"), busca también por label.
+ * Los valores ahora están directamente en la raíz del objeto Plantilla.
  */
 function obtenerValoresPlantilla(nombrePlantilla: string): Record<string, string> | null {
   if (!nombrePlantilla) return null;
@@ -44,7 +46,11 @@ function obtenerValoresPlantilla(nombrePlantilla: string): Record<string, string
     (p) => p.nombre.toLowerCase().replace(/\s+/g, '_') === nombrePlantilla.toLowerCase()
   ) || buscarPorLabel(nombrePlantilla);
 
-  return plantilla?.valoresPorDefecto ?? null;
+  if (!plantilla) return null;
+
+  // Extraer solo los campos de valor predefinido (excluyendo metadatos de la plantilla)
+  const { id, nombre, descripcion, etiquetasPredefinidas, ...valores } = plantilla;
+  return Object.keys(valores).length > 0 ? (valores as Record<string, string>) : null;
 }
 
 export const useFormReporte = () => {
@@ -74,6 +80,7 @@ export const useFormReporte = () => {
           plantilla: value,
           ...(valoresPlantilla
             ? {
+                equipo: valoresPlantilla.equipo ?? prev.equipo,
                 descripcionFalla: valoresPlantilla.descripcionFalla ?? prev.descripcionFalla,
                 trabajoRealizado: valoresPlantilla.trabajoRealizado ?? prev.trabajoRealizado,
                 posibleCausa: valoresPlantilla.posibleCausa ?? prev.posibleCausa,

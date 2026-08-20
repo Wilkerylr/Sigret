@@ -2,17 +2,21 @@
   "name": "backend",
   "private": true,
   "version": "1.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "nodemon server.js",
     "build": "tsc",
     "start": "node dist/index.js",
     "lint": "eslint ."
   },
   "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.21.0",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.110.2",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^4.22.2",
     "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
@@ -21,7 +25,13 @@
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.0.0",
     "eslint": "^9.0.0",
+    "nodemon": "^3.1.14",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0"
-  }
+  },
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

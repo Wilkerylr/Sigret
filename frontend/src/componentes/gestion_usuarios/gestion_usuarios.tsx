@@ -4,16 +4,28 @@
    Responsabilidad única: Orquestar subcomponentes y estado global
    ====================================== */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Plus, Edit3, Trash2 } from 'lucide-react';
-import { useGestionUsuarios, OPCIONES_ROLES, ETIQUETAS_PERMISOS } from './hooks/useGestionUsuarios';
+import { useGestionUsuarios } from './hooks/useGestionUsuarios';
 import { TablaGenerica, ModalConfirmacion } from '@/componentes/gestion_registros';
-import { FormularioEdicion, CONFIG_USUARIO_CREAR, CONFIG_USUARIO_EDITAR } from '@/componentes/formulario_edicion';
+import { FormularioEdicion, crearConfigUsuarioCrear, crearConfigUsuarioEditar } from '@/componentes/formulario_edicion';
 import FiltrosUsuarios from './components/FiltrosUsuarios';
 import LeyendaRoles from './components/LeyendaRoles';
+import ModalEliminarAdmin from './components/ModalEliminarAdmin';
 import type { ColumnaTabla, AccionFila } from '@/componentes/gestion_registros/types';
-import type { UsuarioData } from '@/data/usuarios';
 import './gestion_usuarios.css';
+
+const ROLES_MAP: Record<string, string> = {
+  '1': 'Administrador',
+  '2': 'Técnico',
+  '3': 'Administrativo',
+};
+
+const ROLES_CLASS: Record<string, string> = {
+  '1': 'admin',
+  '2': 'tecnico',
+  '3': 'administrativo',
+};
 
 const GestionUsuarios: React.FC = () => {
   const {
@@ -30,22 +42,24 @@ const GestionUsuarios: React.FC = () => {
     cancelarEdicion,
   } = useGestionUsuarios();
 
-  const [usuarioEliminar, setUsuarioEliminar] = useState<UsuarioData | null>(null);
+  const [usuarioEliminar, setUsuarioEliminar] = useState<any | null>(null);
 
-  const columnas: ColumnaTabla<UsuarioData>[] = [
+  const configCrear = useMemo(() => crearConfigUsuarioCrear(), []);
+  const configEditar = useMemo(() => crearConfigUsuarioEditar(), []);
+
+  const columnas: ColumnaTabla<any>[] = [
     {
-      key: 'username',
-      titulo: 'Usuario',
+      key: 'nombre_usuario',
+      titulo: 'Nombre',
       minWidth: '120px',
     },
     {
-      key: 'nombreCompleto',
-      titulo: 'Nombre Completo',
-      minWidth: '200px',
-      render: (v: string) => v || '—',
+      key: 'apellido_usuario',
+      titulo: 'Apellido',
+      minWidth: '120px',
     },
     {
-      key: 'email',
+      key: 'email_usuario',
       titulo: 'Email',
       minWidth: '200px',
       render: (v: string) => {
@@ -59,38 +73,18 @@ const GestionUsuarios: React.FC = () => {
       },
     },
     {
-      key: 'role',
+      key: 'rol_usuario',
       titulo: 'Rol',
       minWidth: '140px',
-      render: (v: string) => {
-        const rol = OPCIONES_ROLES.find(r => r.value === v);
-        return (
-          <span className={`rol-badge rol-badge--${v}`}>
-            {rol?.label || v}
-          </span>
-        );
-      },
-    },
-    {
-      key: 'permissions',
-      titulo: 'Permisos',
-      minWidth: '250px',
-      render: (v: string[]) => {
-        if (!v || v.length === 0) return <span className="sin-permisos">Sin permisos</span>;
-        return (
-          <div className="permisos-tags">
-            {v.map(perm => (
-              <span key={perm} className="permiso-tag" title={ETIQUETAS_PERMISOS[perm as keyof typeof ETIQUETAS_PERMISOS] || perm}>
-                {ETIQUETAS_PERMISOS[perm as keyof typeof ETIQUETAS_PERMISOS] || perm}
-              </span>
-            ))}
-          </div>
-        );
-      },
+      render: (v: string) => (
+        <span className={`rol-badge rol-badge--${ROLES_CLASS[v] || 'tecnico'}`}>
+          {ROLES_MAP[v] || 'Desconocido'}
+        </span>
+      ),
     },
   ];
 
-  const acciones: AccionFila<UsuarioData>[] = [
+  const acciones: AccionFila<any>[] = [
     {
       etiqueta: 'Editar',
       icono: <Edit3 size={14} />,
@@ -102,7 +96,6 @@ const GestionUsuarios: React.FC = () => {
       icono: <Trash2 size={14} />,
       variant: 'danger',
       onClick: (usuario) => setUsuarioEliminar(usuario),
-      visible: (usuario) => usuario.username !== 'admin',
     },
   ];
 
@@ -116,37 +109,23 @@ const GestionUsuarios: React.FC = () => {
 
   return (
     <div className="gestion-usuarios-container">
-      {/* Header */}
       <div className="gestion-usuarios-header">
         <div className="gestion-usuarios-header-row">
           <div>
-            <h2 className="gestion-usuarios-titulo">Gesti&oacute;n de Usuarios</h2>
+            <h2 className="gestion-usuarios-titulo">Gestión de Usuarios</h2>
             <p className="gestion-usuarios-descripcion">
               Administra los usuarios del sistema, sus roles y permisos de acceso.
             </p>
           </div>
-          <button
-            type="button"
-            className="gestion-usuarios-btn-agregar"
-            onClick={iniciarCreacion}
-          >
-            <Plus size={16} />
-            Agregar Usuario
+          <button type="button" className="gestion-usuarios-btn-agregar" onClick={iniciarCreacion}>
+            <Plus size={16} /> Agregar Usuario
           </button>
         </div>
       </div>
 
-      {/* Leyenda de Roles (componente modular) */}
       <LeyendaRoles />
-      
-      {/* Filtros (componente modular) */}
-      <FiltrosUsuarios
-        filtros={filtros}
-        onActualizarFiltro={actualizarFiltro}
-        onLimpiarFiltros={limpiarFiltros}
-      />
+      <FiltrosUsuarios filtros={filtros} onActualizarFiltro={actualizarFiltro} onLimpiarFiltros={limpiarFiltros} />
 
-      {/* Tabla (componente reutilizable) */}
       <TablaGenerica
         datos={usuarios}
         columnas={columnas}
@@ -154,12 +133,11 @@ const GestionUsuarios: React.FC = () => {
         mensajeVacio="No se encontraron usuarios con los filtros especificados."
       />
 
-      {/* Modal de edición/creación */}
       {usuarioEditando && (
         <FormularioEdicion
-          titulo={modoCrear ? 'Nuevo Usuario' : `Editar Usuario: ${usuarioEditando.username}`}
+          titulo={modoCrear ? 'Nuevo Usuario' : `Editar Usuario: ${usuarioEditando.nombre_usuario}`}
           entidad={usuarioEditando}
-          configuracion={modoCrear ? CONFIG_USUARIO_CREAR : CONFIG_USUARIO_EDITAR}
+          configuracion={modoCrear ? configCrear : configEditar}
           onGuardar={guardarEdicion}
           onCancelar={cancelarEdicion}
           modo={modoCrear ? 'crear' : 'editar'}
@@ -167,12 +145,20 @@ const GestionUsuarios: React.FC = () => {
         />
       )}
 
-      {/* Modal de confirmación para eliminar */}
-      {usuarioEliminar && (
+      {usuarioEliminar && usuarioEliminar.rol_usuario === '1' && (
+        <ModalEliminarAdmin
+          abierto={true}
+          nombreUsuario={usuarioEliminar.nombre_usuario}
+          onConfirmar={handleConfirmarEliminar}
+          onCancelar={() => setUsuarioEliminar(null)}
+        />
+      )}
+
+      {usuarioEliminar && usuarioEliminar.rol_usuario !== '1' && (
         <ModalConfirmacion
           abierto={true}
           titulo="Eliminar Usuario"
-          mensaje={`¿Está seguro de eliminar al usuario "${usuarioEliminar.username}"? Esta acci&oacute;n no se puede deshacer.`}
+          mensaje={`¿Está seguro de eliminar al usuario "${usuarioEliminar.nombre_usuario}"? Esta acción no se puede deshacer.`}
           onConfirmar={handleConfirmarEliminar}
           onCancelar={() => setUsuarioEliminar(null)}
           variant="danger"

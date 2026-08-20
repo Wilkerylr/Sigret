@@ -10,7 +10,7 @@ import "../Global.css";
  * Separa la UI del formulario de la lógica de autenticación (useAuthContext hook).
  */
 const LoginForm: React.FC = () => {
-    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -21,7 +21,7 @@ const LoginForm: React.FC = () => {
         e.preventDefault();
         setError(null);
 
-        const success = await login(username, password);
+        const success = await login(email, password);
 
         if (success) {
             navigate("/home");
@@ -48,17 +48,17 @@ const LoginForm: React.FC = () => {
 
                 <form onSubmit={handleSubmit} noValidate>
                     <div className="input-group">
-                        <label htmlFor="username">
+                        <label htmlFor="email">
                             <User size={16} aria-hidden="true" />
-                            Usuario
+                            Correo electrónico
                         </label>
                         <div className="input-wrapper">
                             <input
-                                type="text"
-                                id="username"
-                                placeholder="Nombre de usuario"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                type="email"
+                                id="email"
+                                placeholder="correo@ejemplo.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 disabled={isLoading}
                                 required
                                 autoComplete="username"

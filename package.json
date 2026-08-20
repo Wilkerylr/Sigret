@@ -1,5 +1,4 @@
 {
-  "dependencies": {
-    "reacharts": "^0.4.5"
-  }
+  "private": true,
+  "name": "sgrt"
 }

@@ -6,7 +6,11 @@
 
 import React from 'react';
 import { Info } from 'lucide-react';
-import { OPCIONES_ROLES, ETIQUETAS_PERMISOS, PERMISOS_POR_ROL } from '../hooks/useGestionUsuarios';
+import { OPCIONES_ROLES, PERMISOS_SISTEMA, PERMISOS_POR_ROL } from '../hooks/useGestionUsuarios';
+
+const PERMISOS_LABEL_MAP = Object.fromEntries(
+  PERMISOS_SISTEMA.map(p => [p.value, p.label])
+);
 
 const LeyendaRoles: React.FC = () => {
   return (
@@ -24,9 +28,9 @@ const LeyendaRoles: React.FC = () => {
               </span>
             </div>
             <ul className="roles-leyenda-permisos">
-              {(PERMISOS_POR_ROL[rol.value as keyof typeof PERMISOS_POR_ROL] || []).map(perm => (
+              {(PERMISOS_POR_ROL[rol.value] || []).map(perm => (
                 <li key={perm}>
-                  {ETIQUETAS_PERMISOS[perm as keyof typeof ETIQUETAS_PERMISOS] || perm}
+                  {PERMISOS_LABEL_MAP[perm] || perm}
                 </li>
               ))}
             </ul>

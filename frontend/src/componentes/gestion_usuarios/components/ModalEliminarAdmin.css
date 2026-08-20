@@ -1,0 +1,73 @@
+.modal-eliminar-admin {
+  text-align: center;
+  padding: 2rem 1.5rem 1.5rem;
+}
+
+.modal-eliminar-admin-icono {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  background: #fee2e2;
+}
+
+.modal-eliminar-admin-titulo {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-texto-oscuro);
+  margin-bottom: 0.5rem;
+}
+
+.modal-eliminar-admin-mensaje {
+  font-size: 0.875rem;
+  color: var(--color-texto-secundario);
+  margin-bottom: 1.25rem;
+  line-height: 1.5;
+}
+
+.modal-eliminar-admin-campo {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.modal-eliminar-admin-label {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--color-texto-secundario);
+  margin-bottom: 0.5rem;
+}
+
+.modal-eliminar-admin-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-input-borde);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: var(--color-texto-oscuro);
+  background: var(--color-fondo-card);
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.modal-eliminar-admin-input:focus {
+  outline: none;
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.modal-eliminar-admin-acciones {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.modal-btn-confirmar--danger {
+  background: #ef4444;
+}
+
+.modal-btn-confirmar--danger:hover:not(:disabled) {
+  background: #dc2626;
+}
