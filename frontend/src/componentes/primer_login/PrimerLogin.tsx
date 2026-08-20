@@ -161,11 +161,11 @@ const PrimerLogin: React.FC = () => {
 
         {/* Indicador de pasos */}
         <div className="primer-login-steps">
-          <div className={`step ${paso === "contraseña" || paso === "preguntas" || paso === "exito" ? "active" : ""}`}>
+          <div className={`step active`}>
             <span className="step-number">1</span>
             <span className="step-label">Contraseña</span>
           </div>
-          <div className={`step ${paso === "preguntas" || paso === "exito" ? "active" : ""}`}>
+          <div className={`step ${paso === "preguntas" ? "active" : ""}`}>
             <span className="step-number">2</span>
             <span className="step-label">Preguntas</span>
           </div>
