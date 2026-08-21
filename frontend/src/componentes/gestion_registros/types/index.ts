@@ -133,6 +133,7 @@ export interface ReporteResumen {
   estadoId: number;
   repuesto: string;
   repuestoId: number;
+  repuestos: { id: number; nombre: string; cantidad: number }[];
   posibleCausa?: string;
   anotaciones?: string;
   reportadoPor?: string;
