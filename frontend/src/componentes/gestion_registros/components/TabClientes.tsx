@@ -223,7 +223,7 @@ const TabClientes: React.FC = () => {
             onClick={solicitarLimpiezaInactivos}
           >
             <Trash2 size={14} />
-            Eliminar inactivos sin reportes
+            Limpiar inactivos
           </button>
           )}
         </div>
