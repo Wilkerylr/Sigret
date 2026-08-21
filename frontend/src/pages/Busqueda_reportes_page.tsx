@@ -23,7 +23,7 @@ function mapearReporte(r: any): ReporteResumen {
     etiquetaId: r.etiquetaId,
     tecnicos: r.tecnico ? [r.tecnico] : [],
     tecnicoId: r.tecnicoId,
-    repuestos: r.repuesto ? [r.repuesto] : [],
+    repuestos: r.repuestos || (r.repuesto ? [{ id: r.repuestoId || 0, nombre: r.repuesto, cantidad: 1 }] : []),
     repuestoId: r.repuestoId,
     declaracion: r.estado || "",
     estadoId: r.estadoId,

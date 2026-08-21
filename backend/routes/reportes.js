@@ -58,8 +58,31 @@ const SELECT_CON_JOINS = `
 
 /**
  * Formatea un reporte para la respuesta HTTP
+ * @param {Object} reporte - Registro de la BD
+ * @param {Map<number, Array>} mapaDetallesRepuestos - Mapa de reporteId → [{ repuestoId, nombre, cantidad }]
  */
-function formatearReporte(reporte) {
+function formatearReporte(reporte, mapaDetallesRepuestos) {
+  const repuestos = [];
+
+  // Repuesto principal del FK (siempre cantidad 1)
+  if (reporte.repuestos?.id) {
+    repuestos.push({
+      id: reporte.repuestos.id,
+      nombre: reporte.repuestos.nombre_repuesto,
+      cantidad: 1,
+    });
+  }
+
+  // Repuestos adicionales de detalle_repuestos
+  if (mapaDetallesRepuestos) {
+    const detalles = mapaDetallesRepuestos.get(reporte.id) || [];
+    for (const d of detalles) {
+      if (d.nombre && !repuestos.some(r => r.id === d.repuestoId)) {
+        repuestos.push({ id: d.repuestoId, nombre: d.nombre, cantidad: d.cantidad });
+      }
+    }
+  }
+
   return {
     id: reporte.id,
     numeroReporte: `REP-${String(reporte.numero_reporte).padStart(3, '0')}`,
@@ -80,12 +103,37 @@ function formatearReporte(reporte) {
     tecnicoId: reporte.usuarios?.id || null,
     estado: reporte.estados_equipos?.nombre || null,
     estadoId: reporte.estados_equipos?.id || null,
-    repuesto: reporte.repuestos?.nombre_repuesto || null,
-    repuestoId: reporte.repuestos?.id || null,
+    repuestos,
+    repuesto: repuestos.length > 0 ? repuestos[0].nombre : null,
+    repuestoId: repuestos.length > 0 ? repuestos[0].id : null,
     posibleCausa: reporte.posible_causa_reporte || null,
     anotaciones: reporte.anotaciones_reporte || null,
     reportadoPor: reporte.reportado_por || null,
   };
+}
+
+/**
+ * Obtiene un mapa de detalle de repuestos adicionales para un conjunto de reportes.
+ * Map<reporteId, Array<{ repuestoId, nombre, cantidad }>>
+ */
+async function obtenerDetallesRepuestos(reporteIds) {
+  if (!reporteIds || reporteIds.length === 0) return new Map();
+  const { data } = await supabase
+    .from('detalle_repuestos')
+    .select('reporte_repuesto, repuesto_detalle, cantidad_repuesto, repuestos ( id, nombre_repuesto )')
+    .in('reporte_repuesto', reporteIds);
+
+  const mapa = new Map();
+  for (const d of (data || [])) {
+    const key = d.reporte_repuesto;
+    if (!mapa.has(key)) mapa.set(key, []);
+    mapa.get(key).push({
+      repuestoId: d.repuestos?.id || d.repuesto_detalle,
+      nombre: d.repuestos?.nombre_repuesto || null,
+      cantidad: d.cantidad_repuesto || 1,
+    });
+  }
+  return mapa;
 }
 
 /**
@@ -184,8 +232,10 @@ router.get('/', verificarToken, async (req, res) => {
     const totalItems = count || 0;
     const totalPaginas = Math.max(1, Math.ceil(totalItems / itemsNum));
 
+    const mapaDetalles = await obtenerDetallesRepuestos((data || []).map(r => r.id));
+
     res.json({
-      reportes: (data || []).map(formatearReporte),
+      reportes: (data || []).map(r => formatearReporte(r, mapaDetalles)),
       paginacion: {
         paginaActual: paginaNum,
         totalPaginas,
@@ -238,7 +288,8 @@ router.get('/:id', verificarToken, async (req, res) => {
       nombre: `${st.usuarios.nombre_usuario} ${st.usuarios.apellido_usuario}`,
     }));
 
-    const reporteFormateado = formatearReporte(reporte);
+    const mapaDetalles = await obtenerDetallesRepuestos([reporteId]);
+    const reporteFormateado = formatearReporte(reporte, mapaDetalles);
     reporteFormateado.tecnicosAdicionales = tecnicosAdicionales;
 
     res.json(reporteFormateado);
@@ -613,7 +664,7 @@ router.post('/', verificarToken, async (req, res) => {
 
     res.status(201).json({
       message: 'Reporte creado exitosamente',
-      reporte: formatearReporte(reporteCompleto),
+      reporte: formatearReporte(reporteCompleto, await obtenerDetallesRepuestos([reporteId])),
     });
   } catch (error) {
     console.error('[REPORTES] Error inesperado en POST /:', error);
@@ -792,7 +843,7 @@ router.put('/:id', verificarToken, async (req, res) => {
     }
 
     if (Object.keys(updateData).length === 0) {
-      return res.json({ message: 'No se detectaron cambios', reporte: formatearReporte(reporteActual) });
+      return res.json({ message: 'No se detectaron cambios', reporte: formatearReporte(reporteActual, await obtenerDetallesRepuestos([reporteId])) });
     }
 
     // El motivo de la modificación es obligatorio para editar
@@ -829,7 +880,7 @@ router.put('/:id', verificarToken, async (req, res) => {
 
     res.json({
       message: 'Reporte actualizado exitosamente',
-      reporte: formatearReporte(reporteActualizado),
+      reporte: formatearReporte(reporteActualizado, await obtenerDetallesRepuestos([reporteId])),
       camposModificados,
     });
   } catch (error) {

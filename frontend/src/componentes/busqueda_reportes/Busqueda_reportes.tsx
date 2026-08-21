@@ -79,7 +79,7 @@ const BusquedaReportes: React.FC<BusquedaReportesProps> = ({
         r.trabajoRealizado.toLowerCase().includes(term) ||
         r.etiquetas.some((e) => e.toLowerCase().includes(term)) ||
         r.tecnicos.some((t) => t.toLowerCase().includes(term)) ||
-        r.repuestos.some((rp) => rp.toLowerCase().includes(term)) ||
+        r.repuestos.some((rp) => rp.nombre.toLowerCase().includes(term)) ||
         r.plantilla.toLowerCase().includes(term) ||
         r.declaracion.toLowerCase().includes(term)
       );
@@ -98,7 +98,7 @@ const BusquedaReportes: React.FC<BusquedaReportesProps> = ({
     }
     if (filtros.repuesto) {
       filtrados = filtrados.filter((r) =>
-        r.repuestos.some((rp) => rp.toLowerCase() === filtros.repuesto.toLowerCase())
+        r.repuestos.some((rp) => rp.nombre.toLowerCase() === filtros.repuesto.toLowerCase())
       );
     }
     if (filtros.tecnico) {

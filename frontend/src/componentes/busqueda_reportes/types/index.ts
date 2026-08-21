@@ -15,7 +15,7 @@ export interface ReporteResumen {
   trabajoRealizado: string;
   etiquetas: string[];
   tecnicos: string[];
-  repuestos: string[];
+  repuestos: { id: number; nombre: string; cantidad: number }[];
   declaracion: string;
   plantilla: string;
   clienteId?: number | null;
