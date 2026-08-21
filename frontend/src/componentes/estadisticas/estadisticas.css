@@ -9,6 +9,15 @@
     width: 100%;
 }
 
+.estadisticas-estado {
+    text-align: center;
+    padding: 4rem 1.5rem;
+}
+
+.estadisticas-error-texto {
+    color: var(--color-error);
+}
+
 .estadisticas-titulo {
     font-size: 1.5rem;
     font-weight: 700;

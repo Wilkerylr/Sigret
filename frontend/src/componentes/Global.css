@@ -77,7 +77,7 @@
     --color-overlay: rgba(0, 0, 0, 0.5);
 
     /* === Sidebar layout === */
-    --sidebar-width: 240px;
+    --sidebar-width: 16rem;
     --sidebar: var(--color-fondo-oscuro);
     --sidebar-foreground: var(--color-texto-claro);
     --sidebar-primary: var(--color-fondo-oscuro);

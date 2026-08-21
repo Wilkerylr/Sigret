@@ -81,3 +81,22 @@
     padding: 1.5rem;
     overflow-y: auto;
 }
+
+@media (max-width: 768px) {
+    .main-toolbar {
+        padding: 0.5rem 1rem;
+    }
+
+    .main-toolbar-title {
+        font-size: 1rem;
+    }
+
+    .sidebar-trigger-custom {
+        width: 2rem !important;
+        height: 2rem !important;
+    }
+
+    .main-outlet {
+        padding: 1rem;
+    }
+}

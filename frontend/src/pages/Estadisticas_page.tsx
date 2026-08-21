@@ -8,7 +8,7 @@ const EstadisticasPage: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="estadisticas-contenedor" style={{ textAlign: 'center', padding: '4rem 1.5rem' }}>
+            <div className="estadisticas-contenedor estadisticas-estado">
                 <h1 className="estadisticas-titulo">Estadísticas</h1>
                 <p>Cargando estadísticas...</p>
             </div>
@@ -17,9 +17,9 @@ const EstadisticasPage: React.FC = () => {
 
     if (error || !data) {
         return (
-            <div className="estadisticas-contenedor" style={{ textAlign: 'center', padding: '4rem 1.5rem' }}>
+            <div className="estadisticas-contenedor estadisticas-estado">
                 <h1 className="estadisticas-titulo">Estadísticas</h1>
-                <p style={{ color: 'var(--color-error)' }}>
+                <p className="estadisticas-error-texto">
                     Error al cargar estadísticas: {String(error || 'Sin datos disponibles')}
                 </p>
             </div>
