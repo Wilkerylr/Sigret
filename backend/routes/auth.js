@@ -269,6 +269,10 @@ router.put('/cambiar-password', verificarToken, async (req, res) => {
       return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres' });
     }
 
+    if (!contraseña_actual) {
+      return res.status(400).json({ error: 'La contraseña actual es obligatoria' });
+    }
+
     // Obtener contraseña actual
     const { data: usuario } = await supabase
       .from('usuarios')
@@ -280,12 +284,10 @@ router.put('/cambiar-password', verificarToken, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // Verificar contraseña actual (si se proporciona)
-    if (contraseña_actual) {
-      const valida = await bcrypt.compare(contraseña_actual, usuario.contraseña_usuario);
-      if (!valida) {
-        return res.status(401).json({ error: 'La contraseña actual no es correcta' });
-      }
+    // Verificar contraseña actual
+    const valida = await bcrypt.compare(contraseña_actual, usuario.contraseña_usuario);
+    if (!valida) {
+      return res.status(401).json({ error: 'La contraseña actual no es correcta' });
     }
 
     // Hashear y actualizar nueva contraseña

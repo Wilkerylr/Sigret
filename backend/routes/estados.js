@@ -18,7 +18,7 @@ const express = require('express');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
 const { verificarToken, requiereAdmin } = require('../middlewares/auth');
-const { cacheMiddleware } = require('../middlewares/cache');
+
 
 function formatearEstado(estado) {
   return {
@@ -32,7 +32,7 @@ function formatearEstado(estado) {
  *
  * Obtiene todos los estados de equipos.
  */
-router.get('/', verificarToken, cacheMiddleware(900), async (req, res) => {
+router.get('/', verificarToken, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('estados_equipos')

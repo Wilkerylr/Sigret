@@ -19,7 +19,7 @@ const express = require('express');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
 const { verificarToken, requiereAdmin } = require('../middlewares/auth');
-const { cacheMiddleware } = require('../middlewares/cache');
+
 const { nombreCompletoUsuario } = require('../utils/usuario');
 
 // ==========================================
@@ -90,7 +90,7 @@ function formatearCliente(cliente) {
  * Si se pasa ?activos=true, solo devuelve los activos.
  * Soporta filtros via query params: ?nombre=...&rif=...&telefono=...
  */
-router.get('/', verificarToken, cacheMiddleware(900), async (req, res) => {
+router.get('/', verificarToken, async (req, res) => {
   try {
     const { nombre, rif, telefono, activos } = req.query;
 
@@ -190,11 +190,12 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
 
     const nombreLimpio = nombre.trim();
 
-    // Verificar que no exista un cliente con el mismo nombre
+    // Verificar que no exista un cliente activo con el mismo nombre
     const { data: existenteNombre } = await supabase
       .from('clientes')
       .select('id')
       .ilike('nombre_cliente', nombreLimpio)
+      .eq('is_delete', false)
       .maybeSingle();
 
     if (existenteNombre) {
@@ -203,13 +204,14 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
       });
     }
 
-    // Verificar que no exista un cliente con el mismo RIF
+    // Verificar que no exista un cliente activo con el mismo RIF
     if (rif && String(rif).trim()) {
       const rifLimpio = String(rif).trim().toUpperCase();
       const { data: existenteRif } = await supabase
         .from('clientes')
         .select('id')
         .ilike('rif_cliente', rifLimpio)
+        .eq('is_delete', false)
         .maybeSingle();
 
       if (existenteRif) {
@@ -274,13 +276,15 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
       return res.status(400).json({ error: 'El campo "email" debe ser un correo electrónico válido' });
     }
 
-    // Verificar nombre duplicado (excluyendo el actual)
+    // Verificar nombre duplicado (excluyendo el actual, solo activos)
     if (nombre !== undefined && String(nombre).trim()) {
       const nombreLimpio = String(nombre).trim();
+      // Verificar que no exista un cliente activo con el mismo nombre (excluyendo el actual)
       const { data: existenteNombre } = await supabase
         .from('clientes')
         .select('id')
         .ilike('nombre_cliente', nombreLimpio)
+        .eq('is_delete', false)
         .neq('id', clienteId)
         .maybeSingle();
 
@@ -291,13 +295,14 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
       }
     }
 
-    // Verificar RIF duplicado (excluyendo el actual)
+    // Verificar RIF duplicado (excluyendo el actual, solo activos)
     if (rif !== undefined && String(rif).trim()) {
       const rifLimpio = String(rif).trim().toUpperCase();
       const { data: existenteRif } = await supabase
         .from('clientes')
         .select('id')
         .ilike('rif_cliente', rifLimpio)
+        .eq('is_delete', false)
         .neq('id', clienteId)
         .maybeSingle();
 

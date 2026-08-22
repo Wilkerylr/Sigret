@@ -895,7 +895,7 @@ router.put('/:id', verificarToken, async (req, res) => {
  * Soft delete de un reporte (marca soft_delete_reporte = true).
  * Registra eliminación en el historial de auditoría.
  */
-router.delete('/:id', verificarToken, async (req, res) => {
+router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
   try {
     const reporteId = Number(req.params.id);
 

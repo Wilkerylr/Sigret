@@ -28,7 +28,10 @@ function horasEntre(inicio, fin) {
   const [h2, m2] = fin.split(':').map(Number);
   const totalInicio = h1 * 60 + m1;
   const totalFin = h2 * 60 + m2;
-  if (totalFin <= totalInicio) return 0;
+  if (totalFin <= totalInicio) {
+    // Turno nocturno: ej. 23:00 → 01:00 (sumar 24h al fin)
+    return ((totalFin + 24 * 60) - totalInicio) / 60;
+  }
   return (totalFin - totalInicio) / 60;
 }
 
@@ -158,11 +161,11 @@ router.get('/', verificarToken, async (req, res) => {
     const mesActual = ahora.getMonth();
     const desdeMes = `${anioActual}-${String(mesActual + 1).padStart(2, '0')}-01`;
 
-    const [{ data: totalData, error: errTotal }, { data: clientesData, error: errClientes }] =
+    const [{ count: totalReportes, error: errTotal }, { data: clientesData, error: errClientes }] =
       await Promise.all([
         supabase
           .from('reportes')
-          .select('id', { count: 'exact' })
+          .select('id', { count: 'exact', head: true })
           .eq('soft_delete_reporte', false),
         supabase
           .from('reportes')
@@ -176,9 +179,9 @@ router.get('/', verificarToken, async (req, res) => {
     }
 
     // Reportes del mes actual
-    const { data: mesData, error: errMes } = await supabase
+    const { count: reportesEsteMes, error: errMes } = await supabase
       .from('reportes')
-      .select('id', { count: 'exact' })
+      .select('id', { count: 'exact', head: true })
       .eq('soft_delete_reporte', false)
       .gte('fecha_reporte', desdeMes);
     if (errMes) {
@@ -211,8 +214,8 @@ router.get('/', verificarToken, async (req, res) => {
     ]);
 
     res.json({
-      totalReportes: totalData?.length || 0,
-      reportesEsteMes: mesData?.length || 0,
+      totalReportes: totalReportes || 0,
+      reportesEsteMes: reportesEsteMes || 0,
       tecnicosActivos,
       clientesAtendidos,
       porDia,

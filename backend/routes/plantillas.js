@@ -21,7 +21,7 @@ const express = require('express');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
 const { verificarToken, requiereAdmin } = require('../middlewares/auth');
-const { cacheMiddleware } = require('../middlewares/cache');
+
 
 // ==========================================
 // FUNCIONES AUXILIARES
@@ -104,7 +104,7 @@ function formatearPlantilla(plantilla) {
  * Obtiene todas las plantillas.
  * Soporta filtros: ?nombre=...&descripcion=...
  */
-router.get('/', verificarToken, cacheMiddleware(900), async (req, res) => {
+router.get('/', verificarToken, async (req, res) => {
   try {
     const { nombre, descripcion } = req.query;
 
