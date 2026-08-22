@@ -340,7 +340,7 @@ router.post('/register', verificarToken, requiereAdmin, async (req, res) => {
  *   200 - Lista de usuarios (puede ser vacía)
  *   500 - Error interno del servidor
  */
-router.get('/', verificarToken, cacheMiddleware(900), async (req, res) => {
+router.get('/', verificarToken, async (req, res) => {
   try {
     // Consultar usuarios activos con su rol
     const { data: usuarios, error } = await supabase

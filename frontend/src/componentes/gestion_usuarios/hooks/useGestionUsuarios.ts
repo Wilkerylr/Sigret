@@ -69,7 +69,7 @@ function apiToForm(data: UsuarioApiResponse): UsuarioFormData {
     email_usuario: data.email,
     contraseña: '',
     rol_usuario: String(data.rol?.id || 2),
-    permisos: (data.permisos || []).map(p => String(p.id)),
+    permisos: (data.permisos || []).map(p => p.nombre),
   };
 }
 
