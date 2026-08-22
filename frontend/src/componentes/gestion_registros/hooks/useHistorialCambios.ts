@@ -7,6 +7,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import apiClient from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
+import queryClient from '@/lib/queryClient';
 import type { EntradaHistorial, FiltrosHistorial } from '../types';
 
 const FILTROS_INICIALES: FiltrosHistorial = {
@@ -113,6 +114,8 @@ export function useHistorialCambios() {
       if (entrada.reporteId) {
         await apiClient.patch(ENDPOINTS.REPORTES.RESTORE(String(entrada.reporteId)));
         await cargarHistorial();
+        queryClient.invalidateQueries({ queryKey: ['opciones'] });
+        queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
         return true;
       }
 

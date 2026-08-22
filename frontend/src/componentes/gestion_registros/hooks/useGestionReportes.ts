@@ -7,6 +7,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import apiClient from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
+import queryClient from '@/lib/queryClient';
 import type { ReporteResumen, FiltrosReportes } from '../types';
 
 const FILTROS_INICIALES: FiltrosReportes = {
@@ -121,6 +122,7 @@ export function useGestionReportes() {
       });
       await cargarReportes();
       setReporteEditando(null);
+      queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
     } catch (error: any) {
       const msg = error.response?.data?.error || 'Error al guardar el reporte';
@@ -146,6 +148,7 @@ export function useGestionReportes() {
       await apiClient.delete(ENDPOINTS.REPORTES.BY_ID(String(reporteEliminar.id)));
       await cargarReportes();
       setReporteEliminar(null);
+      queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
     } catch (error: any) {
       const msg = error.response?.data?.error || 'Error al eliminar el reporte';
@@ -165,6 +168,7 @@ export function useGestionReportes() {
     try {
       await apiClient.patch(ENDPOINTS.REPORTES.RESTORE(id));
       await cargarReportes();
+      queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
     } catch (error: any) {
       const msg = error.response?.data?.error || 'Error al recuperar el reporte';

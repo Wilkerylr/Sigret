@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import BusquedaReportes from "../componentes/busqueda_reportes/Busqueda_reportes";
 import apiClient from "@/api/client";
 import { ENDPOINTS } from "@/api/endpoints";
+import queryClient from "@/lib/queryClient";
 import type { ReporteResumen } from "../componentes/busqueda_reportes/types";
 import type { EntidadEditable } from "@/componentes/formulario_edicion";
 import "../componentes/Global.css";
@@ -90,6 +91,7 @@ const BusquedaReportesPage: React.FC = () => {
         motivoModificacion: datos.motivoModificacion,
       });
       await cargarTodos();
+      queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
     } catch (e: any) {
       const msg = e.response?.data?.error || "Error al guardar el reporte";

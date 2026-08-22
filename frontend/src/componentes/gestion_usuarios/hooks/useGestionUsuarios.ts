@@ -12,6 +12,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import apiClient from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
+import queryClient from '@/lib/queryClient';
 import { PERMISOS_SISTEMA } from '@/componentes/formulario_edicion/configuraciones';
 import type { FiltrosUsuarios } from '../types';
 
@@ -177,6 +178,8 @@ export function useGestionUsuarios() {
       await cargarUsuarios();
       setUsuarioEditando(null);
       setModoCrear(false);
+      queryClient.invalidateQueries({ queryKey: ['opciones'] });
+      queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
     } catch (error: any) {
       console.error('[GESTION USUARIOS] Error al guardar:', error?.response?.data || error);
@@ -191,6 +194,8 @@ export function useGestionUsuarios() {
     try {
       await apiClient.delete(ENDPOINTS.USUARIOS.BY_ID(usuario.id));
       await cargarUsuarios();
+      queryClient.invalidateQueries({ queryKey: ['opciones'] });
+      queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
     } catch (error) {
       console.error('[GESTION USUARIOS] Error al eliminar:', error);

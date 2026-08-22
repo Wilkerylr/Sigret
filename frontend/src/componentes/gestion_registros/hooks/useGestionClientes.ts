@@ -7,6 +7,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import apiClient from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
+import queryClient from '@/lib/queryClient';
 import type { Cliente, FiltrosClientes } from '../types';
 
 const FILTROS_INICIALES: FiltrosClientes = {
@@ -167,6 +168,8 @@ export function useGestionClientes() {
       await cargarClientes();
       setClienteEditando(null);
       setModoCrear(false);
+      queryClient.invalidateQueries({ queryKey: ['opciones'] });
+      queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
     } catch (error: any) {
       const msg = error.response?.data?.error || 'Error al guardar el cliente';
@@ -193,6 +196,8 @@ export function useGestionClientes() {
       await apiClient.delete(ENDPOINTS.CLIENTES.BY_ID(String(clienteEliminar.id)));
       await cargarClientes();
       setClienteEliminar(null);
+      queryClient.invalidateQueries({ queryKey: ['opciones'] });
+      queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
     } catch (error: any) {
       const msg = error.response?.data?.error || 'Error al desactivar el cliente';
@@ -228,6 +233,8 @@ export function useGestionClientes() {
       setResultadoLimpieza({ eliminados: data.eliminados, nombres: data.nombres });
       if (data.eliminados > 0) {
         await cargarClientes();
+        queryClient.invalidateQueries({ queryKey: ['opciones'] });
+        queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       }
       return true;
     } catch (error: any) {
@@ -244,6 +251,8 @@ export function useGestionClientes() {
     try {
       await apiClient.patch(ENDPOINTS.CLIENTES.RESTORE(id));
       await cargarClientes();
+      queryClient.invalidateQueries({ queryKey: ['opciones'] });
+      queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
     } catch (error: any) {
       const msg = error.response?.data?.error || 'Error al reactivar el cliente';

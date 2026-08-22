@@ -7,6 +7,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import apiClient from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
+import queryClient from '@/lib/queryClient';
 import type { Etiqueta, FiltrosEtiquetas } from '../types';
 
 const FILTROS_INICIALES: FiltrosEtiquetas = {
@@ -77,6 +78,7 @@ export function useGestionEtiquetas() {
       await cargarEtiquetas();
       setEtiquetaEditando(null);
       setModoCrear(false);
+      queryClient.invalidateQueries({ queryKey: ['opciones'] });
       return true;
     } catch (error: any) {
       const msg = error.response?.data?.error || 'Error al guardar la etiqueta';
@@ -103,6 +105,7 @@ export function useGestionEtiquetas() {
       await apiClient.delete(ENDPOINTS.ETIQUETAS.BY_ID(String(etiquetaEliminar.id)));
       await cargarEtiquetas();
       setEtiquetaEliminar(null);
+      queryClient.invalidateQueries({ queryKey: ['opciones'] });
       return true;
     } catch (error: any) {
       const msg = error.response?.data?.error || 'Error al eliminar la etiqueta';

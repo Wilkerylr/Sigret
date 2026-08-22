@@ -7,6 +7,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import apiClient from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
+import queryClient from '@/lib/queryClient';
 import type { Plantilla, FiltrosPlantillas } from '../types';
 
 const FILTROS_INICIALES: FiltrosPlantillas = {
@@ -101,6 +102,7 @@ export function useGestionPlantillas() {
       await cargarPlantillas();
       setPlantillaEditando(null);
       setModoCrear(false);
+      queryClient.invalidateQueries({ queryKey: ['opciones'] });
       return true;
     } catch (error: any) {
       const msg = error.response?.data?.error || 'Error al guardar la plantilla';
@@ -127,6 +129,7 @@ export function useGestionPlantillas() {
       await apiClient.delete(ENDPOINTS.PLANTILLAS.BY_ID(String(plantillaEliminar.id)));
       await cargarPlantillas();
       setPlantillaEliminar(null);
+      queryClient.invalidateQueries({ queryKey: ['opciones'] });
       return true;
     } catch (error: any) {
       const msg = error.response?.data?.error || 'Error al eliminar la plantilla';
