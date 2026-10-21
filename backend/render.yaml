@@ -9,13 +9,15 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      # IMPORTANTE: valor FIJO (no usar generateValue). Generar una vez con: openssl rand -hex 32
+      # Si cambia entre deploys, todas las sesiones JWT activas se invalidan.
       - key: JWT_SECRET
-        generateValue: true
+        sync: false  # Fijar manualmente en el dashboard de Render con un valor permanente
       - key: CORS_ORIGIN
-        sync: false  # Configurar manualmente con la URL de Netlify
+        sync: false  # URL del frontend en Netlify (ej: https://tu-sitio.netlify.app)
       - key: NEXT_PUBLIC_SUPABASE_URL
-        sync: false  # Copiar del .env actual
+        sync: false  # Copiar del .env.example completado
       - key: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-        sync: false  # Copiar del .env actual
+        sync: false  # Copiar del .env.example completado
       - key: SUPABASE_SERVICE_ROLE_KEY
-        sync: false  # Copiar del .env actual
+        sync: false  # Copiar del .env.example completado (clave secreta, solo backend)
