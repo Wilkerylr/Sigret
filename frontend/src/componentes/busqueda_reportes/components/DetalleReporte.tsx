@@ -67,7 +67,7 @@ const DetalleReporte: React.FC<DetalleReporteProps> = ({ reporte, onEditar }) =>
             {reporte.repuestos.length > 0 ? (
               reporte.repuestos.map((repuesto) => (
                 <span key={repuesto.id || repuesto.nombre} className="busqueda-detalle-tag">
-                  {repuesto.cantidad > 1 ? `${repuesto.cantidad}x ` : ''}{repuesto.nombre}
+                  {repuesto.cantidad}x {repuesto.nombre}
                 </span>
               ))
             ) : (

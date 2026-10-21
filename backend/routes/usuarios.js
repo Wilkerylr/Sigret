@@ -520,10 +520,15 @@ router.get('/:id', verificarToken, async (req, res) => {
  * 
  * --- Códigos de Respuesta ---
  *   200 - Usuario actualizado
- *   400 - ID inválido o email inválido
+ *   400 - ID inválido, email inválido, rol inválido o no puede quedar el sistema sin admins
  *   404 - Usuario no encontrado
  *   409 - Email ya registrado por otro usuario
  *   500 - Error interno del servidor
+ *
+ * Restricciones de administradores:
+ *   - Un admin no puede cambiar su propio rol de admin.
+ *   - Un admin puede gestionar (incluyendo permisos/rol) a otros admins,
+ *     pero no se permite dejar el sistema sin al menos un admin activo.
  */
 router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
   try {
@@ -548,14 +553,36 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // Prevenir modificar otro admin (solo el propio admin puede cambiarse la contraseña)
-    if (usuarioActual.rol_usuario === 1 && usuarioId !== req.usuario.id) {
-      return res.status(403).json({ error: 'No se permiten modificar cuentas de administrador' });
+    // Prevenir que un admin se cambie su propio rol
+    if (usuarioId === req.usuario.id && rol_usuario !== undefined && rol_usuario !== null && Number(rol_usuario) !== 1) {
+      return res.status(400).json({ error: 'No puedes cambiar tu propio rol de administrador' });
     }
 
-    // Prevenir que un admin se cambie su propio rol
-    if (usuarioId === req.usuario.id && rol_usuario && Number(rol_usuario) !== 1) {
-      return res.status(400).json({ error: 'No puedes cambiar tu propio rol de administrador' });
+    // Validar que el rol proporcionado sea válido
+    if (rol_usuario !== undefined && rol_usuario !== null && !ROLES_VALIDOS.includes(Number(rol_usuario))) {
+      return res.status(400).json({
+        error: `El campo "rol_usuario" es inválido. IDs válidos: ${ROLES_VALIDOS.join(', ')}`,
+      });
+    }
+
+    // Salvaguarda: no dejar el sistema sin administradores activos.
+    // Si se degrada a un admin, debe existir al menos otro admin activo que no sea él.
+    if (
+      usuarioActual.rol_usuario === 1 &&
+      rol_usuario !== undefined &&
+      rol_usuario !== null &&
+      Number(rol_usuario) !== 1
+    ) {
+      const { count } = await supabase
+        .from('usuarios')
+        .select('id', { count: 'exact', head: true })
+        .eq('rol_usuario', 1)
+        .eq('is_delete', false)
+        .neq('id', usuarioId);
+
+      if (!count || count === 0) {
+        return res.status(400).json({ error: 'Debe existir al menos un administrador activo en el sistema' });
+      }
     }
 
     // ==========================================
@@ -703,9 +730,14 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
  * 
  * --- Códigos de Respuesta ---
  *   200 - Usuario marcado como eliminado
- *   400 - ID inválido
+ *   400 - ID inválido, no puedes eliminar tu propia cuenta, o no puede quedar el sistema sin admins
  *   404 - Usuario no encontrado
  *   500 - Error interno del servidor
+ *
+ * Restricciones de administradores:
+ *   - Un admin no puede eliminarse a sí mismo.
+ *   - Un admin puede eliminar a otro admin, pero no se permite dejar el sistema
+ *     sin al menos un admin activo.
  */
 router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
   try {
@@ -731,9 +763,19 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // Prevenir que un admin elimine a otro admin
+    // Salvaguarda: no dejar el sistema sin administradores activos.
+    // Al eliminar a un admin, debe existir al menos otro admin activo que no sea él.
     if (usuarioDestino.rol_usuario === 1) {
-      return res.status(403).json({ error: 'No se permiten eliminar cuentas de administrador' });
+      const { count } = await supabase
+        .from('usuarios')
+        .select('id', { count: 'exact', head: true })
+        .eq('rol_usuario', 1)
+        .eq('is_delete', false)
+        .neq('id', usuarioId);
+
+      if (!count || count === 0) {
+        return res.status(400).json({ error: 'No se puede eliminar: debe existir al menos un administrador activo' });
+      }
     }
 
     // Soft delete: actualizar is_delete = true

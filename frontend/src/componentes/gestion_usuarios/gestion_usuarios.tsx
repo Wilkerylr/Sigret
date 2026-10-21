@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import { Plus, Edit3, Trash2 } from 'lucide-react';
-import { useGestionUsuarios } from './hooks/useGestionUsuarios';
+import { useGestionUsuarios, PERMISOS_SISTEMA } from './hooks/useGestionUsuarios';
 import { TablaGenerica, ModalConfirmacion } from '@/componentes/gestion_registros';
 import { FormularioEdicion, crearConfigUsuarioCrear, crearConfigUsuarioEditar } from '@/componentes/formulario_edicion';
 import FiltrosUsuarios from './components/FiltrosUsuarios';
@@ -26,6 +26,10 @@ const ROLES_CLASS: Record<string, string> = {
   '2': 'tecnico',
   '3': 'administrativo',
 };
+
+const PERMISOS_LABEL_MAP = Object.fromEntries(
+  PERMISOS_SISTEMA.map(p => [p.value, p.label])
+);
 
 const GestionUsuarios: React.FC = () => {
   const {
@@ -81,6 +85,25 @@ const GestionUsuarios: React.FC = () => {
           {ROLES_MAP[v] || 'Desconocido'}
         </span>
       ),
+    },
+    {
+      key: 'permisos',
+      titulo: 'Permisos',
+      minWidth: '220px',
+      render: (v: string[]) => {
+        if (!v || v.length === 0) {
+          return <span className="sin-permisos">Sin permisos adicionales</span>;
+        }
+        return (
+          <div className="permisos-tags">
+            {v.map(perm => (
+              <span key={perm} className="permiso-tag">
+                {PERMISOS_LABEL_MAP[perm] || perm}
+              </span>
+            ))}
+          </div>
+        );
+      },
     },
   ];
 
