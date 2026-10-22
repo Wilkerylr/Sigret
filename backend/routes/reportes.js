@@ -25,7 +25,7 @@
 const express = require('express');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
-const { verificarToken, requiereAdmin } = require('../middlewares/auth');
+const { verificarToken, requiereAdmin, verificarPermiso } = require('../middlewares/auth');
 const { sanitizar, esHoraValida, aHoraMin, esFechaValida, hoy } = require('../utils/validaciones');
 
 // ==========================================
@@ -171,7 +171,7 @@ async function registrarModificacion({ reporteId, usuarioId, descripcion, fecha 
  *   pagina   - Página actual (default: 1)
  *   items    - Items por página (default: 10)
  */
-router.get('/', verificarToken, async (req, res) => {
+router.get('/', verificarToken, verificarPermiso('view-busqueda-reportes'), async (req, res) => {
   try {
     const {
       numero, cliente, equipo, etiqueta, tecnico,
@@ -207,9 +207,34 @@ router.get('/', verificarToken, async (req, res) => {
       query = query.ilike('etiquetas_reportes.nombre_etiqueta', `%${etiqueta.trim()}%`);
     }
     if (tecnico && tecnico.trim()) {
-      query = query.or(
-        `usuarios.nombre_usuario.ilike.%${tecnico.trim()}%,usuarios.apellido_usuario.ilike.%${tecnico.trim()}%`
-      );
+      // PostgREST no permite filtrar por columnas de recursos embebidos dentro
+      // de `.or()`. Se resuelven primero los IDs de usuario que coinciden y se
+      // filtra por la FK `reportado_por`.
+      const t = tecnico.trim().replace(/[%,()]/g, '');
+      const { data: usuariosCoincidentes, error: errTecnico } = await supabase
+        .from('usuarios')
+        .select('id')
+        .or(`nombre_usuario.ilike.%${t}%,apellido_usuario.ilike.%${t}%`)
+        .eq('is_delete', false);
+
+      if (errTecnico) {
+        console.error('[REPORTES] Error al filtrar por técnico:', errTecnico.message);
+      }
+
+      const idsTecnicos = (usuariosCoincidentes || []).map((u) => u.id);
+      if (idsTecnicos.length === 0) {
+        // Sin coincidencias: devolver resultado vacío sin consultar reportes.
+        return res.json({
+          reportes: [],
+          paginacion: {
+            paginaActual: paginaNum,
+            totalPaginas: 1,
+            totalItems: 0,
+            itemsPorPagina: itemsNum,
+          },
+        });
+      }
+      query = query.in('reportado_por', idsTecnicos);
     }
     if (desde) {
       query = query.gte('fecha_reporte', desde);

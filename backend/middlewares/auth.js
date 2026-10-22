@@ -55,8 +55,42 @@ function requiereAdmin(req, res, next) {
 }
 
 /**
+ * Permisos por defecto según el rol.
+ * Debe mantenerse sincronizado con el frontend (PERMISOS_POR_ROL).
+ *   1 = Administrador, 2 = Técnico, 3 = Administrativo
+ */
+const PERMISOS_POR_ROL = {
+  1: [
+    'view-estadisticas',
+    'view-registro-reportes',
+    'view-busqueda-reportes',
+    'view-gestion-registros',
+    'view-gestion-usuarios',
+  ],
+  2: ['view-estadisticas', 'view-busqueda-reportes'],
+  3: [
+    'view-estadisticas',
+    'view-registro-reportes',
+    'view-busqueda-reportes',
+    'view-gestion-registros',
+  ],
+};
+
+/**
+ * Devuelve los permisos efectivos de un usuario: los de su rol más los
+ * permisos adicionales incluidos en el token JWT.
+ */
+function permisosEfectivos(usuario) {
+  if (!usuario) return [];
+  const porRol = PERMISOS_POR_ROL[usuario.rol_id] || [];
+  const adicionales = Array.isArray(usuario.permisos) ? usuario.permisos : [];
+  return Array.from(new Set([...porRol, ...adicionales]));
+}
+
+/**
  * Middleware que verifica que el usuario autenticado tenga un permiso específico.
- * El permiso debe estar incluido en la lista `permisos` del token JWT.
+ * El permiso puede provenir de los permisos por defecto del rol o de los
+ * permisos adicionales incluidos en la lista `permisos` del token JWT.
  *
  * @param {string} nombrePermiso - Nombre del permiso requerido (ej: 'view-estadisticas')
  */
@@ -65,7 +99,7 @@ function verificarPermiso(nombrePermiso) {
     if (!req.usuario) {
       return res.status(401).json({ error: 'Autenticación requerida' });
     }
-    const permisos = req.usuario.permisos || [];
+    const permisos = permisosEfectivos(req.usuario);
     if (!permisos.includes(nombrePermiso)) {
       return res.status(403).json({ error: `Se requiere el permiso "${nombrePermiso}"` });
     }
@@ -73,4 +107,4 @@ function verificarPermiso(nombrePermiso) {
   };
 }
 
-module.exports = { verificarToken, requiereAdmin, verificarPermiso };
+module.exports = { verificarToken, requiereAdmin, verificarPermiso, permisosEfectivos, PERMISOS_POR_ROL };

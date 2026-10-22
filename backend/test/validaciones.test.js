@@ -4,7 +4,7 @@
  */
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { sanitizar, esHoraValida, aHoraMin, esFechaValida, hoy } = require('../utils/validaciones');
+const { sanitizar, esHoraValida, aHoraMin, esFechaValida, hoy, escapeFiltroPostgrest } = require('../utils/validaciones');
 
 test('esHoraValida acepta HH:MM y HH:MM:SS', () => {
   assert.equal(esHoraValida('08:00'), true);
@@ -67,4 +67,29 @@ test('sanitizar recorta a la longitud máxima', () => {
 test('sanitizar deja pasar no-strings', () => {
   assert.equal(sanitizar(null), null);
   assert.equal(sanitizar(123), 123);
+});
+
+test('escapeFiltroPostgrest envuelve el valor entre comillas', () => {
+  assert.equal(escapeFiltroPostgrest('Juan'), '"Juan"');
+  assert.equal(escapeFiltroPostgrest('  Juan  '), '"Juan"');
+});
+
+test('escapeFiltroPostgrest neutraliza comas y puntos de PostgREST', () => {
+  // Los caracteres de sintaxis quedan dentro de comillas (literales)
+  assert.equal(escapeFiltroPostgrest('a,b'), '"a,b"');
+  assert.equal(escapeFiltroPostgrest('a.b'), '"a.b"');
+  assert.equal(escapeFiltroPostgrest('a(b)c:d*e%f'), '"a(b)c:d*e%f"');
+});
+
+test('escapeFiltroPostgrest duplica comillas internas', () => {
+  assert.equal(escapeFiltroPostgrest('a"b'), '"a""b"');
+});
+
+test('escapeFiltroPostgrest elimina saltos de línea', () => {
+  assert.equal(escapeFiltroPostgrest('a\nb\rc'), '"a b c"');
+});
+
+test('escapeFiltroPostgrest deja pasar no-strings', () => {
+  assert.equal(escapeFiltroPostgrest(null), null);
+  assert.equal(escapeFiltroPostgrest(123), 123);
 });

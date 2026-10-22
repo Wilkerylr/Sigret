@@ -16,7 +16,7 @@
 const express = require('express');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
-const { verificarToken } = require('../middlewares/auth');
+const { verificarToken, verificarPermiso } = require('../middlewares/auth');
 
 // ==========================================
 // FUNCIONES AUXILIARES
@@ -92,7 +92,7 @@ function inferirAccion(descripcion) {
  *   pagina   - Página actual (default: 1)
  *   items    - Items por página (default: 15)
  */
-router.get('/', verificarToken, async (req, res) => {
+router.get('/', verificarToken, verificarPermiso('view-gestion-registros'), async (req, res) => {
   try {
     const {
       numero, accion, usuario,
@@ -108,20 +108,45 @@ router.get('/', verificarToken, async (req, res) => {
       .from('modificaciones_reportes')
       .select(SELECT_CON_JOINS, { count: 'exact' });
 
-    // Filtros que dependen de tablas relacionadas
+    // Filtros que dependen de tablas relacionadas.
+    // PostgREST no permite referenciar columnas de recursos embebidos dentro
+    // de `.or()`, así que se resuelven los IDs y se filtra por la FK.
     if (numero && numero.trim()) {
       const numLimpio = numero.trim().replace(/[^0-9]/g, '');
+      const descripcion = numero.trim().replace(/[%,()]/g, '');
+      const condiciones = [`descripcion_modificacion.ilike.%${descripcion}%`];
       if (numLimpio) {
-        query = query.or(
-          `reportes.numero_reporte::text.ilike.%${numLimpio}%,descripcion_modificacion.ilike.%${numero.trim()}%`
-        );
+        const { data: reportesCoincidentes } = await supabase
+          .from('reportes')
+          .select('id')
+          .ilike('numero_reporte::text', `%${numLimpio}%`);
+        const idsReportes = (reportesCoincidentes || []).map((r) => r.id);
+        if (idsReportes.length > 0) {
+          condiciones.unshift(`reporte_modificado.in.(${idsReportes.join(',')})`);
+        }
       }
+      query = query.or(condiciones.join(','));
     }
 
     if (usuario && usuario.trim()) {
-      query = query.or(
-        `usuarios.nombre_usuario.ilike.%${usuario.trim()}%,usuarios.apellido_usuario.ilike.%${usuario.trim()}%`
-      );
+      const u = usuario.trim().replace(/[%,()]/g, '');
+      const { data: usuariosCoincidentes } = await supabase
+        .from('usuarios')
+        .select('id')
+        .or(`nombre_usuario.ilike.%${u}%,apellido_usuario.ilike.%${u}%`);
+      const idsUsuarios = (usuariosCoincidentes || []).map((x) => x.id);
+      if (idsUsuarios.length === 0) {
+        return res.json({
+          historial: [],
+          paginacion: {
+            paginaActual: paginaNum,
+            totalPaginas: 1,
+            totalItems: 0,
+            itemsPorPagina: itemsNum,
+          },
+        });
+      }
+      query = query.in('usuario_modificacion', idsUsuarios);
     }
 
     if (desde) {
@@ -129,6 +154,28 @@ router.get('/', verificarToken, async (req, res) => {
     }
     if (hasta) {
       query = query.lte('fecha_modificacion', hasta);
+    }
+
+    // Filtro por acción: la acción se infiere de la descripción, por lo que se
+    // traduce a un filtro sobre `descripcion_modificacion` para que el conteo
+    // (paginación) sea exacto y no se calcule en memoria.
+    const accionFiltro = accion && accion.trim() ? accion.trim() : null;
+    if (accionFiltro === 'creacion') {
+      query = query.or(
+        'descripcion_modificacion.ilike.%creó%,descripcion_modificacion.ilike.%creado%,descripcion_modificacion.ilike.%creación%'
+      );
+    } else if (accionFiltro === 'eliminacion') {
+      query = query.or(
+        'descripcion_modificacion.ilike.%elimin%,descripcion_modificacion.ilike.%borrado%'
+      );
+    } else if (accionFiltro === 'edicion') {
+      // Edición = no es creación ni eliminación
+      query = query
+        .not('descripcion_modificacion', 'ilike', '%creó%')
+        .not('descripcion_modificacion', 'ilike', '%creado%')
+        .not('descripcion_modificacion', 'ilike', '%creación%')
+        .not('descripcion_modificacion', 'ilike', '%elimin%')
+        .not('descripcion_modificacion', 'ilike', '%borrado%');
     }
 
     // Orden y paginación
@@ -144,12 +191,7 @@ router.get('/', verificarToken, async (req, res) => {
       return res.status(500).json({ error: 'Error al obtener el historial de modificaciones' });
     }
 
-    // Filtrar por acción (se hace después porque es inferida, no está en la DB)
-    let resultados = (data || []).map(formatearModificacion);
-
-    if (accion && accion.trim()) {
-      resultados = resultados.filter(m => m.accion === accion.trim());
-    }
+    const resultados = (data || []).map(formatearModificacion);
 
     const totalItems = count || 0;
     const totalPaginas = Math.max(1, Math.ceil(totalItems / itemsNum));
@@ -174,7 +216,7 @@ router.get('/', verificarToken, async (req, res) => {
  *
  * Obtiene todas las modificaciones de un reporte específico.
  */
-router.get('/reporte/:id', verificarToken, async (req, res) => {
+router.get('/reporte/:id', verificarToken, verificarPermiso('view-gestion-registros'), async (req, res) => {
   try {
     const reporteId = Number(req.params.id);
 

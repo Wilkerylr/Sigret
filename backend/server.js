@@ -23,14 +23,18 @@ app.use(express.json({ limit: '1mb' }));
 
 // CORS: solo orígenes permitidos
 const origenesPermitidos = CORS_ORIGIN;
-if (origenesPermitidos.length === 0) {
+if (origenesPermitidos.length === 0 && process.env.NODE_ENV !== 'production') {
   console.warn('[CORS] Advertencia: CORS_ORIGIN no está configurado. Se permitirán todas las solicitudes (solo desarrollo).');
 }
 app.use(
   cors({
     origin(origin, callback) {
-      // Permitir peticiones sin origen (curl, scripts de servidor)
-      if (!origin || origenesPermitidos.length === 0 || origenesPermitidos.includes(origin)) {
+      // Permitir peticiones sin origen (curl, scripts de servidor).
+      // En desarrollo, si no hay orígenes configurados, permitir todos.
+      if (!origin || (origenesPermitidos.length === 0 && process.env.NODE_ENV !== 'production')) {
+        return callback(null, true);
+      }
+      if (origenesPermitidos.includes(origin)) {
         return callback(null, true);
       }
       return callback(new Error(`Origen no permitido por CORS: ${origin}`));
@@ -58,6 +62,18 @@ const limitadorLogin = rateLimit({
   legacyHeaders: false,
 });
 app.use('/api/auth/login', limitadorLogin);
+
+// Limitador estricto para recuperación de contraseña (evita fuerza bruta
+// sobre las respuestas de seguridad y el token temporal).
+const limitadorRecuperacion = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 5,
+  message: { error: 'Demasiados intentos de recuperación. Intenta en 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/auth/verificar-preguntas', limitadorRecuperacion);
+app.use('/api/auth/recuperar-password', limitadorRecuperacion);
 
 // ==========================================
 // VERIFICAR CONEXIÓN CON SUPABASE

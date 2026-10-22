@@ -31,6 +31,19 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean)
   : [];
 
+/**
+ * Fail-fast: en producción es obligatorio definir CORS_ORIGIN.
+ * Sin él, cualquier origen podría acceder a la API (fail-open inseguro).
+ */
+if (process.env.NODE_ENV === 'production' && CORS_ORIGIN.length === 0) {
+  console.error(
+    '[CONFIG] Error: CORS_ORIGIN es obligatorio en producción.\n' +
+    '  Define la URL del frontend (ej: CORS_ORIGIN=https://tu-sitio.netlify.app).\n' +
+    '  Si hay varios orígenes, sepáralos por coma.'
+  );
+  process.exit(1);
+}
+
 module.exports = {
   PUERTO,
   JWT_SECRET,

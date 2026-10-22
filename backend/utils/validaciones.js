@@ -52,10 +52,35 @@ function hoy() {
   return new Date().toISOString().split('T')[0];
 }
 
+/**
+ * Escapa un valor para usarlo de forma literal dentro de un filtro
+ * PostgREST (`.or()`, `.ilike()`, etc.).
+ *
+ * PostgREST interpreta los siguientes caracteres como sintaxis de filtro:
+ *   ,  → separador de condiciones (or)
+ *   .  → separador de operador (columna.operador.valor)
+ *   ( )→ agrupación
+ *   :  → casting de tipo
+ *   *  → comodín
+ *   %  → comodín LIKE/ILIKE
+ *   "  → delimitador de valor entre comillas
+ *
+ * Para tratarlos como texto literal, se envuelve el valor entre comillas
+ * dobles y se duplican las comillas internas (regla de escape de PostgREST).
+ * Además se eliminan saltos de línea para evitar inyección de formato.
+ */
+function escapeFiltroPostgrest(valor) {
+  if (typeof valor !== 'string') return valor;
+  const limpio = valor.replace(/[\r\n]+/g, ' ').trim();
+  const sinComillas = limpio.replace(/"/g, '""');
+  return `"${sinComillas}"`;
+}
+
 module.exports = {
   sanitizar,
   esHoraValida,
   aHoraMin,
   esFechaValida,
   hoy,
+  escapeFiltroPostgrest,
 };

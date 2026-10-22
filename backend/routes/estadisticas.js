@@ -12,7 +12,7 @@
 const express = require('express');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
-const { verificarToken } = require('../middlewares/auth');
+const { verificarToken, verificarPermiso } = require('../middlewares/auth');
 
 const MESES_ES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -154,7 +154,7 @@ async function obtenerTecnicosTop(limite) {
  *
  * Devuelve el dashboard completo: totales generales + series de datos.
  */
-router.get('/', verificarToken, async (req, res) => {
+router.get('/', verificarToken, verificarPermiso('view-estadisticas'), async (req, res) => {
   try {
     const ahora = new Date();
     const anioActual = ahora.getFullYear();
@@ -231,7 +231,7 @@ router.get('/', verificarToken, async (req, res) => {
 /**
  * GET /api/estadisticas/reportes-por-mes?anio=2026
  */
-router.get('/reportes-por-mes', verificarToken, async (req, res) => {
+router.get('/reportes-por-mes', verificarToken, verificarPermiso('view-estadisticas'), async (req, res) => {
   try {
     const porMes = await obtenerPorMes(req.query.anio);
     res.json(porMes);
@@ -244,7 +244,7 @@ router.get('/reportes-por-mes', verificarToken, async (req, res) => {
 /**
  * GET /api/estadisticas/tecnicos-top?limite=5
  */
-router.get('/tecnicos-top', verificarToken, async (req, res) => {
+router.get('/tecnicos-top', verificarToken, verificarPermiso('view-estadisticas'), async (req, res) => {
   try {
     const tecnicosTop = await obtenerTecnicosTop(req.query.limite);
     res.json(tecnicosTop);
