@@ -256,9 +256,22 @@ export function crearConfigReporteEdicion(opciones: OpcionesReporteConfig): Secc
     seccionCliente(opciones),
     seccionServicio(),
     {
-      titulo: 'Repuesto Empleado',
+      titulo: 'Repuestos Empleados',
       campos: [
-        { nombre: 'repuestoId', etiqueta: 'Repuesto', tipo: 'select', opciones: opciones.repuestos, ancho: 'completo' },
+        {
+          nombre: 'repuestos',
+          etiqueta: 'Repuesto',
+          tipo: 'lista-items-cantidad',
+          opciones: opciones.repuestos,
+          ancho: 'completo',
+          validacion: (valor: unknown) => {
+            if (!Array.isArray(valor)) return null;
+            const invalido = valor.some(
+              (it: any) => !it?.id || Number(it.cantidad) < 1
+            );
+            return invalido ? 'Cada repuesto debe tener una cantidad mayor o igual a 1' : null;
+          },
+        },
       ],
     },
     seccionEtiquetaTecnico(opciones),

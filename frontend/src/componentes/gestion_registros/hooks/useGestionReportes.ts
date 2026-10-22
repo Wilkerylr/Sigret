@@ -115,6 +115,12 @@ export function useGestionReportes() {
         tecnicoId: datos.tecnicoId,
         estadoId: datos.estadoId,
         repuestoId: datos.repuestoId,
+        repuestos: Array.isArray(datos.repuestos)
+          ? datos.repuestos.map((r: any) => ({
+              repuestoId: Number(r.id),
+              cantidad: Number(r.cantidad) || 1,
+            }))
+          : undefined,
         posibleCausa: datos.posibleCausa,
         anotaciones: datos.anotaciones,
         reportadoPor: datos.reportadoPor,

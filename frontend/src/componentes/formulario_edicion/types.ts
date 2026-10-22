@@ -12,7 +12,8 @@ export type TipoCampo =
   | 'select'
   | 'combobox'
   | 'radio'
-  | 'lista-items';
+  | 'lista-items'
+  | 'lista-items-cantidad';
 
 /** Configuración de un campo individual */
 export interface CampoConfig {

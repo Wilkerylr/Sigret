@@ -64,16 +64,7 @@ const SELECT_CON_JOINS = `
 function formatearReporte(reporte, mapaDetallesRepuestos) {
   const repuestos = [];
 
-  // Repuesto principal del FK (siempre cantidad 1)
-  if (reporte.repuestos?.id) {
-    repuestos.push({
-      id: reporte.repuestos.id,
-      nombre: reporte.repuestos.nombre_repuesto,
-      cantidad: 1,
-    });
-  }
-
-  // Repuestos adicionales de detalle_repuestos
+  // La fuente de verdad de los repuestos (con su cantidad) es detalle_repuestos.
   if (mapaDetallesRepuestos) {
     const detalles = mapaDetallesRepuestos.get(reporte.id) || [];
     for (const d of detalles) {
@@ -81,6 +72,16 @@ function formatearReporte(reporte, mapaDetallesRepuestos) {
         repuestos.push({ id: d.repuestoId, nombre: d.nombre, cantidad: d.cantidad });
       }
     }
+  }
+
+  // Compatibilidad con reportes antiguos que no tienen filas en detalle_repuestos:
+  // se usa la FK escalar como reserva (cantidad desconocida → 1).
+  if (repuestos.length === 0 && reporte.repuestos?.id) {
+    repuestos.push({
+      id: reporte.repuestos.id,
+      nombre: reporte.repuestos.nombre_repuesto,
+      cantidad: 1,
+    });
   }
 
   return {
@@ -631,20 +632,19 @@ router.post('/', verificarToken, async (req, res) => {
     }
 
     // ── Insertar detalle de repuestos ──
+    // Se guardan TODOS los repuestos (incluido el principal) con su cantidad;
+    // detalle_repuestos es la fuente de verdad. La FK repuestos_reporte se
+    // mantiene solo como referencia al repuesto principal.
     if (repuestosDetalle.length > 0) {
-      const detalleInsert = repuestosDetalle
-        .filter(d => d.repuestoId !== primerRepuestoId)
-        .map(d => ({
-          repuesto_detalle: d.repuestoId,
-          reporte_repuesto: reporteId,
-          cantidad_repuesto: d.cantidad,
-        }));
-      if (detalleInsert.length > 0) {
-        const { error: detalleError } = await supabase.from('detalle_repuestos').insert(detalleInsert);
-        if (detalleError) {
-          await deshacerCreacion(`detalle_repuestos: ${detalleError.message}`);
-          return res.status(500).json({ error: 'Error al registrar el detalle de repuestos' });
-        }
+      const detalleInsert = repuestosDetalle.map(d => ({
+        repuesto_detalle: d.repuestoId,
+        reporte_repuesto: reporteId,
+        cantidad_repuesto: d.cantidad,
+      }));
+      const { error: detalleError } = await supabase.from('detalle_repuestos').insert(detalleInsert);
+      if (detalleError) {
+        await deshacerCreacion(`detalle_repuestos: ${detalleError.message}`);
+        return res.status(500).json({ error: 'Error al registrar el detalle de repuestos' });
       }
     }
 
@@ -701,7 +701,7 @@ router.put('/:id', verificarToken, async (req, res) => {
     const {
       clienteId, equipo, fechaReporte, fechaAtencion,
       horaInicio, horaFinalizacion, descripcionFalla, trabajoRealizado,
-      etiquetaId, tecnicoId, estadoId, repuestoId,
+      etiquetaId, tecnicoId, estadoId, repuestoId, repuestos,
       posibleCausa, anotaciones, reportadoPor, motivoModificacion,
     } = req.body;
 
@@ -819,6 +819,56 @@ router.put('/:id', verificarToken, async (req, res) => {
       }
     }
 
+    // ── Procesar repuestos[] (si se envía) ──
+    // Si el body incluye el array `repuestos`, este reemplaza por completo el
+    // detalle del reporte (delete + insert idempotente). El primer elemento se
+    // usa además para actualizar la FK repuestos_reporte.
+    let repuestosNuevos = null;
+    if (Array.isArray(repuestos)) {
+      const vistos = new Set();
+      repuestosNuevos = [];
+      for (const r of repuestos) {
+        const rId = Number(r?.repuestoId ?? r?.id);
+        const cantidad = Math.max(1, Number(r?.cantidad) || 1);
+        if (isNaN(rId) || rId < 1) {
+          return res.status(400).json({ error: 'Cada repuesto debe tener un id válido' });
+        }
+        if (vistos.has(rId)) continue;
+        vistos.add(rId);
+        const { data: repuesto } = await supabase
+          .from('repuestos')
+          .select('id')
+          .eq('id', rId)
+          .eq('is_delete', false)
+          .maybeSingle();
+        if (!repuesto) {
+          return res.status(400).json({ error: `El repuesto ${rId} no existe o está inactivo` });
+        }
+        repuestosNuevos.push({ repuestoId: rId, cantidad });
+      }
+
+      // Comparar con el detalle actual para detectar cambios reales
+      const { data: actuales } = await supabase
+        .from('detalle_repuestos')
+        .select('repuesto_detalle, cantidad_repuesto')
+        .eq('reporte_repuesto', reporteId);
+      const actualesNorm = (actuales || [])
+        .map(d => ({ id: d.repuesto_detalle, cantidad: d.cantidad_repuesto || 1 }))
+        .sort((a, b) => a.id - b.id);
+      const nuevosNorm = [...repuestosNuevos].sort((a, b) => a.repuestoId - b.repuestoId);
+      const detalleCambio =
+        actualesNorm.length !== nuevosNorm.length ||
+        actualesNorm.some((a, i) => a.id !== nuevosNorm[i].repuestoId || a.cantidad !== nuevosNorm[i].cantidad);
+
+      if (detalleCambio) {
+        valoresAnteriores.repuestos = actualesNorm;
+        valoresNuevos.repuestos = nuevosNorm.map(d => ({ id: d.repuestoId, cantidad: d.cantidad }));
+        camposModificados.push('repuestos');
+        // El repuesto principal (FK) sigue al primero del array
+        valoresBody.repuestoId = nuevosNorm.length > 0 ? nuevosNorm[0].id : null;
+      }
+    }
+
     for (const [key, columna] of Object.entries(camposMap)) {
       const nuevoValor = valoresBody[key];
       if (nuevoValor === undefined) continue;
@@ -861,6 +911,30 @@ router.put('/:id', verificarToken, async (req, res) => {
     if (updateError) {
       console.error('[REPORTES] Error al actualizar:', updateError.message);
       return res.status(500).json({ error: 'Error al actualizar el reporte' });
+    }
+
+    // Persistir el detalle de repuestos (reemplazo total)
+    if (repuestosNuevos !== null && camposModificados.includes('repuestos')) {
+      const { error: delError } = await supabase
+        .from('detalle_repuestos')
+        .delete()
+        .eq('reporte_repuesto', reporteId);
+      if (delError) {
+        console.error('[REPORTES] Error al limpiar detalle de repuestos:', delError.message);
+        return res.status(500).json({ error: 'Error al actualizar los repuestos del reporte' });
+      }
+      if (repuestosNuevos.length > 0) {
+        const insert = repuestosNuevos.map(d => ({
+          repuesto_detalle: d.repuestoId,
+          reporte_repuesto: reporteId,
+          cantidad_repuesto: d.cantidad,
+        }));
+        const { error: insError } = await supabase.from('detalle_repuestos').insert(insert);
+        if (insError) {
+          console.error('[REPORTES] Error al insertar detalle de repuestos:', insError.message);
+          return res.status(500).json({ error: 'Error al actualizar los repuestos del reporte' });
+        }
+      }
     }
 
     // Registrar modificación en auditoría

@@ -157,6 +157,10 @@ const BusquedaReportes: React.FC<BusquedaReportesProps> = ({
       tecnicoId: aIdTexto(reporte.tecnicoId),
       estadoId: aIdTexto(reporte.estadoId),
       repuestoId: aIdTexto(reporte.repuestoId),
+      repuestos: (reporte.repuestos || []).map((r) => ({
+        id: r.id,
+        cantidad: r.cantidad,
+      })),
       plantilla: reporte.plantilla,
       posibleCausa: reporte.posibleCausa || '',
       anotaciones: reporte.anotaciones || '',
