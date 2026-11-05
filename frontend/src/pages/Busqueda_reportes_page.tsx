@@ -24,7 +24,7 @@ function mapearReporte(r: any): ReporteResumen {
     etiquetaId: r.etiquetaId,
     tecnicos: r.tecnico ? [r.tecnico] : [],
     tecnicoId: r.tecnicoId,
-    repuestos: r.repuestos || (r.repuesto ? [{ id: r.repuestoId || 0, nombre: r.repuesto, cantidad: 1 }] : []),
+    repuestos: r.repuestos || (r.repuesto ? [{ id: r.repuestoId || 0, nombre: r.repuesto, cantidad: Number(r.cantidad) || 1 }] : []),
     repuestoId: r.repuestoId,
     declaracion: r.estado || "",
     estadoId: r.estadoId,
@@ -88,7 +88,7 @@ const BusquedaReportesPage: React.FC = () => {
         repuestos: Array.isArray(datos.repuestos)
           ? datos.repuestos.map((r: any) => ({
               repuestoId: Number(r.id),
-              cantidad: Number(r.cantidad) || 1,
+              cantidad: Number(r.cantidad),
             }))
           : undefined,
         posibleCausa: datos.posibleCausa,

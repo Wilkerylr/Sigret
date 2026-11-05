@@ -121,10 +121,16 @@ function formatearReporte(reporte, mapaDetallesRepuestos) {
  */
 async function obtenerDetallesRepuestos(reporteIds) {
   if (!reporteIds || reporteIds.length === 0) return new Map();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('detalle_repuestos')
     .select('reporte_repuesto, repuesto_detalle, cantidad_repuesto, repuestos ( id, nombre_repuesto )')
     .in('reporte_repuesto', reporteIds);
+
+  if (error) {
+    console.error('[REPORTES] Error al obtener detalle de repuestos:', error.message);
+    // No fallar la búsqueda entera por esto; se usará el fallback de cantidad 1 en formatearReporte.
+    return new Map();
+  }
 
   const mapa = new Map();
   for (const d of (data || [])) {
