@@ -8,6 +8,11 @@ const { PUERTO, CORS_ORIGIN } = require('./config');
 
 const app = express(); // crear una instancia de express
 
+// Render (y la mayoría de PaaS) está detrás de un proxy: confiar en el
+// primer salto para que req.ip sea la IP real del cliente. Sin esto, todos
+// los usuarios comparten el mismo contador de rate limit.
+app.set('trust proxy', 1);
+
 // ==========================================
 // MIDDLEWARES DE SEGURIDAD
 // ==========================================

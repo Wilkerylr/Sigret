@@ -26,7 +26,9 @@ const express = require('express');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
 const { verificarToken, requiereAdmin, verificarPermiso } = require('../middlewares/auth');
-const { sanitizar, esHoraValida, aHoraMin, esFechaValida, hoy } = require('../utils/validaciones');
+const {
+  sanitizar, esHoraValida, aHoraMin, esFechaValida, hoy, escapeFiltroPostgrest,
+} = require('../utils/validaciones');
 
 // ==========================================
 // FUNCIONES AUXILIARES
@@ -210,11 +212,16 @@ router.get('/', verificarToken, verificarPermiso('view-busqueda-reportes'), asyn
       // PostgREST no permite filtrar por columnas de recursos embebidos dentro
       // de `.or()`. Se resuelven primero los IDs de usuario que coinciden y se
       // filtra por la FK `reportado_por`.
-      const t = tecnico.trim().replace(/[%,()]/g, '');
+      // Se cita el valor para que los caracteres de sintaxis de PostgREST
+      // (coma, punto, paréntesis, comillas) se traten como texto literal.
+      const patronTecnico = `%${tecnico.trim()}%`;
       const { data: usuariosCoincidentes, error: errTecnico } = await supabase
         .from('usuarios')
         .select('id')
-        .or(`nombre_usuario.ilike.%${t}%,apellido_usuario.ilike.%${t}%`)
+        .or(
+          `nombre_usuario.ilike.${escapeFiltroPostgrest(patronTecnico)},` +
+          `apellido_usuario.ilike.${escapeFiltroPostgrest(patronTecnico)}`
+        )
         .eq('is_delete', false);
 
       if (errTecnico) {
@@ -353,7 +360,7 @@ router.get('/:id', verificarToken, async (req, res) => {
  *   "repuestos": [{"repuestoId": 1, "cantidad": 2}]
  * }
  */
-router.post('/', verificarToken, async (req, res) => {
+router.post('/', verificarToken, verificarPermiso('view-registro-reportes'), async (req, res) => {
   try {
     const {
       numeroReporte,

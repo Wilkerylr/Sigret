@@ -17,6 +17,7 @@ const express = require('express');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
 const { verificarToken, verificarPermiso } = require('../middlewares/auth');
+const { escapeFiltroPostgrest } = require('../utils/validaciones');
 
 // ==========================================
 // FUNCIONES AUXILIARES
@@ -113,8 +114,12 @@ router.get('/', verificarToken, verificarPermiso('view-gestion-registros'), asyn
     // de `.or()`, así que se resuelven los IDs y se filtra por la FK.
     if (numero && numero.trim()) {
       const numLimpio = numero.trim().replace(/[^0-9]/g, '');
-      const descripcion = numero.trim().replace(/[%,()]/g, '');
-      const condiciones = [`descripcion_modificacion.ilike.%${descripcion}%`];
+      // Se cita el valor para que los caracteres de sintaxis de PostgREST
+      // (coma, punto, paréntesis, comillas) se traten como texto literal.
+      const patronDescripcion = `%${numero.trim()}%`;
+      const condiciones = [
+        `descripcion_modificacion.ilike.${escapeFiltroPostgrest(patronDescripcion)}`,
+      ];
       if (numLimpio) {
         const { data: reportesCoincidentes } = await supabase
           .from('reportes')
@@ -129,11 +134,14 @@ router.get('/', verificarToken, verificarPermiso('view-gestion-registros'), asyn
     }
 
     if (usuario && usuario.trim()) {
-      const u = usuario.trim().replace(/[%,()]/g, '');
+      const patronUsuario = `%${usuario.trim()}%`;
       const { data: usuariosCoincidentes } = await supabase
         .from('usuarios')
         .select('id')
-        .or(`nombre_usuario.ilike.%${u}%,apellido_usuario.ilike.%${u}%`);
+        .or(
+          `nombre_usuario.ilike.${escapeFiltroPostgrest(patronUsuario)},` +
+          `apellido_usuario.ilike.${escapeFiltroPostgrest(patronUsuario)}`
+        );
       const idsUsuarios = (usuariosCoincidentes || []).map((x) => x.id);
       if (idsUsuarios.length === 0) {
         return res.json({

@@ -88,9 +88,14 @@ Pasos:
   - Login: 20 intentos / 15 min.
   - Recuperación de contraseña (`/auth/verificar-preguntas` y
     `/auth/recuperar-password`): 5 intentos / 15 min.
-- **Sanitización de filtros**: los parámetros de búsqueda se validan/escapan
-  antes de construir consultas (evita inyección en la sintaxis PostgREST).
+  - El servidor configura `app.set('trust proxy', 1)` para que `req.ip` sea la
+    IP real del cliente detrás del proxy de Render. Sin esto, todos los
+    usuarios compartirían el mismo contador.
+- **Sanitización de filtros**: los valores que se interpolan en `.or()` de
+  PostgREST se citan con `escapeFiltroPostgrest` (comillas dobles), de modo
+  que comas, puntos, paréntesis y comillas se tratan como texto literal y no
+  como sintaxis del filtro.
 - **Autorización por permiso**: los endpoints sensibles (estadísticas,
-  búsqueda de reportes, historial de modificaciones) exigen el permiso
-  correspondiente (`verificarPermiso`), considerando los permisos por defecto
-  del rol más los permisos adicionales del token.
+  búsqueda y creación de reportes, historial de modificaciones) exigen el
+  permiso correspondiente (`verificarPermiso`), considerando los permisos por
+  defecto del rol más los permisos adicionales del token.
