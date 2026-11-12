@@ -1,3 +1,4 @@
+import { logError } from '@/lib/logger';
 import React, { useState, useEffect } from "react";
 import { Lock, Shield, Eye, EyeOff, Check, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -34,7 +35,7 @@ const PrimerLogin: React.FC = () => {
           setPreguntas(response.data);
         }
       } catch (err) {
-        console.error("Error al cargar preguntas:", err);
+        logError("Error al cargar preguntas:", err);
       }
     };
     cargarPreguntas();

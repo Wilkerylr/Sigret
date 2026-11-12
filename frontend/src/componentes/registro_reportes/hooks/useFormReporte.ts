@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FormReporteData, Repuesto } from '../types';
 import { validarFechas, validarHoras, validarNumeroPositivo } from '../utils/validaciones';
 import apiClient from '@/api/client';
+import { mensajeDeError } from '@/utils/errorMessage';
 import type { PlantillaData } from './useOpcionesReporte';
 
 const estadoInicial: FormReporteData = {
@@ -27,6 +28,41 @@ const estadoInicial: FormReporteData = {
   horaInicio: '',
   horaFinalizacion: '',
 };
+
+/**
+ * Calcula la fecha del último día hábil anterior a hoy.
+ * Lunes → viernes anterior | Martes → lunes | Sábado/Domingo → viernes
+ */
+function obtenerDiaHabilAnterior(): string {
+  const fecha = new Date();
+  fecha.setDate(fecha.getDate() - 1); // empieza en ayer
+
+  // Retrocede hasta encontrar lunes a viernes (1 a 5)
+  while (fecha.getDay() === 0 || fecha.getDay() === 6) {
+    fecha.setDate(fecha.getDate() - 1);
+  }
+
+  return fecha.toISOString().split('T')[0];
+}
+
+/**
+ * Obtiene el siguiente número de reporte sugerido:
+ * el mayor número existente + 1 (o 1 si no hay reportes).
+ */
+async function obtenerSiguienteNumeroReporte(): Promise<number> {
+  try {
+    const { data } = await apiClient.get<any[]>('/reportes');
+    const numeros = (data || [])
+      .map((r) => r.numero_reporte ?? r.numeroReporte ?? r.numero ?? r.id)
+      .filter((n): n is number => n != null)
+      .map((n) => parseInt(String(n), 10))
+      .filter((n) => !isNaN(n));
+
+    return numeros.length > 0 ? Math.max(...numeros) + 1 : 1;
+  } catch {
+    return 1;
+  }
+}
 
 function obtenerValoresPlantilla(
   nombrePlantilla: string,
@@ -74,6 +110,28 @@ export const useFormReporte = (options?: UseFormReporteOptions) => {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const plantillasData = options?.plantillasData || [];
+
+  // ─── Valores predeterminados al cargar el formulario ───
+  useEffect(() => {
+    let inicializado = false;
+
+    const inicializarValoresPredeterminados = async () => {
+      if (inicializado) return;
+      inicializado = true;
+
+      const siguienteNumero = await obtenerSiguienteNumeroReporte();
+      const fechaDefecto = obtenerDiaHabilAnterior();
+
+      setFormData((prev) => ({
+        ...prev,
+        numeroReporte: String(siguienteNumero),
+        fechaReporte: fechaDefecto,
+        fechaAtencion: fechaDefecto,
+      }));
+    };
+
+    inicializarValoresPredeterminados();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -225,13 +283,8 @@ export const useFormReporte = (options?: UseFormReporteOptions) => {
       setFormData(estadoInicial);
       options?.onSuccess?.();
       return true;
-    } catch (err: any) {
-      const msg = err?.response?.data?.error
-        || (err?.response?.data?.detalles && Array.isArray(err.response.data.detalles)
-          ? err.response.data.detalles.join(', ')
-          : null)
-        || err?.message
-        || 'Error al guardar el reporte';
+    } catch (err: unknown) {
+      const msg = mensajeDeError(err, 'Error al guardar el reporte');
       setSubmitError(msg);
       options?.onError?.(msg);
       return false;

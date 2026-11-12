@@ -2,9 +2,10 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const morgan = require('morgan');
+const pinoHttp = require('pino-http');
 const rateLimit = require('express-rate-limit');
 const { PUERTO, CORS_ORIGIN } = require('./config');
+const logger = require('./utils/logger');
 
 const app = express(); // crear una instancia de express
 
@@ -20,8 +21,36 @@ app.set('trust proxy', 1);
 // Cabeceras HTTP seguras (helmet)
 app.use(helmet());
 
-// Logging de peticiones (morgan)
-app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+// Logging estructurado de peticiones (pino-http)
+app.use(
+  pinoHttp({
+    logger: logger.pino,
+    // No registrar los health checks para no ensuciar los logs.
+    autoLogging: {
+      ignore: (req) => req.url === '/' || req.url === '/ping',
+    },
+    // Solo campos seguros: nunca cabeceras de autorización ni cookies.
+    serializers: {
+      req(req) {
+        return {
+          id: req.id,
+          method: req.method,
+          url: req.url,
+          remoteAddress: req.remoteAddress,
+          userAgent: req.headers['user-agent'],
+        };
+      },
+      res(res) {
+        return { statusCode: res.statusCode };
+      },
+    },
+    customLogLevel(req, res, err) {
+      if (err || res.statusCode >= 500) return 'error';
+      if (res.statusCode >= 400) return 'warn';
+      return 'info';
+    },
+  })
+);
 
 // Body parser con límite explícito
 app.use(express.json({ limit: '1mb' }));
@@ -29,7 +58,7 @@ app.use(express.json({ limit: '1mb' }));
 // CORS: solo orígenes permitidos
 const origenesPermitidos = CORS_ORIGIN;
 if (origenesPermitidos.length === 0 && process.env.NODE_ENV !== 'production') {
-  console.warn('[CORS] Advertencia: CORS_ORIGIN no está configurado. Se permitirán todas las solicitudes (solo desarrollo).');
+  logger.warn('[CORS] Advertencia: CORS_ORIGIN no está configurado. Se permitirán todas las solicitudes (solo desarrollo).');
 }
 app.use(
   cors({
@@ -88,9 +117,9 @@ const { testConnection } = require('./db/supabase');
 // Probar conexión al iniciar (no bloquea el arranque)
 testConnection().then((conectado) => {
     if (conectado) {
-        console.log('✅ Base de datos conectada correctamente');
+        logger.info('✅ Base de datos conectada correctamente');
     } else {
-        console.warn('⚠️  No se pudo conectar a Supabase. Verifica las credenciales en .env');
+        logger.warn('⚠️  No se pudo conectar a Supabase. Verifica las credenciales en .env');
     }
 });
 
@@ -170,7 +199,7 @@ app.use((err, req, res, _next) => {
     if (err.message && err.message.includes('CORS')) {
         return res.status(403).json({ error: err.message });
     }
-    console.error('[SERVER] Error:', err.stack);
+    logger.error('[SERVER] Error:', err);
     res.status(500).json({ error: 'Error interno del servidor' });
 });
 
@@ -178,6 +207,6 @@ app.use((err, req, res, _next) => {
 // INICIALIZAR SERVIDOR
 // ==========================================
 app.listen(PUERTO, () => {
-    console.log(`🚀 Servidor corriendo en http://localhost:${PUERTO}`);
-    console.log(`📋 Endpoint de usuarios: http://localhost:${PUERTO}/api/usuarios`);
+    logger.info(`🚀 Servidor corriendo en http://localhost:${PUERTO}`);
+    logger.info(`📋 Endpoint de usuarios: http://localhost:${PUERTO}/api/usuarios`);
 });

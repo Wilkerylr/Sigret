@@ -16,6 +16,7 @@
  */
 
 const express = require('express');
+const logger = require('../utils/logger');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
 const { verificarToken, requiereAdmin } = require('../middlewares/auth');
@@ -116,13 +117,13 @@ router.get('/', verificarToken, async (req, res) => {
     const { data, error } = await query;
 
     if (error) {
-      console.error('[CLIENTES] Error al obtener clientes:', error.message);
+      logger.error('[CLIENTES] Error al obtener clientes:', error.message);
       return res.status(500).json({ error: 'Error al obtener los clientes' });
     }
 
     res.json((data || []).map(formatearCliente));
   } catch (error) {
-    console.error('[CLIENTES] Error inesperado en GET /:', error);
+    logger.error('[CLIENTES] Error inesperado en GET /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -152,7 +153,7 @@ router.get('/:id', verificarToken, async (req, res) => {
 
     res.json(formatearCliente(data));
   } catch (error) {
-    console.error('[CLIENTES] Error inesperado en GET /:id:', error);
+    logger.error('[CLIENTES] Error inesperado en GET /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -231,7 +232,7 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
     });
 
     if (error) {
-      console.error('[CLIENTES] Error al crear cliente:', error.message);
+      logger.error('[CLIENTES] Error al crear cliente:', error.message);
       return res.status(500).json({ error: 'Error al crear el cliente' });
     }
 
@@ -240,7 +241,7 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
       cliente: formatearCliente(data),
     });
   } catch (error) {
-    console.error('[CLIENTES] Error inesperado en POST /:', error);
+    logger.error('[CLIENTES] Error inesperado en POST /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -333,7 +334,7 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
       .eq('id', clienteId);
 
     if (error) {
-      console.error('[CLIENTES] Error al actualizar:', error.message);
+      logger.error('[CLIENTES] Error al actualizar:', error.message);
       return res.status(500).json({ error: 'Error al actualizar el cliente' });
     }
 
@@ -349,7 +350,7 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
       cliente: formatearCliente(clienteActualizado),
     });
   } catch (error) {
-    console.error('[CLIENTES] Error inesperado en PUT /:id:', error);
+    logger.error('[CLIENTES] Error inesperado en PUT /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -381,7 +382,7 @@ router.delete('/inactivos-sin-reportes', verificarToken, requiereAdmin, async (r
       .eq('is_delete', true);
 
     if (fetchError) {
-      console.error('[CLIENTES] Error al obtener inactivos:', fetchError.message);
+      logger.error('[CLIENTES] Error al obtener inactivos:', fetchError.message);
       return res.status(500).json({ error: 'Error al obtener clientes inactivos' });
     }
 
@@ -404,7 +405,7 @@ router.delete('/inactivos-sin-reportes', verificarToken, requiereAdmin, async (r
       .in('id', idsEliminar);
 
     if (deleteError) {
-      console.error('[CLIENTES] Error al eliminar inactivos:', deleteError.message);
+      logger.error('[CLIENTES] Error al eliminar inactivos:', deleteError.message);
       return res.status(500).json({ error: 'Error al eliminar clientes inactivos' });
     }
 
@@ -426,7 +427,7 @@ router.delete('/inactivos-sin-reportes', verificarToken, requiereAdmin, async (r
       nombres: aEliminar.map(c => c.nombre_cliente),
     });
   } catch (error) {
-    console.error('[CLIENTES] Error inesperado en DELETE /inactivos-sin-reportes:', error);
+    logger.error('[CLIENTES] Error inesperado en DELETE /inactivos-sin-reportes:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -464,7 +465,7 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
       .eq('is_delete', false);
 
     if (error) {
-      console.error('[CLIENTES] Error al desactivar:', error.message);
+      logger.error('[CLIENTES] Error al desactivar:', error.message);
       return res.status(500).json({ error: 'Error al desactivar el cliente' });
     }
 
@@ -485,7 +486,7 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
       clienteId: cliente.id,
     });
   } catch (error) {
-    console.error('[CLIENTES] Error inesperado en DELETE /:id:', error);
+    logger.error('[CLIENTES] Error inesperado en DELETE /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -521,7 +522,7 @@ router.patch('/:id/restaurar', verificarToken, requiereAdmin, async (req, res) =
       .eq('is_delete', true);
 
     if (error) {
-      console.error('[CLIENTES] Error al reactivar:', error.message);
+      logger.error('[CLIENTES] Error al reactivar:', error.message);
       return res.status(500).json({ error: 'Error al reactivar el cliente' });
     }
 
@@ -541,7 +542,7 @@ router.patch('/:id/restaurar', verificarToken, requiereAdmin, async (req, res) =
       clienteId: cliente.id,
     });
   } catch (error) {
-    console.error('[CLIENTES] Error inesperado en PATCH /:id/restaurar:', error);
+    logger.error('[CLIENTES] Error inesperado en PATCH /:id/restaurar:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

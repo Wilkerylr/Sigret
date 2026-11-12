@@ -12,6 +12,7 @@
  */
 
 const { createClient } = require('@supabase/supabase-js');
+const logger = require('../utils/logger');
 
 // --- Validar que las variables de entorno existan ---
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -24,17 +25,17 @@ const supabaseKey =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 if (!supabaseUrl) {
-  console.error('[SUPABASE] Error: NEXT_PUBLIC_SUPABASE_URL no está definida en .env');
+  logger.error('[SUPABASE] Error: NEXT_PUBLIC_SUPABASE_URL no está definida en .env');
   process.exit(1);
 }
 
 if (!supabaseKey) {
-  console.error('[SUPABASE] Error: SUPABASE_SERVICE_ROLE_KEY o NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY no están definidas en .env');
+  logger.error('[SUPABASE] Error: SUPABASE_SERVICE_ROLE_KEY o NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY no están definidas en .env');
   process.exit(1);
 }
 
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  console.warn('[SUPABASE] Advertencia: se usa la publishable key. Se recomienda definir SUPABASE_SERVICE_ROLE_KEY en .env para el backend.');
+  logger.warn('[SUPABASE] Advertencia: se usa la publishable key. Se recomienda definir SUPABASE_SERVICE_ROLE_KEY en .env para el backend.');
 }
 
 // --- Crear el cliente de Supabase ---
@@ -57,14 +58,14 @@ async function testConnection() {
     const { error } = await supabase.from('roles').select('id', { count: 'exact', head: true });
     
     if (error) {
-      console.error('[SUPABASE] Error de conexión:', error.message);
+      logger.error('[SUPABASE] Error de conexión:', error.message);
       return false;
     }
     
-    console.log('[SUPABASE] Conexión exitosa a Supabase Project');
+    logger.info('[SUPABASE] Conexión exitosa a Supabase Project');
     return true;
   } catch (err) {
-    console.error('[SUPABASE] Error inesperado:', err.message);
+    logger.error('[SUPABASE] Error inesperado:', err.message);
     return false;
   }
 }

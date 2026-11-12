@@ -14,6 +14,7 @@
  */
 
 const express = require('express');
+const logger = require('../utils/logger');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
 const { verificarToken, verificarPermiso } = require('../middlewares/auth');
@@ -195,7 +196,7 @@ router.get('/', verificarToken, verificarPermiso('view-gestion-registros'), asyn
     const { data, error, count } = await query;
 
     if (error) {
-      console.error('[MODIFICACIONES] Error al obtener historial:', error.message);
+      logger.error('[MODIFICACIONES] Error al obtener historial:', error.message);
       return res.status(500).json({ error: 'Error al obtener el historial de modificaciones' });
     }
 
@@ -214,7 +215,7 @@ router.get('/', verificarToken, verificarPermiso('view-gestion-registros'), asyn
       },
     });
   } catch (error) {
-    console.error('[MODIFICACIONES] Error inesperado en GET /:', error);
+    logger.error('[MODIFICACIONES] Error inesperado en GET /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -240,13 +241,13 @@ router.get('/reporte/:id', verificarToken, verificarPermiso('view-gestion-regist
       .order('id', { ascending: false });
 
     if (error) {
-      console.error('[MODIFICACIONES] Error al obtener historial del reporte:', error.message);
+      logger.error('[MODIFICACIONES] Error al obtener historial del reporte:', error.message);
       return res.status(500).json({ error: 'Error al obtener el historial del reporte' });
     }
 
     res.json((data || []).map(formatearModificacion));
   } catch (error) {
-    console.error('[MODIFICACIONES] Error inesperado en GET /reporte/:id:', error);
+    logger.error('[MODIFICACIONES] Error inesperado en GET /reporte/:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

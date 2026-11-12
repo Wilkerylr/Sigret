@@ -10,6 +10,7 @@
  */
 
 const express = require('express');
+const logger = require('../utils/logger');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
 const { verificarToken, verificarPermiso } = require('../middlewares/auth');
@@ -174,7 +175,7 @@ router.get('/', verificarToken, verificarPermiso('view-estadisticas'), async (re
       ]);
 
     if (errTotal || errClientes) {
-      console.error('[ESTADISTICAS] Error en totales:', (errTotal || errClientes).message);
+      logger.error('[ESTADISTICAS] Error en totales:', (errTotal || errClientes).message);
       return res.status(500).json({ error: 'Error al obtener las estadísticas' });
     }
 
@@ -185,7 +186,7 @@ router.get('/', verificarToken, verificarPermiso('view-estadisticas'), async (re
       .eq('soft_delete_reporte', false)
       .gte('fecha_reporte', desdeMes);
     if (errMes) {
-      console.error('[ESTADISTICAS] Error en reportes del mes:', errMes.message);
+      logger.error('[ESTADISTICAS] Error en reportes del mes:', errMes.message);
       return res.status(500).json({ error: 'Error al obtener las estadísticas' });
     }
 
@@ -195,7 +196,7 @@ router.get('/', verificarToken, verificarPermiso('view-estadisticas'), async (re
       .select('id, roles ( nombre_rol )')
       .eq('is_delete', false);
     if (errTecnicos) {
-      console.error('[ESTADISTICAS] Error en técnicos:', errTecnicos.message);
+      logger.error('[ESTADISTICAS] Error en técnicos:', errTecnicos.message);
       return res.status(500).json({ error: 'Error al obtener las estadísticas' });
     }
 
@@ -223,7 +224,7 @@ router.get('/', verificarToken, verificarPermiso('view-estadisticas'), async (re
       tecnicosTop,
     });
   } catch (error) {
-    console.error('[ESTADISTICAS] Error inesperado en GET /:', error);
+    logger.error('[ESTADISTICAS] Error inesperado en GET /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -236,7 +237,7 @@ router.get('/reportes-por-mes', verificarToken, verificarPermiso('view-estadisti
     const porMes = await obtenerPorMes(req.query.anio);
     res.json(porMes);
   } catch (error) {
-    console.error('[ESTADISTICAS] Error en reportes-por-mes:', error);
+    logger.error('[ESTADISTICAS] Error en reportes-por-mes:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -249,7 +250,7 @@ router.get('/tecnicos-top', verificarToken, verificarPermiso('view-estadisticas'
     const tecnicosTop = await obtenerTecnicosTop(req.query.limite);
     res.json(tecnicosTop);
   } catch (error) {
-    console.error('[ESTADISTICAS] Error en tecnicos-top:', error);
+    logger.error('[ESTADISTICAS] Error en tecnicos-top:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

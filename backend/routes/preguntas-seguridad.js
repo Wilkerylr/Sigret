@@ -10,6 +10,7 @@
  */
 
 const express = require('express');
+const logger = require('../utils/logger');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -55,13 +56,13 @@ router.get('/preguntas-seguridad', verificarToken, cacheMiddleware(3600), async 
       .order('id', { ascending: true });
 
     if (error) {
-      console.error('[AUTH] Error al obtener preguntas:', error.message);
+      logger.error('[AUTH] Error al obtener preguntas:', error.message);
       return res.status(500).json({ error: 'Error al obtener las preguntas de seguridad' });
     }
 
     res.json(data || []);
   } catch (error) {
-    console.error('[AUTH] Error inesperado en preguntas-seguridad:', error);
+    logger.error('[AUTH] Error inesperado en preguntas-seguridad:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -125,13 +126,13 @@ router.post('/registrar-preguntas', verificarToken, async (req, res) => {
       .insert(inserts);
 
     if (insertError) {
-      console.error('[AUTH] Error al registrar preguntas:', insertError.message);
+      logger.error('[AUTH] Error al registrar preguntas:', insertError.message);
       return res.status(500).json({ error: 'Error al registrar las preguntas de seguridad' });
     }
 
     res.json({ message: 'Preguntas de seguridad registradas exitosamente' });
   } catch (error) {
-    console.error('[AUTH] Error inesperado en registrar-preguntas:', error);
+    logger.error('[AUTH] Error inesperado en registrar-preguntas:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -236,7 +237,7 @@ router.post('/verificar-preguntas', async (req, res) => {
       token_temporal: tokenTemporal,
     });
   } catch (error) {
-    console.error('[AUTH] Error inesperado en verificar-preguntas:', error);
+    logger.error('[AUTH] Error inesperado en verificar-preguntas:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -286,13 +287,13 @@ router.post('/recuperar-password', async (req, res) => {
       .eq('id', usuarioId);
 
     if (updateError) {
-      console.error('[AUTH] Error al actualizar contraseña:', updateError.message);
+      logger.error('[AUTH] Error al actualizar contraseña:', updateError.message);
       return res.status(500).json({ error: 'Error al actualizar la contraseña' });
     }
 
     res.json({ message: 'Contraseña actualizada exitosamente. Ya puede iniciar sesión.' });
   } catch (error) {
-    console.error('[AUTH] Error inesperado en recuperar-contraseña:', error);
+    logger.error('[AUTH] Error inesperado en recuperar-contraseña:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

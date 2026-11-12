@@ -4,7 +4,7 @@
    Las opciones de reportes y plantillas provienen de la API (useOpcionesFormulario)
    ====================================== */
 
-import { EntidadEditable, SeccionConfig } from './types';
+import { EntidadEditable, RepuestoEditable, SeccionConfig } from './types';
 
 type Opcion = { value: string; label: string };
 
@@ -266,8 +266,8 @@ export function crearConfigReporteEdicion(opciones: OpcionesReporteConfig): Secc
           ancho: 'completo',
           validacion: (valor: unknown) => {
             if (!Array.isArray(valor)) return null;
-            const invalido = valor.some(
-              (it: any) => !it?.id || Number(it.cantidad) < 1
+            const invalido = (valor as RepuestoEditable[]).some(
+              (it) => !it?.id || Number(it.cantidad) < 1
             );
             return invalido ? 'Cada repuesto debe tener una cantidad mayor o igual a 1' : null;
           },
@@ -337,7 +337,7 @@ export const CONFIG_CLIENTE: SeccionConfig[] = [
         etiqueta: 'RIF',
         tipo: 'texto',
         requerido: true,
-        placeholder: 'V-12345678, J-12345678-9',
+        placeholder: 'V12345678, J12345678-9',
         ancho: 'mitad',
         validacion: (valor: unknown) => {
           if (!valor || String(valor).trim() === '') return null;
@@ -345,7 +345,7 @@ export const CONFIG_CLIENTE: SeccionConfig[] = [
           const PREFIJOS_RIF = /^[VJECPG]\d{5,10}(-\d{1,2})?$/;
           const PREFIJOS_SIN_GUION = /^[VJECPG]\d{5,10}$/;
           if (!PREFIJOS_RIF.test(limpio) && !PREFIJOS_SIN_GUION.test(limpio)) {
-            return 'Formato inválido. Use: V-12345678, J-12345678-9, E-12345678 (letras: V, J, E, C, G, P)';
+            return 'Formato inválido. Use: V12345678, J12345678-9, E12345678 (letras: V, J, E, C, G, P)';
           }
           const cifros = limpio.replace(/[^0-9]/g, '');
           if (cifros.length < 5 || cifros.length > 10) {

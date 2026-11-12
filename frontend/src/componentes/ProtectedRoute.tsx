@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuthContext } from "@/context/AuthContext";
-import type { UserRole, Permission } from "@/context/AuthContext";
+import type { UserRole, Permission } from "@/types";
 import type { ReactNode } from "react";
 
 interface ProtectedRouteProps {

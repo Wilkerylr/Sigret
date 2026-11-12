@@ -1,39 +1,14 @@
+import { logError } from '@/lib/logger';
 import React, { useCallback, useEffect, useState } from "react";
 import BusquedaReportes from "../componentes/busqueda_reportes/Busqueda_reportes";
 import apiClient from "@/api/client";
 import { ENDPOINTS } from "@/api/endpoints";
 import queryClient from "@/lib/queryClient";
-import type { ReporteResumen } from "../componentes/busqueda_reportes/types";
-import type { EntidadEditable } from "@/componentes/formulario_edicion";
+import type { ReporteApi, ReporteResumen } from "@/types";
+import { mapearReporteApi } from "@/utils/reporteMapper";
+import { mensajeDeError } from "@/utils/errorMessage";
+import type { EntidadEditable, RepuestoEditable } from "@/componentes/formulario_edicion";
 import "../componentes/Global.css";
-
-function mapearReporte(r: any): ReporteResumen {
-  return {
-    id: String(r.id),
-    numeroReporte: r.numeroReporte || `REP-${String(r.id).padStart(3, "0")}`,
-    cliente: r.cliente || "",
-    clienteId: r.clienteId,
-    equipo: r.equipo || "",
-    fechaReporte: r.fechaReporte || "",
-    fechaAtencion: r.fechaAtencion || "",
-    horaInicio: r.horaInicio || "",
-    horaFinalizacion: r.horaFinalizacion || "",
-    descripcionFalla: r.descripcionFalla || "",
-    trabajoRealizado: r.trabajoRealizado || "",
-    etiquetas: r.etiqueta ? [r.etiqueta] : [],
-    etiquetaId: r.etiquetaId,
-    tecnicos: r.tecnico ? [r.tecnico] : [],
-    tecnicoId: r.tecnicoId,
-    repuestos: r.repuestos || (r.repuesto ? [{ id: r.repuestoId || 0, nombre: r.repuesto, cantidad: Number(r.cantidad) || 1 }] : []),
-    repuestoId: r.repuestoId,
-    declaracion: r.estado || "",
-    estadoId: r.estadoId,
-    plantilla: "",
-    posibleCausa: r.posibleCausa || "",
-    anotaciones: r.anotaciones || "",
-    reportadoPor: r.reportadoPor || "",
-  };
-}
 
 const BusquedaReportesPage: React.FC = () => {
   const [reportes, setReportes] = useState<ReporteResumen[]>([]);
@@ -44,12 +19,15 @@ const BusquedaReportesPage: React.FC = () => {
     setCargando(true);
     setError("");
     try {
-      const todos: any[] = [];
+      const todos: ReporteApi[] = [];
       let pagina = 1;
       let totalPaginas = 1;
 
       do {
-        const { data } = await apiClient.get(ENDPOINTS.REPORTES.BASE, {
+        const { data } = await apiClient.get<{
+          reportes: ReporteApi[];
+          paginacion?: { totalPaginas?: number };
+        }>(ENDPOINTS.REPORTES.BASE, {
           params: { pagina, items: 50 },
         });
         todos.push(...(data.reportes || []));
@@ -57,10 +35,10 @@ const BusquedaReportesPage: React.FC = () => {
         pagina += 1;
       } while (pagina <= totalPaginas);
 
-      setReportes(todos.map(mapearReporte));
-    } catch (e: any) {
-      console.error("[BUSQUEDA] Error al cargar reportes:", e);
-      setError(e.response?.data?.error || "Error al cargar los reportes");
+      setReportes(todos.map(mapearReporteApi));
+    } catch (e: unknown) {
+      logError("[BUSQUEDA] Error al cargar reportes:", e);
+      setError(mensajeDeError(e, "Error al cargar los reportes"));
     } finally {
       setCargando(false);
     }
@@ -86,7 +64,7 @@ const BusquedaReportesPage: React.FC = () => {
         estadoId: datos.estadoId,
         repuestoId: datos.repuestoId,
         repuestos: Array.isArray(datos.repuestos)
-          ? datos.repuestos.map((r: any) => ({
+          ? (datos.repuestos as RepuestoEditable[]).map((r) => ({
               repuestoId: Number(r.id),
               cantidad: Number(r.cantidad),
             }))
@@ -99,9 +77,9 @@ const BusquedaReportesPage: React.FC = () => {
       await cargarTodos();
       queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
-    } catch (e: any) {
-      const msg = e.response?.data?.error || "Error al guardar el reporte";
-      console.error("[BUSQUEDA] Error al guardar:", msg);
+    } catch (e: unknown) {
+      const msg = mensajeDeError(e, "Error al guardar el reporte");
+      logError("[BUSQUEDA] Error al guardar:", msg);
       return false;
     }
   };

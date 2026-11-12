@@ -53,6 +53,12 @@ export interface EntidadEditable {
   [campo: string]: any;
 }
 
+/** Repuesto dentro del formulario de edición (valores de UI sin normalizar) */
+export interface RepuestoEditable {
+  id?: number | string;
+  cantidad?: number | string;
+}
+
 /** Modo del formulario */
 export type ModoFormulario = 'crear' | 'editar';
 

@@ -113,28 +113,5 @@ export interface Plantilla {
   etiqueta?: { id: number; nombre: string } | null;
 }
 
-export interface ReporteResumen {
-  id: number;
-  numeroReporte: string;
-  cliente: string;
-  clienteId: number;
-  equipo: string;
-  fechaReporte: string;
-  fechaAtencion: string;
-  horaInicio: string;
-  horaFinalizacion: string;
-  descripcionFalla: string;
-  trabajoRealizado: string;
-  etiqueta: string;
-  etiquetaId: number;
-  tecnico: string;
-  tecnicoId: number;
-  estado: string;
-  estadoId: number;
-  repuesto: string;
-  repuestoId: number;
-  repuestos: { id: number; nombre: string; cantidad: number }[];
-  posibleCausa?: string;
-  anotaciones?: string;
-  reportadoPor?: string;
-}
+// Modelo único definido en src/types
+export type { ReporteResumen } from '@/types';

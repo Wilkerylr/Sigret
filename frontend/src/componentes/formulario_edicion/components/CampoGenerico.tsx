@@ -209,7 +209,7 @@ const CampoGenerico: React.FC<CampoGenericoProps> = ({
 interface CampoListaItemsProps {
   nombre: string;
   etiqueta: string;
-  valor: string[];
+  valor: Array<string | { id: string; cantidad: string }>;
   opciones: Array<{ value: string; label: string }>;
   onChange: (nombre: string, valor: any) => void;
   deshabilitado?: boolean;
@@ -223,17 +223,22 @@ const CampoListaItems: React.FC<CampoListaItemsProps> = ({
   onChange,
   deshabilitado = false,
 }) => {
+  // Normalizar: aceptar strings o objetos {id, cantidad}
+  const lista = Array.isArray(valor)
+    ? valor.map((item) => (typeof item === 'string' ? item : String(item.id)))
+    : [];
+
   const [seleccionado, setSeleccionado] = React.useState('');
 
   const agregarItem = () => {
-    if (seleccionado && !valor.includes(seleccionado)) {
-      onChange(nombre, [...valor, seleccionado]);
+    if (seleccionado && !lista.includes(seleccionado)) {
+      onChange(nombre, [...lista, seleccionado]);
       setSeleccionado('');
     }
   };
 
   const eliminarItem = (index: number) => {
-    const nuevos = valor.filter((_, i) => i !== index);
+    const nuevos = lista.filter((_, i) => i !== index);
     onChange(nombre, nuevos);
   };
 
@@ -248,7 +253,7 @@ const CampoListaItems: React.FC<CampoListaItemsProps> = ({
         >
           <option value="">Seleccione {etiqueta.toLowerCase()}...</option>
           {opciones
-            .filter((op) => !valor.includes(op.value))
+            .filter((op) => !lista.includes(op.value))
             .map((op) => (
               <option key={op.value} value={op.value}>
                 {op.label}
@@ -266,9 +271,9 @@ const CampoListaItems: React.FC<CampoListaItemsProps> = ({
         </button>
       </div>
 
-      {valor.length > 0 && (
+      {lista.length > 0 && (
         <div className="edicion-lista-items-tags">
-          {valor.map((item, index) => (
+          {lista.map((item, index) => (
             <span key={index} className="edicion-tag">
               {opciones.find((op) => op.value === item)?.label || item}
               {!deshabilitado && (
@@ -293,7 +298,7 @@ const CampoListaItems: React.FC<CampoListaItemsProps> = ({
 interface CampoListaItemsCantidadProps {
   nombre: string;
   etiqueta: string;
-  valor: Array<{ id: number; cantidad: number }>;
+  valor: Array<string | { id: string; cantidad: string }>;
   opciones: Array<{ value: string; label: string }>;
   onChange: (nombre: string, valor: any) => void;
   deshabilitado?: boolean;
@@ -310,7 +315,10 @@ const CampoListaItemsCantidad: React.FC<CampoListaItemsCantidadProps> = ({
   const [seleccionado, setSeleccionado] = React.useState('');
   const [cantidad, setCantidad] = React.useState('1');
 
-  const lista = Array.isArray(valor) ? valor : [];
+  // Normalizar: aceptar strings o objetos {id, cantidad}
+  const lista = Array.isArray(valor)
+    ? valor.map((item) => (typeof item === 'string' ? { id: item, cantidad: '1' } : item))
+    : [];
 
   const agregarItem = () => {
     const id = Number(seleccionado);

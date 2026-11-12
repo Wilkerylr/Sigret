@@ -1,4 +1,5 @@
 const express = require('express');
+const logger = require('../utils/logger');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
 const { verificarToken, requiereAdmin } = require('../middlewares/auth');
@@ -32,13 +33,13 @@ router.get('/', verificarToken, async (req, res) => {
     const { data, error } = await query;
 
     if (error) {
-      console.error('[REPUESTOS] Error al obtener repuestos:', error.message);
+      logger.error('[REPUESTOS] Error al obtener repuestos:', error.message);
       return res.status(500).json({ error: 'Error al obtener los repuestos' });
     }
 
     res.json((data || []).map(formatearRepuesto));
   } catch (error) {
-    console.error('[REPUESTOS] Error inesperado en GET /:', error);
+    logger.error('[REPUESTOS] Error inesperado en GET /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -63,7 +64,7 @@ router.get('/:id', verificarToken, async (req, res) => {
 
     res.json(formatearRepuesto(data));
   } catch (error) {
-    console.error('[REPUESTOS] Error inesperado en GET /:id:', error);
+    logger.error('[REPUESTOS] Error inesperado en GET /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -97,7 +98,7 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
       .single();
 
     if (error) {
-      console.error('[REPUESTOS] Error al crear repuesto:', error.message);
+      logger.error('[REPUESTOS] Error al crear repuesto:', error.message);
       return res.status(500).json({ error: 'Error al crear el repuesto' });
     }
 
@@ -106,7 +107,7 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
       repuesto: formatearRepuesto(data),
     });
   } catch (error) {
-    console.error('[REPUESTOS] Error inesperado en POST /:', error);
+    logger.error('[REPUESTOS] Error inesperado en POST /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -155,7 +156,7 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
       .eq('id', repuestoId);
 
     if (error) {
-      console.error('[REPUESTOS] Error al actualizar:', error.message);
+      logger.error('[REPUESTOS] Error al actualizar:', error.message);
       return res.status(500).json({ error: 'Error al actualizar el repuesto' });
     }
 
@@ -170,7 +171,7 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
       repuesto: formatearRepuesto(actualizado),
     });
   } catch (error) {
-    console.error('[REPUESTOS] Error inesperado en PUT /:id:', error);
+    logger.error('[REPUESTOS] Error inesperado en PUT /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -201,7 +202,7 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
       .eq('is_delete', false);
 
     if (error) {
-      console.error('[REPUESTOS] Error al eliminar:', error.message);
+      logger.error('[REPUESTOS] Error al eliminar:', error.message);
       return res.status(500).json({ error: 'Error al eliminar el repuesto' });
     }
 
@@ -210,7 +211,7 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
       repuestoId: repuesto.id,
     });
   } catch (error) {
-    console.error('[REPUESTOS] Error inesperado en DELETE /:id:', error);
+    logger.error('[REPUESTOS] Error inesperado en DELETE /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

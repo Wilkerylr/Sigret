@@ -15,6 +15,7 @@
  */
 
 const express = require('express');
+const logger = require('../utils/logger');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
 const { verificarToken, requiereAdmin } = require('../middlewares/auth');
@@ -40,13 +41,13 @@ router.get('/', verificarToken, async (req, res) => {
       .order('id', { ascending: true });
 
     if (error) {
-      console.error('[ESTADOS] Error al obtener estados:', error.message);
+      logger.error('[ESTADOS] Error al obtener estados:', error.message);
       return res.status(500).json({ error: 'Error al obtener los estados de equipo' });
     }
 
     res.json((data || []).map(formatearEstado));
   } catch (error) {
-    console.error('[ESTADOS] Error inesperado en GET /:', error);
+    logger.error('[ESTADOS] Error inesperado en GET /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -76,7 +77,7 @@ router.get('/:id', verificarToken, async (req, res) => {
 
     res.json(formatearEstado(data));
   } catch (error) {
-    console.error('[ESTADOS] Error inesperado en GET /:id:', error);
+    logger.error('[ESTADOS] Error inesperado en GET /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -116,7 +117,7 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
       .single();
 
     if (error) {
-      console.error('[ESTADOS] Error al crear estado:', error.message);
+      logger.error('[ESTADOS] Error al crear estado:', error.message);
       return res.status(500).json({ error: 'Error al crear el estado' });
     }
 
@@ -125,7 +126,7 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
       estado: formatearEstado(data),
     });
   } catch (error) {
-    console.error('[ESTADOS] Error inesperado en POST /:', error);
+    logger.error('[ESTADOS] Error inesperado en POST /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -180,7 +181,7 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
       .eq('id', estadoId);
 
     if (error) {
-      console.error('[ESTADOS] Error al actualizar:', error.message);
+      logger.error('[ESTADOS] Error al actualizar:', error.message);
       return res.status(500).json({ error: 'Error al actualizar el estado' });
     }
 
@@ -195,7 +196,7 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
       estado: formatearEstado(actualizado),
     });
   } catch (error) {
-    console.error('[ESTADOS] Error inesperado en PUT /:id:', error);
+    logger.error('[ESTADOS] Error inesperado en PUT /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -258,7 +259,7 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
       .eq('id', estadoId);
 
     if (error) {
-      console.error('[ESTADOS] Error al eliminar:', error.message);
+      logger.error('[ESTADOS] Error al eliminar:', error.message);
       return res.status(500).json({ error: 'Error al eliminar el estado' });
     }
 
@@ -267,7 +268,7 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
       estadoId: estado.id,
     });
   } catch (error) {
-    console.error('[ESTADOS] Error inesperado en DELETE /:id:', error);
+    logger.error('[ESTADOS] Error inesperado en DELETE /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

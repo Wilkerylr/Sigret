@@ -14,6 +14,7 @@
  */
 
 const express = require('express');
+const logger = require('../utils/logger');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
 const { verificarToken, requiereAdmin } = require('../middlewares/auth');
@@ -59,13 +60,13 @@ router.get('/', verificarToken, async (req, res) => {
     const { data, error } = await query;
 
     if (error) {
-      console.error('[ETIQUETAS] Error al obtener etiquetas:', error.message);
+      logger.error('[ETIQUETAS] Error al obtener etiquetas:', error.message);
       return res.status(500).json({ error: 'Error al obtener las etiquetas' });
     }
 
     res.json((data || []).map(formatearEtiqueta));
   } catch (error) {
-    console.error('[ETIQUETAS] Error inesperado en GET /:', error);
+    logger.error('[ETIQUETAS] Error inesperado en GET /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -95,7 +96,7 @@ router.get('/:id', verificarToken, async (req, res) => {
 
     res.json(formatearEtiqueta(data));
   } catch (error) {
-    console.error('[ETIQUETAS] Error inesperado en GET /:id:', error);
+    logger.error('[ETIQUETAS] Error inesperado en GET /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -135,7 +136,7 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
       .single();
 
     if (error) {
-      console.error('[ETIQUETAS] Error al crear etiqueta:', error.message);
+      logger.error('[ETIQUETAS] Error al crear etiqueta:', error.message);
       return res.status(500).json({ error: 'Error al crear la etiqueta' });
     }
 
@@ -144,7 +145,7 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
       etiqueta: formatearEtiqueta(data),
     });
   } catch (error) {
-    console.error('[ETIQUETAS] Error inesperado en POST /:', error);
+    logger.error('[ETIQUETAS] Error inesperado en POST /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -201,7 +202,7 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
       .eq('id', etiquetaId);
 
     if (error) {
-      console.error('[ETIQUETAS] Error al actualizar:', error.message);
+      logger.error('[ETIQUETAS] Error al actualizar:', error.message);
       return res.status(500).json({ error: 'Error al actualizar la etiqueta' });
     }
 
@@ -217,7 +218,7 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
       etiqueta: formatearEtiqueta(etiquetaActualizada),
     });
   } catch (error) {
-    console.error('[ETIQUETAS] Error inesperado en PUT /:id:', error);
+    logger.error('[ETIQUETAS] Error inesperado en PUT /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -265,7 +266,7 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
       .eq('id', etiquetaId);
 
     if (error) {
-      console.error('[ETIQUETAS] Error al eliminar:', error.message);
+      logger.error('[ETIQUETAS] Error al eliminar:', error.message);
       return res.status(500).json({ error: 'Error al eliminar la etiqueta' });
     }
 
@@ -274,7 +275,7 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
       etiquetaId: etiqueta.id,
     });
   } catch (error) {
-    console.error('[ETIQUETAS] Error inesperado en DELETE /:id:', error);
+    logger.error('[ETIQUETAS] Error inesperado en DELETE /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

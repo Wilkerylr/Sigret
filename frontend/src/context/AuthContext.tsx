@@ -1,16 +1,20 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { logError } from '@/lib/logger';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
 /**
- * Tipos de roles y permisos para el sistema
+ * Roles y permisos: definición única en src/types.
+ * Se re-exportan para no romper imports existentes.
  */
-export type UserRole = "admin" | "tecnico" | "administrativo";
+import type { Permission, UserRole } from "@/types";
 
-export type Permission =
-  | "view-estadisticas"
-  | "view-registro-reportes"
-  | "view-busqueda-reportes"
-  | "view-gestion-registros"
-  | "view-gestion-usuarios";
+export type { Permission, UserRole } from "@/types";
 
 export interface User {
   id: number;
@@ -38,12 +42,50 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const TOKEN_KEY = "sigret_token";
 const USER_KEY = "sigret_user";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+
+/** Margen antes de la expiración para renovar el token de forma proactiva. */
+const MARGEN_REFRESCO_MS = 2 * 60 * 1000;
 
 const DB_ROLE_TO_FRONTEND: Record<string, UserRole> = {
   admin: "admin",
   tecnico: "tecnico",
   administrativo: "administrativo",
 };
+
+const VALID_PERMISSIONS: Permission[] = [
+  "view-estadisticas",
+  "view-registro-reportes",
+  "view-busqueda-reportes",
+  "view-gestion-registros",
+  "view-gestion-usuarios",
+];
+
+const PERMISOS_POR_ROL: Record<UserRole, Permission[]> = {
+  admin: [
+    "view-estadisticas",
+    "view-registro-reportes",
+    "view-busqueda-reportes",
+    "view-gestion-registros",
+    "view-gestion-usuarios",
+  ],
+  tecnico: ["view-estadisticas", "view-busqueda-reportes"],
+  administrativo: [
+    "view-estadisticas",
+    "view-registro-reportes",
+    "view-busqueda-reportes",
+    "view-gestion-registros",
+  ],
+};
+
+interface UsuarioBackend {
+  id: number;
+  nombre_usuario: string;
+  apellido_usuario?: string | null;
+  email: string;
+  rol?: { id: number; nombre: string | null } | null;
+  permisos?: Array<{ nombre: string }>;
+}
 
 function getStoredUser(): User | null {
   try {
@@ -55,27 +97,100 @@ function getStoredUser(): User | null {
   return null;
 }
 
+/**
+ * Decodifica la fecha de expiración (`exp`) de un JWT sin verificar la firma.
+ * El backend sigue siendo la única autoridad de validación.
+ */
+function getTokenExpiry(token: string): number | null {
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padding = "=".repeat((4 - (base64.length % 4)) % 4);
+    const json = JSON.parse(atob(base64 + padding));
+    return typeof json.exp === "number" ? json.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+function mapearPermisos(
+  permisosBackend: Array<{ nombre: string }>,
+  userRole: UserRole
+): Permission[] {
+  const permisosFrontend = permisosBackend
+    .map((p) => {
+      const nombre = p.nombre;
+      if (VALID_PERMISSIONS.includes(nombre as Permission)) {
+        return nombre as Permission;
+      }
+      // Compatibilidad con permisos antiguos
+      const permMap: Record<string, Permission> = {
+        ver_usuarios: "view-gestion-usuarios",
+        crear_usuarios: "view-gestion-usuarios",
+        editar_usuarios: "view-gestion-usuarios",
+      };
+      return permMap[nombre] || null;
+    })
+    .filter((permiso): permiso is Permission => permiso !== null);
+
+  // Agregar permisos por defecto según el rol
+  for (const permiso of PERMISOS_POR_ROL[userRole]) {
+    if (!permisosFrontend.includes(permiso)) {
+      permisosFrontend.push(permiso);
+    }
+  }
+
+  return permisosFrontend;
+}
+
+function construirUsuario(usuarioBackend: UsuarioBackend): User {
+  const rolNombre = (usuarioBackend.rol?.nombre || "tecnico").toLowerCase();
+  const userRole: UserRole = DB_ROLE_TO_FRONTEND[rolNombre] || "tecnico";
+
+  return {
+    id: usuarioBackend.id,
+    username: usuarioBackend.nombre_usuario,
+    nombre_completo: `${usuarioBackend.nombre_usuario} ${
+      usuarioBackend.apellido_usuario || ""
+    }`.trim(),
+    email: usuarioBackend.email,
+    role: userRole,
+    permissions: mapearPermisos(usuarioBackend.permisos || [], userRole),
+  };
+}
+
+/** Redirige al login mostrando el aviso de sesión expirada. */
+function redirigirSesionExpirada() {
+  if (
+    window.location.pathname === "/" &&
+    window.location.search.includes("sesion=expirada")
+  ) {
+    return;
+  }
+  window.location.href = "/?sesion=expirada";
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(getStoredUser);
   const [isLoading, setIsLoading] = useState(false);
   const [primerLogin, setPrimerLogin] = useState(false);
+  const [tokenExpiraEn, setTokenExpiraEn] = useState<number | null>(() => {
+    const token = sessionStorage.getItem(TOKEN_KEY);
+    return token ? getTokenExpiry(token) : null;
+  });
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_API_URL || "http://localhost:3001/api"
-        }/auth/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email_usuario: email,
-            contraseña: password,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email_usuario: email,
+          contraseña: password,
+        }),
+      });
 
       if (!response.ok) {
         return false;
@@ -83,185 +198,113 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const data = await response.json();
 
-      // Guardar token JWT
+      const userData = construirUsuario(data.usuario);
+
+      // Guardar token JWT y programar su renovación
       sessionStorage.setItem(TOKEN_KEY, data.token);
-
-      // Mapear datos del backend al frontend
-      const rolNombre = (data.usuario.rol?.nombre || "tecnico").toLowerCase();
-      const userRole: UserRole = DB_ROLE_TO_FRONTEND[rolNombre] || "tecnico";
-
-      // Mapear permisos del backend a permisos del frontend
-      const permisosBackend = data.usuario.permisos || [];
-
-      const VALID_PERMISSIONS: Permission[] = [
-        "view-estadisticas",
-        "view-registro-reportes",
-        "view-busqueda-reportes",
-        "view-gestion-registros",
-        "view-gestion-usuarios",
-      ];
-
-      const permisosFrontend: Permission[] = permisosBackend
-        .map((p: { nombre: string }) => {
-          const nombre = p.nombre;
-          if (VALID_PERMISSIONS.includes(nombre as Permission)) {
-            return nombre as Permission;
-          }
-          // Compatibilidad con permisos antiguos
-          const permMap: Record<string, Permission> = {
-            ver_usuarios: "view-gestion-usuarios",
-            crear_usuarios: "view-gestion-usuarios",
-            editar_usuarios: "view-gestion-usuarios",
-          };
-          return permMap[nombre] || null;
-        })
-        .filter(Boolean);
-
-      // Agregar permisos por defecto según el rol
-      if (userRole === "admin") {
-        if (!permisosFrontend.includes("view-estadisticas"))
-          permisosFrontend.push("view-estadisticas");
-        if (!permisosFrontend.includes("view-registro-reportes"))
-          permisosFrontend.push("view-registro-reportes");
-        if (!permisosFrontend.includes("view-busqueda-reportes"))
-          permisosFrontend.push("view-busqueda-reportes");
-        if (!permisosFrontend.includes("view-gestion-registros"))
-          permisosFrontend.push("view-gestion-registros");
-        if (!permisosFrontend.includes("view-gestion-usuarios"))
-          permisosFrontend.push("view-gestion-usuarios");
-      } else if (userRole === "tecnico") {
-        if (!permisosFrontend.includes("view-estadisticas"))
-          permisosFrontend.push("view-estadisticas");
-        if (!permisosFrontend.includes("view-busqueda-reportes"))
-          permisosFrontend.push("view-busqueda-reportes");
-      } else if (userRole === "administrativo") {
-        if (!permisosFrontend.includes("view-estadisticas"))
-          permisosFrontend.push("view-estadisticas");
-        if (!permisosFrontend.includes("view-registro-reportes"))
-          permisosFrontend.push("view-registro-reportes");
-        if (!permisosFrontend.includes("view-busqueda-reportes"))
-          permisosFrontend.push("view-busqueda-reportes");
-        if (!permisosFrontend.includes("view-gestion-registros"))
-          permisosFrontend.push("view-gestion-registros");
-      }
-
-      const userData: User = {
-        id: data.usuario.id,
-        username: data.usuario.nombre_usuario,
-        nombre_completo: `${data.usuario.nombre_usuario} ${data.usuario.apellido_usuario}`,
-        email: data.usuario.email,
-        role: userRole,
-        permissions: permisosFrontend,
-      };
+      setTokenExpiraEn(getTokenExpiry(data.token));
 
       setUser(userData);
       sessionStorage.setItem(USER_KEY, JSON.stringify(userData));
-      setPrimerLogin(data.primer_login === true);
+
+      const esPrimerLogin = data.primer_login === true;
+      // ─── Log de depuración: ver si el backend indica primer login ───
+      console.log('[AUTH] Resultado del login:', {
+        primerLoginDesdeBackend: data.primer_login,
+        esPrimerLogin,
+        usuarioId: data.usuario?.id,
+        usuarioNombre: data.usuario?.nombre_usuario,
+      });
+      setPrimerLogin(esPrimerLogin);
       return true;
     } catch (error) {
-      console.error("[AUTH] Error en login:", error);
+      logError("[AUTH] Error en login:", error);
       return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
+    setTokenExpiraEn(null);
+    setPrimerLogin(false);
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(USER_KEY);
-  };
+  }, []);
+
+  /**
+   * Renueva el token antes de que expire (refresco deslizante).
+   * Si el backend rechaza el token, cierra la sesión y avisa al usuario.
+   */
+  const refrescarToken = useCallback(async (): Promise<boolean> => {
+    const token = sessionStorage.getItem(TOKEN_KEY);
+    if (!token) return false;
+
+    try {
+      const response = await fetch(`${API_URL}/auth/refresh`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 404) {
+          logout();
+          redirigirSesionExpirada();
+        }
+        return false;
+      }
+
+      const data = await response.json();
+      const userData = construirUsuario(data.usuario);
+
+      sessionStorage.setItem(TOKEN_KEY, data.token);
+      sessionStorage.setItem(USER_KEY, JSON.stringify(userData));
+      setUser(userData);
+      setTokenExpiraEn(getTokenExpiry(data.token));
+      return true;
+    } catch (error) {
+      logError("[AUTH] Error al refrescar el token:", error);
+      return false;
+    }
+  }, [logout]);
+
+  // Programa la renovación un par de minutos antes de que expire el token.
+  useEffect(() => {
+    if (!user || !tokenExpiraEn) return;
+
+    const restante = tokenExpiraEn - Date.now() - MARGEN_REFRESCO_MS;
+    // Si ya está dentro del margen, espera unos segundos para no repetir
+    // peticiones en bucle si el reloj del cliente está desfasado.
+    const espera = restante > 0 ? restante : 5000;
+
+    const temporizador = window.setTimeout(() => {
+      void refrescarToken();
+    }, espera);
+
+    return () => window.clearTimeout(temporizador);
+  }, [user, tokenExpiraEn, refrescarToken]);
 
   const refreshPermissions = async () => {
     try {
       const token = sessionStorage.getItem(TOKEN_KEY);
       if (!token) return;
 
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_API_URL || "http://localhost:3001/api"
-        }/auth/refresh-permissions`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await fetch(`${API_URL}/auth/refresh-permissions`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (!response.ok) return;
 
       const data = await response.json();
+      const userData = construirUsuario(data.usuario);
 
-      // Guardar nuevo token
       sessionStorage.setItem(TOKEN_KEY, data.token);
-
-      // Mapear datos actualizados
-      const rolNombre = (data.usuario.rol?.nombre || "tecnico").toLowerCase();
-      const userRole: UserRole = DB_ROLE_TO_FRONTEND[rolNombre] || "tecnico";
-
-      const permisosBackend = data.usuario.permisos || [];
-      const VALID_PERMISSIONS: Permission[] = [
-        "view-estadisticas",
-        "view-registro-reportes",
-        "view-busqueda-reportes",
-        "view-gestion-registros",
-        "view-gestion-usuarios",
-      ];
-
-      const permisosFrontend: Permission[] = permisosBackend
-        .map((p: { nombre: string }) => {
-          const nombre = p.nombre;
-          if (VALID_PERMISSIONS.includes(nombre as Permission)) {
-            return nombre as Permission;
-          }
-          const permMap: Record<string, Permission> = {
-            ver_usuarios: "view-gestion-usuarios",
-            crear_usuarios: "view-gestion-usuarios",
-            editar_usuarios: "view-gestion-usuarios",
-          };
-          return permMap[nombre] || null;
-        })
-        .filter(Boolean);
-
-      // Agregar permisos por defecto según el rol
-      if (userRole === "admin") {
-        if (!permisosFrontend.includes("view-estadisticas"))
-          permisosFrontend.push("view-estadisticas");
-        if (!permisosFrontend.includes("view-registro-reportes"))
-          permisosFrontend.push("view-registro-reportes");
-        if (!permisosFrontend.includes("view-busqueda-reportes"))
-          permisosFrontend.push("view-busqueda-reportes");
-        if (!permisosFrontend.includes("view-gestion-registros"))
-          permisosFrontend.push("view-gestion-registros");
-        if (!permisosFrontend.includes("view-gestion-usuarios"))
-          permisosFrontend.push("view-gestion-usuarios");
-      } else if (userRole === "tecnico") {
-        if (!permisosFrontend.includes("view-estadisticas"))
-          permisosFrontend.push("view-estadisticas");
-        if (!permisosFrontend.includes("view-busqueda-reportes"))
-          permisosFrontend.push("view-busqueda-reportes");
-      } else if (userRole === "administrativo") {
-        if (!permisosFrontend.includes("view-estadisticas"))
-          permisosFrontend.push("view-estadisticas");
-        if (!permisosFrontend.includes("view-registro-reportes"))
-          permisosFrontend.push("view-registro-reportes");
-        if (!permisosFrontend.includes("view-busqueda-reportes"))
-          permisosFrontend.push("view-busqueda-reportes");
-        if (!permisosFrontend.includes("view-gestion-registros"))
-          permisosFrontend.push("view-gestion-registros");
-      }
-
-      const userData: User = {
-        id: data.usuario.id,
-        username: data.usuario.nombre_usuario,
-        nombre_completo: `${data.usuario.nombre_usuario} ${data.usuario.apellido_usuario}`,
-        email: data.usuario.email,
-        role: userRole,
-        permissions: permisosFrontend,
-      };
-
+      setTokenExpiraEn(getTokenExpiry(data.token));
       setUser(userData);
       sessionStorage.setItem(USER_KEY, JSON.stringify(userData));
     } catch (error) {
-      console.error("[AUTH] Error al refrescar permisos:", error);
+      logError("[AUTH] Error al refrescar permisos:", error);
     }
   };
 

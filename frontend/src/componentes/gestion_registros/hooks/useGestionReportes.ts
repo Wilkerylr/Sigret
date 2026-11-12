@@ -1,3 +1,4 @@
+import { logError } from '@/lib/logger';
 /* ======================================
    hooks/useGestionReportes.ts
    Hook para CRUD de reportes técnicos con filtros y paginación
@@ -8,7 +9,11 @@ import { useState, useCallback, useEffect } from 'react';
 import apiClient from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
 import queryClient from '@/lib/queryClient';
-import type { ReporteResumen, FiltrosReportes } from '../types';
+import type { ReporteApi, ReporteResumen } from '@/types';
+import { mapearReporteApi } from '@/utils/reporteMapper';
+import { mensajeDeError } from '@/utils/errorMessage';
+import type { EntidadEditable, RepuestoEditable } from '@/componentes/formulario_edicion';
+import type { FiltrosReportes } from '../types';
 
 const FILTROS_INICIALES: FiltrosReportes = {
   numeroReporte: '',
@@ -36,7 +41,7 @@ export function useGestionReportes() {
       if (totalItems === 0) setCargandoInicial(true);
       else setCargando(true);
 
-      const params: Record<string, any> = {
+      const params: Record<string, string | number> = {
         pagina: paginaActual,
         items: itemsPorPagina,
       };
@@ -48,13 +53,16 @@ export function useGestionReportes() {
       if (filtros.fechaDesde) params.desde = filtros.fechaDesde;
       if (filtros.fechaHasta) params.hasta = filtros.fechaHasta;
 
-      const { data } = await apiClient.get(ENDPOINTS.REPORTES.BASE, { params });
+      const { data } = await apiClient.get<{
+        reportes: ReporteApi[];
+        paginacion?: { totalItems?: number; totalPaginas?: number };
+      }>(ENDPOINTS.REPORTES.BASE, { params });
 
-      setReportes(data.reportes || []);
+      setReportes((data.reportes || []).map(mapearReporteApi));
       setTotalItems(data.paginacion?.totalItems || 0);
       setTotalPaginas(data.paginacion?.totalPaginas || 1);
     } catch (error) {
-      console.error('[REPORTES] Error al cargar:', error);
+      logError('[REPORTES] Error al cargar:', error);
     } finally {
       setCargando(false);
       setCargandoInicial(false);
@@ -99,10 +107,24 @@ export function useGestionReportes() {
     setReporteEditando(reporte);
   }, []);
 
-  const guardarEdicion = async (datos: Record<string, any>): Promise<boolean> => {
+  const guardarEdicion = async (datos: EntidadEditable): Promise<boolean> => {
     setCargando(true);
     try {
-      await apiClient.put(ENDPOINTS.REPORTES.BY_ID(String(datos.id)), {
+      const repuestosPayload = Array.isArray(datos.repuestos)
+        ? (datos.repuestos as RepuestoEditable[]).map((r) => ({
+            repuestoId: Number(r.id),
+            cantidad: Number(r.cantidad) || 1,
+          }))
+        : [];
+
+      // ─── Log de depuración: ver qué se envía al backend ───
+      console.log('[REPORTES] Guardando reporte ID:', datos.id, {
+        repuestosEnviados: repuestosPayload,
+        repuestoIdOriginal: datos.repuestoId,
+        motivo: datos.motivoModificacion,
+      });
+
+      const { data } = await apiClient.put(ENDPOINTS.REPORTES.BY_ID(String(datos.id)), {
         clienteId: datos.clienteId,
         equipo: datos.equipo,
         fechaReporte: datos.fechaReporte,
@@ -115,24 +137,27 @@ export function useGestionReportes() {
         tecnicoId: datos.tecnicoId,
         estadoId: datos.estadoId,
         repuestoId: datos.repuestoId,
-        repuestos: Array.isArray(datos.repuestos)
-          ? datos.repuestos.map((r: any) => ({
-              repuestoId: Number(r.id),
-              cantidad: Number(r.cantidad) || 1,
-            }))
-          : undefined,
+        repuestos: repuestosPayload,
         posibleCausa: datos.posibleCausa,
         anotaciones: datos.anotaciones,
         reportadoPor: datos.reportadoPor,
         motivoModificacion: datos.motivoModificacion,
       });
+
+      // ─── Log de depuración: ver qué respondió el backend ───
+      console.log('[REPORTES] Respuesta del backend:', {
+        reporteId: datos.id,
+        repuestosDevueltos: data?.reporte?.repuestos,
+        mensaje: data?.message,
+      });
+
       await cargarReportes();
       setReporteEditando(null);
       queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
-    } catch (error: any) {
-      const msg = error.response?.data?.error || 'Error al guardar el reporte';
-      console.error('[REPORTES] Error al guardar:', msg);
+    } catch (error: unknown) {
+      const msg = mensajeDeError(error, 'Error al guardar el reporte');
+      logError('[REPORTES] Error al guardar:', msg);
       return false;
     } finally {
       setCargando(false);
@@ -156,9 +181,9 @@ export function useGestionReportes() {
       setReporteEliminar(null);
       queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
-    } catch (error: any) {
-      const msg = error.response?.data?.error || 'Error al eliminar el reporte';
-      console.error('[REPORTES] Error al eliminar:', msg);
+    } catch (error: unknown) {
+      const msg = mensajeDeError(error, 'Error al eliminar el reporte');
+      logError('[REPORTES] Error al eliminar:', msg);
       return false;
     } finally {
       setCargando(false);
@@ -176,9 +201,9 @@ export function useGestionReportes() {
       await cargarReportes();
       queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
-    } catch (error: any) {
-      const msg = error.response?.data?.error || 'Error al recuperar el reporte';
-      console.error('[REPORTES] Error al recuperar:', msg);
+    } catch (error: unknown) {
+      const msg = mensajeDeError(error, 'Error al recuperar el reporte');
+      logError('[REPORTES] Error al recuperar:', msg);
       return false;
     } finally {
       setCargando(false);

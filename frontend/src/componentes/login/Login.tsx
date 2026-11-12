@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { LogIn, User, Lock, Eye, EyeOff, KeyRound } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthContext } from "@/context/AuthContext";
 import RecuperarContraseña from "./RecuperarContraseña";
 import "./Login.css";
@@ -14,7 +14,12 @@ const LoginForm: React.FC = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [searchParams] = useSearchParams();
+    const [error, setError] = useState<string | null>(() =>
+        searchParams.get("sesion") === "expirada"
+            ? "Tu sesión expiró por inactividad. Inicia sesión nuevamente."
+            : null
+    );
     const [mostrarRecuperacion, setMostrarRecuperacion] = useState(false);
     const { login, isLoading, primerLogin } = useAuthContext();
     const navigate = useNavigate();

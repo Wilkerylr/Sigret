@@ -10,6 +10,7 @@ interface ReferenciaItem {
   nombre_etiqueta?: string;
   nombre_usuario?: string;
   apellido_usuario?: string;
+  activo?: boolean;
 }
 
 function toOpcion(item: ReferenciaItem): Opcion {
@@ -22,7 +23,7 @@ function toOpcion(item: ReferenciaItem): Opcion {
   return { value: String(item.id), label: nombre };
 }
 
-function toOpcionPlantilla(item: any): Opcion {
+function toOpcionPlantilla(item: PlantillaData): Opcion {
   return { value: String(item.id), label: item.nombre || '' };
 }
 
@@ -74,9 +75,9 @@ export function useOpcionesReporte() {
   const tecnicos = useQuery({
     queryKey: ['opciones', 'tecnicos'],
     queryFn: () =>
-      apiClient.get<any[]>('/usuarios')
+      apiClient.get<ReferenciaItem[]>('/usuarios')
         .then(r => r.data
-          .filter((u: any) => u.activo !== false)
+          .filter((u) => u.activo !== false)
           .map(toOpcion)
         ),
     staleTime: 5 * 60 * 1000,
@@ -85,7 +86,7 @@ export function useOpcionesReporte() {
   const plantillasOpt = useQuery({
     queryKey: ['opciones', 'plantillas'],
     queryFn: () =>
-      apiClient.get<any[]>('/plantillas')
+      apiClient.get<PlantillaData[]>('/plantillas')
         .then(r => r.data.map(toOpcionPlantilla)),
     staleTime: 5 * 60 * 1000,
   });

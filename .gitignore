@@ -31,6 +31,12 @@ build
 logs
 *.log
 
+# === Backups locales de la base de datos ===
+backups/
+backend/backups/
+*.dump
+*.sql.gz
+
 # === Tests ===
 coverage
 .nyc_output

@@ -1,54 +1,68 @@
 /**
- * Tipos para el módulo de Reportes Técnicos
- * Unifica FormReporteData (registro) y ReporteResumen (búsqueda/listado)
+ * Tipos canónicos para el módulo de Reportes Técnicos.
+ *
+ * `ReporteApi` describe la respuesta cruda del backend (camelCase) y
+ * `ReporteResumen` es el modelo único que consumen la búsqueda, la gestión
+ * de registros y los formularios de edición.
  */
 
-export interface Repuesto {
-  repuesto: string;
+/** Repuesto asociado a un reporte tal como lo devuelve la API */
+export interface ReporteRepuesto {
+  id: number;
+  nombre: string;
   cantidad: number;
 }
 
-export interface ReporteBase {
-  cliente: string;
-  equipo: string;
-  descripcionFalla: string;
-  trabajoRealizado: string;
-  posibleCausa?: string;
-  anotaciones?: string;
-  reportadoPor?: string;
-  repuestos: Repuesto[];
-  declaracion: string;
-  etiquetas: string[];
-  tecnicos: string[];
-  plantilla?: string;
+/** Respuesta cruda de GET /api/reportes */
+export interface ReporteApi {
+  id: number;
   numeroReporte: string;
+  cliente: string | null;
+  clienteId: number | null;
+  equipo: string;
   fechaReporte: string;
   fechaAtencion: string;
   horaInicio: string;
   horaFinalizacion: string;
+  descripcionFalla: string;
+  trabajoRealizado: string;
+  etiqueta: string | null;
+  etiquetaId: number | null;
+  tecnico: string | null;
+  tecnicoId: number | null;
+  estado: string | null;
+  estadoId: number | null;
+  repuestos?: ReporteRepuesto[];
+  repuesto: string | null;
+  repuestoId: number | null;
+  posibleCausa: string | null;
+  anotaciones: string | null;
+  reportadoPor: number | string | null;
 }
 
-/** Datos completos del formulario de registro (incluye campos auxiliares de UI) */
-export interface FormReporteData extends ReporteBase {
-  repuestoSeleccionado: string;
-  cantidad: string;
-  etiquetaSeleccionada: string;
-  tecnicoSeleccionado: string;
-}
-
-/** Resumen de reporte para listados y búsqueda */
-export interface ReporteResumen extends ReporteBase {
+/** Modelo único de reporte para listados, búsqueda y edición */
+export interface ReporteResumen {
   id: string;
-  createdAt?: string;
-  updatedAt?: string;
-  creadoPor?: string;
-  motivoEdicion?: string;
-}
-
-/** Payload para crear un reporte (sin campos auxiliares de UI) */
-export type CreateReporteRequest = ReporteBase;
-
-/** Payload para actualizar un reporte */
-export interface UpdateReporteRequest extends Partial<ReporteBase> {
-  motivoEdicion: string;
+  numeroReporte: string;
+  cliente: string;
+  clienteId?: number | null;
+  equipo: string;
+  fechaReporte: string;
+  fechaAtencion: string;
+  horaInicio: string;
+  horaFinalizacion: string;
+  descripcionFalla: string;
+  trabajoRealizado: string;
+  etiquetas: string[];
+  etiquetaId?: number | null;
+  tecnicos: string[];
+  tecnicoId?: number | null;
+  repuestos: ReporteRepuesto[];
+  repuestoId?: number | null;
+  declaracion: string;
+  estadoId?: number | null;
+  plantilla: string;
+  posibleCausa?: string;
+  anotaciones?: string;
+  reportadoPor?: string;
 }

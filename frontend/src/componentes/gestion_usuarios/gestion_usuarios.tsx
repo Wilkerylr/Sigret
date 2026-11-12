@@ -90,17 +90,20 @@ const GestionUsuarios: React.FC = () => {
       key: 'permisos',
       titulo: 'Permisos',
       minWidth: '220px',
-      render: (v: string[]) => {
+      render: (v: any[]) => {
         if (!v || v.length === 0) {
           return <span className="sin-permisos">Sin permisos adicionales</span>;
         }
         return (
           <div className="permisos-tags">
-            {v.map(perm => (
-              <span key={perm} className="permiso-tag">
-                {PERMISOS_LABEL_MAP[perm] || perm}
-              </span>
-            ))}
+            {v.map(perm => {
+              const nombrePermiso = perm && typeof perm === 'object' ? perm.id : perm;
+              return (
+                <span key={nombrePermiso} className="permiso-tag">
+                  {PERMISOS_LABEL_MAP[nombrePermiso] || nombrePermiso}
+                </span>
+              );
+            })}
           </div>
         );
       },

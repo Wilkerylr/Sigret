@@ -23,6 +23,7 @@
  */
 
 const express = require('express');
+const logger = require('../utils/logger');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
 const { verificarToken, requiereAdmin, verificarPermiso } = require('../middlewares/auth');
@@ -127,7 +128,7 @@ async function obtenerDetallesRepuestos(reporteIds) {
     .in('reporte_repuesto', reporteIds);
 
   if (error) {
-    console.error('[REPORTES] Error al obtener detalle de repuestos:', error.message);
+    logger.error('[REPORTES] Error al obtener detalle de repuestos:', error.message);
     // No fallar la búsqueda entera por esto; se usará el fallback de cantidad 1 en formatearReporte.
     return new Map();
   }
@@ -231,7 +232,7 @@ router.get('/', verificarToken, verificarPermiso('view-busqueda-reportes'), asyn
         .eq('is_delete', false);
 
       if (errTecnico) {
-        console.error('[REPORTES] Error al filtrar por técnico:', errTecnico.message);
+        logger.error('[REPORTES] Error al filtrar por técnico:', errTecnico.message);
       }
 
       const idsTecnicos = (usuariosCoincidentes || []).map((u) => u.id);
@@ -264,7 +265,7 @@ router.get('/', verificarToken, verificarPermiso('view-busqueda-reportes'), asyn
     const { data, error, count } = await query;
 
     if (error) {
-      console.error('[REPORTES] Error al obtener reportes:', error.message);
+      logger.error('[REPORTES] Error al obtener reportes:', error.message);
       return res.status(500).json({ error: 'Error al obtener los reportes' });
     }
 
@@ -283,7 +284,7 @@ router.get('/', verificarToken, verificarPermiso('view-busqueda-reportes'), asyn
       },
     });
   } catch (error) {
-    console.error('[REPORTES] Error inesperado en GET /:', error);
+    logger.error('[REPORTES] Error inesperado en GET /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -333,7 +334,7 @@ router.get('/:id', verificarToken, async (req, res) => {
 
     res.json(reporteFormateado);
   } catch (error) {
-    console.error('[REPORTES] Error inesperado en GET /:id:', error);
+    logger.error('[REPORTES] Error inesperado en GET /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -596,17 +597,25 @@ router.post('/', verificarToken, verificarPermiso('view-registro-reportes'), asy
       for (const r of req.body.repuestos) {
         const rId = Number(r.repuestoId || r.id);
         const cantidad = Math.max(1, Number(r.cantidad) || 1);
-        if (!isNaN(rId) && rId > 0 && !repuestosDetalle.some(d => d.repuestoId === rId)) {
-          const { data: repuesto } = await supabase
-            .from('repuestos')
-            .select('id')
-            .eq('id', rId)
-            .eq('is_delete', false)
-            .maybeSingle();
-          if (repuesto) {
-            repuestosDetalle.push({ repuestoId: rId, cantidad });
-            if (!primerRepuestoId) primerRepuestoId = rId;
-          }
+        if (isNaN(rId) || rId <= 0) continue;
+
+        // Si el repuesto ya se agregó como principal, se actualiza su
+        // cantidad en lugar de descartarlo (antes quedaba siempre en 1).
+        const existente = repuestosDetalle.find((d) => d.repuestoId === rId);
+        if (existente) {
+          existente.cantidad = cantidad;
+          continue;
+        }
+
+        const { data: repuesto } = await supabase
+          .from('repuestos')
+          .select('id')
+          .eq('id', rId)
+          .eq('is_delete', false)
+          .maybeSingle();
+        if (repuesto) {
+          repuestosDetalle.push({ repuestoId: rId, cantidad });
+          if (!primerRepuestoId) primerRepuestoId = rId;
         }
       }
     }
@@ -636,7 +645,7 @@ router.post('/', verificarToken, verificarPermiso('view-registro-reportes'), asy
       .single();
 
     if (insertError) {
-      console.error('[REPORTES] Error al insertar reporte:', insertError.message);
+      logger.error('[REPORTES] Error al insertar reporte:', insertError.message);
       return res.status(500).json({ error: 'Error al crear el reporte' });
     }
 
@@ -645,7 +654,7 @@ router.post('/', verificarToken, verificarPermiso('view-registro-reportes'), asy
     // Transacción compensatoria: si falla una operación posterior,
     // elimina el reporte recién creado y sus dependencias para no dejar datos huérfanos.
     const deshacerCreacion = async (motivo) => {
-      console.error('[REPORTES] Revirtiendo creación del reporte', reporteId, ':', motivo);
+      logger.error('[REPORTES] Revirtiendo creación del reporte', reporteId, ':', motivo);
       await supabase.from('servicios_tecnicos').delete().eq('reporte_servicio', reporteId);
       await supabase.from('detalle_repuestos').delete().eq('reporte_repuesto', reporteId);
       await supabase.from('modificaciones_reportes').delete().eq('reporte_modificado', reporteId);
@@ -705,7 +714,7 @@ router.post('/', verificarToken, verificarPermiso('view-registro-reportes'), asy
       reporte: formatearReporte(reporteCompleto, await obtenerDetallesRepuestos([reporteId])),
     });
   } catch (error) {
-    console.error('[REPORTES] Error inesperado en POST /:', error);
+    logger.error('[REPORTES] Error inesperado en POST /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -930,7 +939,10 @@ router.put('/:id', verificarToken, async (req, res) => {
       }
     }
 
-    if (Object.keys(updateData).length === 0) {
+    const hayCambiosCampos = Object.keys(updateData).length > 0;
+    const hayCambiosRepuestos = camposModificados.includes('repuestos');
+
+    if (!hayCambiosCampos && !hayCambiosRepuestos) {
       return res.json({ message: 'No se detectaron cambios', reporte: formatearReporte(reporteActual, await obtenerDetallesRepuestos([reporteId])) });
     }
 
@@ -940,15 +952,17 @@ router.put('/:id', verificarToken, async (req, res) => {
       return res.status(400).json({ error: 'Debe indicar el motivo de la modificación' });
     }
 
-    // Actualizar en BD
-    const { error: updateError } = await supabase
-      .from('reportes')
-      .update(updateData)
-      .eq('id', reporteId);
+    // Actualizar en BD solo si hay campos que cambiar
+    if (hayCambiosCampos) {
+      const { error: updateError } = await supabase
+        .from('reportes')
+        .update(updateData)
+        .eq('id', reporteId);
 
-    if (updateError) {
-      console.error('[REPORTES] Error al actualizar:', updateError.message);
-      return res.status(500).json({ error: 'Error al actualizar el reporte' });
+      if (updateError) {
+        logger.error('[REPORTES] Error al actualizar:', updateError.message);
+        return res.status(500).json({ error: 'Error al actualizar el reporte' });
+      }
     }
 
     // Persistir el detalle de repuestos (reemplazo total)
@@ -958,7 +972,7 @@ router.put('/:id', verificarToken, async (req, res) => {
         .delete()
         .eq('reporte_repuesto', reporteId);
       if (delError) {
-        console.error('[REPORTES] Error al limpiar detalle de repuestos:', delError.message);
+        logger.error('[REPORTES] Error al limpiar detalle de repuestos:', delError.message);
         return res.status(500).json({ error: 'Error al actualizar los repuestos del reporte' });
       }
       if (repuestosNuevos.length > 0) {
@@ -969,7 +983,7 @@ router.put('/:id', verificarToken, async (req, res) => {
         }));
         const { error: insError } = await supabase.from('detalle_repuestos').insert(insert);
         if (insError) {
-          console.error('[REPORTES] Error al insertar detalle de repuestos:', insError.message);
+          logger.error('[REPORTES] Error al insertar detalle de repuestos:', insError.message);
           return res.status(500).json({ error: 'Error al actualizar los repuestos del reporte' });
         }
       }
@@ -996,7 +1010,7 @@ router.put('/:id', verificarToken, async (req, res) => {
       camposModificados,
     });
   } catch (error) {
-    console.error('[REPORTES] Error inesperado en PUT /:id:', error);
+    logger.error('[REPORTES] Error inesperado en PUT /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -1035,7 +1049,7 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
       .eq('soft_delete_reporte', false);
 
     if (error) {
-      console.error('[REPORTES] Error al eliminar:', error.message);
+      logger.error('[REPORTES] Error al eliminar:', error.message);
       return res.status(500).json({ error: 'Error al eliminar el reporte' });
     }
 
@@ -1051,7 +1065,7 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
       reporteId: reporte.id,
     });
   } catch (error) {
-    console.error('[REPORTES] Error inesperado en DELETE /:id:', error);
+    logger.error('[REPORTES] Error inesperado en DELETE /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -1087,7 +1101,7 @@ router.patch('/:id/restaurar', verificarToken, requiereAdmin, async (req, res) =
       .eq('soft_delete_reporte', true);
 
     if (error) {
-      console.error('[REPORTES] Error al restaurar:', error.message);
+      logger.error('[REPORTES] Error al restaurar:', error.message);
       return res.status(500).json({ error: 'Error al restaurar el reporte' });
     }
 
@@ -1102,7 +1116,7 @@ router.patch('/:id/restaurar', verificarToken, requiereAdmin, async (req, res) =
       reporteId: reporte.id,
     });
   } catch (error) {
-    console.error('[REPORTES] Error inesperado en PATCH /:id/restaurar:', error);
+    logger.error('[REPORTES] Error inesperado en PATCH /:id/restaurar:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

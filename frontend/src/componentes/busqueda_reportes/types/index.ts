@@ -2,31 +2,8 @@
    types/index.ts — Tipos para el módulo de búsqueda de reportes
    ====================================== */
 
-export interface ReporteResumen {
-  id: string;
-  numeroReporte: string;
-  cliente: string;
-  equipo: string;
-  fechaReporte: string;
-  fechaAtencion: string;
-  horaInicio: string;
-  horaFinalizacion: string;
-  descripcionFalla: string;
-  trabajoRealizado: string;
-  etiquetas: string[];
-  tecnicos: string[];
-  repuestos: { id: number; nombre: string; cantidad: number }[];
-  declaracion: string;
-  plantilla: string;
-  clienteId?: number | null;
-  etiquetaId?: number | null;
-  tecnicoId?: number | null;
-  estadoId?: number | null;
-  repuestoId?: number | null;
-  posibleCausa?: string;
-  anotaciones?: string;
-  reportadoPor?: string;
-}
+// Modelo único definido en src/types
+export type { ReporteResumen, ReporteRepuesto } from '@/types';
 
 export interface FiltrosBusqueda {
   numeroReporte: string;

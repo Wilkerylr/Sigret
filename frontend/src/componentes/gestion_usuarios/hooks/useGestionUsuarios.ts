@@ -1,3 +1,5 @@
+import { logError } from '@/lib/logger';
+import { mensajeDeError } from '@/utils/errorMessage';
 /* ======================================
    hooks/useGestionUsuarios.ts
    Hook para consultar, crear, editar y eliminar usuarios
@@ -57,7 +59,7 @@ interface UsuarioFormData {
   email_usuario: string;
   contraseña: string;
   rol_usuario: string;
-  permisos: string[];
+  permisos: Array<{ id: string; cantidad: string } | string>;
 }
 
 /** Mapeo: API → Formulario */
@@ -88,7 +90,7 @@ export function useGestionUsuarios() {
       const data = response.data as UsuarioApiResponse[];
       setUsuarios(data.map(apiToForm));
     } catch (error) {
-      console.error('[GESTION USUARIOS] Error al cargar usuarios:', error);
+      logError('[GESTION USUARIOS] Error al cargar usuarios:', error);
     } finally {
       setCargandoInicial(false);
     }
@@ -154,24 +156,45 @@ export function useGestionUsuarios() {
       const nombre = (datos.nombre_usuario || '').trim();
       const apellido = (datos.apellido_usuario || '').trim() || nombre;
 
+      // Extraer solo los IDs (nombres) de los permisos, descartando el objeto { id, cantidad }
+      const permisosIds = (datos.permisos || [])
+        .map((p: any) => (p && p.id ? p.id : p))
+        .filter(Boolean);
+
       const payload = {
         nombre_usuario: nombre,
         apellido_usuario: apellido,
         email_usuario: datos.email_usuario || `${nombre.toLowerCase()}@email.com`,
         contraseña: datos.contraseña || '',
         rol_usuario: Number(datos.rol_usuario),
-        permisos: (datos.permisos || []).filter(Boolean),
+        permisos: permisosIds,
       };
+
+      // ─── Log de depuración: ver qué se envía al backend ───
+      console.log('[USUARIOS] Guardando usuario:', {
+        id: datos.id,
+        modo: modoCrear ? 'crear' : 'editar',
+        nombre,
+        rol: payload.rol_usuario,
+        permisosEnviados: payload.permisos,
+      });
 
       if (modoCrear) {
         await apiClient.post(ENDPOINTS.USUARIOS.REGISTER, payload);
       } else {
-        await apiClient.put(ENDPOINTS.USUARIOS.BY_ID(datos.id as string), {
+        const { data } = await apiClient.put(ENDPOINTS.USUARIOS.BY_ID(datos.id as string), {
           nombre_usuario: payload.nombre_usuario,
           apellido_usuario: payload.apellido_usuario,
           email: payload.email_usuario,
           rol_usuario: payload.rol_usuario,
           permisos: payload.permisos,
+        });
+
+        // ─── Log de depuración: ver qué respondió el backend ───
+        console.log('[USUARIOS] Respuesta del backend:', {
+          id: datos.id,
+          permisosDevueltos: data?.usuario?.permisos,
+          mensaje: data?.message,
         });
       }
 
@@ -181,8 +204,8 @@ export function useGestionUsuarios() {
       queryClient.invalidateQueries({ queryKey: ['opciones'] });
       queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
-    } catch (error: any) {
-      console.error('[GESTION USUARIOS] Error al guardar:', error?.response?.data || error);
+    } catch (error: unknown) {
+      logError('[GESTION USUARIOS] Error al guardar:', mensajeDeError(error, 'Error desconocido'));
       return false;
     } finally {
       setCargando(false);
@@ -198,7 +221,7 @@ export function useGestionUsuarios() {
       queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
     } catch (error) {
-      console.error('[GESTION USUARIOS] Error al eliminar:', error);
+      logError('[GESTION USUARIOS] Error al eliminar:', error);
       return false;
     } finally {
       setCargando(false);

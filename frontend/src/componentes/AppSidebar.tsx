@@ -12,7 +12,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/componentes/ui/sidebar"
-import { useAuthContext, type UserRole, type Permission } from "@/context/AuthContext"
+import { useAuthContext } from "@/context/AuthContext"
+import type { UserRole, Permission } from "@/types"
 import type { ComponentType } from "react"
 import { 
   ChartArea, 

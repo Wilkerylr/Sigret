@@ -13,6 +13,7 @@
  */
 
 const express = require('express');
+const logger = require('../utils/logger');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
 const { verificarToken, requiereAdmin } = require('../middlewares/auth');
@@ -103,7 +104,7 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
       .single();
 
     if (error) {
-      console.error('[SERVICIOS-TECNICOS] Error al asignar servicio:', error.message);
+      logger.error('[SERVICIOS-TECNICOS] Error al asignar servicio:', error.message);
       return res.status(500).json({ error: 'Error al asignar el servicio' });
     }
 
@@ -112,7 +113,7 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
       servicio: formatearServicio(data),
     });
   } catch (error) {
-    console.error('[SERVICIOS-TECNICOS] Error inesperado en POST /:', error);
+    logger.error('[SERVICIOS-TECNICOS] Error inesperado en POST /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -146,13 +147,13 @@ router.get('/', verificarToken, async (req, res) => {
     const { data, error } = await query;
 
     if (error) {
-      console.error('[SERVICIOS-TECNICOS] Error al obtener servicios:', error.message);
+      logger.error('[SERVICIOS-TECNICOS] Error al obtener servicios:', error.message);
       return res.status(500).json({ error: 'Error al obtener los servicios técnicos' });
     }
 
     res.json((data || []).map(formatearServicio));
   } catch (error) {
-    console.error('[SERVICIOS-TECNICOS] Error inesperado en GET /:', error);
+    logger.error('[SERVICIOS-TECNICOS] Error inesperado en GET /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -181,13 +182,13 @@ router.get('/tecnico/:tecnicoId', verificarToken, async (req, res) => {
       .order('id', { ascending: false });
 
     if (error) {
-      console.error('[SERVICIOS-TECNICOS] Error al obtener servicios del técnico:', error.message);
+      logger.error('[SERVICIOS-TECNICOS] Error al obtener servicios del técnico:', error.message);
       return res.status(500).json({ error: 'Error al obtener los servicios del técnico' });
     }
 
     res.json((data || []).map(formatearServicio));
   } catch (error) {
-    console.error('[SERVICIOS-TECNICOS] Error inesperado en GET /tecnico/:tecnicoId:', error);
+    logger.error('[SERVICIOS-TECNICOS] Error inesperado en GET /tecnico/:tecnicoId:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -221,7 +222,7 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
       .eq('id', servicioId);
 
     if (error) {
-      console.error('[SERVICIOS-TECNICOS] Error al desasignar:', error.message);
+      logger.error('[SERVICIOS-TECNICOS] Error al desasignar:', error.message);
       return res.status(500).json({ error: 'Error al desasignar el servicio' });
     }
 
@@ -230,7 +231,7 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
       servicioId: servicio.id,
     });
   } catch (error) {
-    console.error('[SERVICIOS-TECNICOS] Error inesperado en DELETE /:id:', error);
+    logger.error('[SERVICIOS-TECNICOS] Error inesperado en DELETE /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

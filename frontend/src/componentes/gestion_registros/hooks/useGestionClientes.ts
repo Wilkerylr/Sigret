@@ -1,3 +1,5 @@
+import { logError } from '@/lib/logger';
+import { mensajeDeError } from '@/utils/errorMessage';
 /* ======================================
    hooks/useGestionClientes.ts
    Hook para consultar, crear y editar datos de clientes
@@ -38,7 +40,7 @@ export function useGestionClientes() {
       const { data } = await apiClient.get(ENDPOINTS.CLIENTES.BASE);
       setClientes(data);
     } catch (error) {
-      console.error('[CLIENTES] Error al cargar:', error);
+      logError('[CLIENTES] Error al cargar:', error);
     } finally {
       setCargandoInicial(false);
     }
@@ -135,7 +137,7 @@ export function useGestionClientes() {
         c => c.id !== clienteIdActual && c.nombre.toLowerCase() === nombreLimpio.toLowerCase()
       );
       if (duplicadoNombre) {
-        console.error('[CLIENTES] Nombre duplicado:', nombreLimpio);
+        logError('[CLIENTES] Nombre duplicado:', nombreLimpio);
         return false;
       }
       if (rif) {
@@ -143,7 +145,7 @@ export function useGestionClientes() {
           c => c.id !== clienteIdActual && c.rif?.toUpperCase() === rif
         );
         if (duplicadoRif) {
-          console.error('[CLIENTES] RIF duplicado:', rif);
+          logError('[CLIENTES] RIF duplicado:', rif);
           return false;
         }
       }
@@ -171,9 +173,9 @@ export function useGestionClientes() {
       queryClient.invalidateQueries({ queryKey: ['opciones'] });
       queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
-    } catch (error: any) {
-      const msg = error.response?.data?.error || 'Error al guardar el cliente';
-      console.error('[CLIENTES] Error al guardar:', msg);
+    } catch (error: unknown) {
+      const msg = mensajeDeError(error, 'Error al guardar el cliente');
+      logError('[CLIENTES] Error al guardar:', msg);
       return false;
     } finally {
       setCargando(false);
@@ -199,9 +201,9 @@ export function useGestionClientes() {
       queryClient.invalidateQueries({ queryKey: ['opciones'] });
       queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
-    } catch (error: any) {
-      const msg = error.response?.data?.error || 'Error al desactivar el cliente';
-      console.error('[CLIENTES] Error al desactivar:', msg);
+    } catch (error: unknown) {
+      const msg = mensajeDeError(error, 'Error al desactivar el cliente');
+      logError('[CLIENTES] Error al desactivar:', msg);
       return false;
     } finally {
       setCargando(false);
@@ -237,9 +239,9 @@ export function useGestionClientes() {
         queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       }
       return true;
-    } catch (error: any) {
-      const msg = error.response?.data?.error || 'Error al eliminar clientes inactivos';
-      console.error('[CLIENTES] Error en limpieza:', msg);
+    } catch (error: unknown) {
+      const msg = mensajeDeError(error, 'Error al eliminar clientes inactivos');
+      logError('[CLIENTES] Error en limpieza:', msg);
       return false;
     } finally {
       setCargandoLimpieza(false);
@@ -254,9 +256,9 @@ export function useGestionClientes() {
       queryClient.invalidateQueries({ queryKey: ['opciones'] });
       queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
       return true;
-    } catch (error: any) {
-      const msg = error.response?.data?.error || 'Error al reactivar el cliente';
-      console.error('[CLIENTES] Error al reactivar:', msg);
+    } catch (error: unknown) {
+      const msg = mensajeDeError(error, 'Error al reactivar el cliente');
+      logError('[CLIENTES] Error al reactivar:', msg);
       return false;
     } finally {
       setCargando(false);

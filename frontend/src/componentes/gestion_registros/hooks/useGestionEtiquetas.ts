@@ -1,3 +1,5 @@
+import { logError } from '@/lib/logger';
+import { mensajeDeError } from '@/utils/errorMessage';
 /* ======================================
    hooks/useGestionEtiquetas.ts
    Hook para gestionar el sistema de etiquetas (tags)
@@ -29,7 +31,7 @@ export function useGestionEtiquetas() {
       const { data } = await apiClient.get(ENDPOINTS.ETIQUETAS.BASE);
       setEtiquetas(data);
     } catch (error) {
-      console.error('[ETIQUETAS] Error al cargar:', error);
+      logError('[ETIQUETAS] Error al cargar:', error);
     } finally {
       setCargandoInicial(false);
     }
@@ -80,9 +82,9 @@ export function useGestionEtiquetas() {
       setModoCrear(false);
       queryClient.invalidateQueries({ queryKey: ['opciones'] });
       return true;
-    } catch (error: any) {
-      const msg = error.response?.data?.error || 'Error al guardar la etiqueta';
-      console.error('[ETIQUETAS] Error al guardar:', msg);
+    } catch (error: unknown) {
+      const msg = mensajeDeError(error, 'Error al guardar la etiqueta');
+      logError('[ETIQUETAS] Error al guardar:', msg);
       return false;
     } finally {
       setCargando(false);
@@ -107,9 +109,9 @@ export function useGestionEtiquetas() {
       setEtiquetaEliminar(null);
       queryClient.invalidateQueries({ queryKey: ['opciones'] });
       return true;
-    } catch (error: any) {
-      const msg = error.response?.data?.error || 'Error al eliminar la etiqueta';
-      console.error('[ETIQUETAS] Error al eliminar:', msg);
+    } catch (error: unknown) {
+      const msg = mensajeDeError(error, 'Error al eliminar la etiqueta');
+      logError('[ETIQUETAS] Error al eliminar:', msg);
       return false;
     } finally {
       setCargando(false);

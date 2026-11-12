@@ -1,3 +1,5 @@
+import { logError } from '@/lib/logger';
+import { mensajeDeError } from '@/utils/errorMessage';
 /* ======================================
    hooks/useGestionPlantillas.ts
    Hook para administrar plantillas predefinidas de reportes
@@ -30,7 +32,7 @@ export function useGestionPlantillas() {
       const { data } = await apiClient.get(ENDPOINTS.PLANTILLAS.BASE);
       setPlantillas(data);
     } catch (error) {
-      console.error('[PLANTILLAS] Error al cargar:', error);
+      logError('[PLANTILLAS] Error al cargar:', error);
     } finally {
       setCargandoInicial(false);
     }
@@ -104,9 +106,9 @@ export function useGestionPlantillas() {
       setModoCrear(false);
       queryClient.invalidateQueries({ queryKey: ['opciones'] });
       return true;
-    } catch (error: any) {
-      const msg = error.response?.data?.error || 'Error al guardar la plantilla';
-      console.error('[PLANTILLAS] Error al guardar:', msg);
+    } catch (error: unknown) {
+      const msg = mensajeDeError(error, 'Error al guardar la plantilla');
+      logError('[PLANTILLAS] Error al guardar:', msg);
       return false;
     } finally {
       setCargando(false);
@@ -131,9 +133,9 @@ export function useGestionPlantillas() {
       setPlantillaEliminar(null);
       queryClient.invalidateQueries({ queryKey: ['opciones'] });
       return true;
-    } catch (error: any) {
-      const msg = error.response?.data?.error || 'Error al eliminar la plantilla';
-      console.error('[PLANTILLAS] Error al eliminar:', msg);
+    } catch (error: unknown) {
+      const msg = mensajeDeError(error, 'Error al eliminar la plantilla');
+      logError('[PLANTILLAS] Error al eliminar:', msg);
       return false;
     } finally {
       setCargando(false);

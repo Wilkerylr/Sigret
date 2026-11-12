@@ -25,6 +25,7 @@
  */
 
 const express = require('express');
+const logger = require('../utils/logger');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 
@@ -82,7 +83,7 @@ const { data, error } = await supabase
     .eq('usuario_permiso', usuarioId);
 
   if (error) {
-    console.error('[USUARIOS] Error al obtener permisos:', error.message);
+    logger.error('[USUARIOS] Error al obtener permisos:', error.message);
     return [];
   }
 
@@ -110,27 +111,27 @@ async function resolverPermisos(permisos) {
     } else if (typeof permiso === 'string' && permiso.trim()) {
       const nombre = permiso.trim();
 
-      // Usar upsert para evitar race conditions al crear permisos duplicados
-      const { data, error } = await supabase
+      // Primero buscar si el permiso ya existe
+      const { data: existente } = await supabase
         .from('permisos_adicionales')
-        .upsert(
-          { nombre_permiso: nombre, valor_permiso: 1 },
-          { onConflict: 'nombre_permiso', ignoreDuplicates: false }
-        )
         .select('id')
+        .eq('nombre_permiso', nombre)
         .maybeSingle();
 
-      if (!error && data) {
-        permisoId = data.id;
-      } else if (error) {
-        // Si el upsert falla por duplicado, buscar el existente
-        const { data: existente } = await supabase
+      if (existente) {
+        permisoId = existente.id;
+      } else {
+        // Si no existe, crearlo
+        const { data: nuevo, error } = await supabase
           .from('permisos_adicionales')
+          .insert({ nombre_permiso: nombre, valor_permiso: 1 })
           .select('id')
-          .eq('nombre_permiso', nombre)
-          .maybeSingle();
-        if (existente) {
-          permisoId = existente.id;
+          .single();
+
+        if (!error && nuevo) {
+          permisoId = nuevo.id;
+        } else if (error) {
+          logger.error('[USUARIOS] Error al crear permiso adicional:', error.message);
         }
       }
     }
@@ -239,7 +240,7 @@ router.post('/register', verificarToken, requiereAdmin, async (req, res) => {
       .maybeSingle();
 
     if (emailError) {
-      console.error('[USUARIOS] Error al verificar email:', emailError.message);
+      logger.error('[USUARIOS] Error al verificar email:', emailError.message);
       return res.status(500).json({ error: 'Error al verificar disponibilidad del email' });
     }
 
@@ -280,7 +281,7 @@ router.post('/register', verificarToken, requiereAdmin, async (req, res) => {
       .single();
 
     if (insertError) {
-      console.error('[USUARIOS] Error al insertar usuario:', insertError.message);
+      logger.error('[USUARIOS] Error al insertar usuario:', insertError.message);
       return res.status(500).json({ error: 'Error al crear el usuario en la base de datos' });
     }
 
@@ -301,7 +302,7 @@ router.post('/register', verificarToken, requiereAdmin, async (req, res) => {
           .insert(permisosAInsertar);
 
         if (permisosError) {
-          console.error('[USUARIOS] Error al asignar permisos:', permisosError.message);
+          logger.error('[USUARIOS] Error al asignar permisos:', permisosError.message);
         }
       }
     }
@@ -325,7 +326,7 @@ router.post('/register', verificarToken, requiereAdmin, async (req, res) => {
       usuario: formatearUsuario(usuarioConRol, permisosAsignados),
     });
   } catch (error) {
-    console.error('[USUARIOS] Error inesperado en register:', error);
+    logger.error('[USUARIOS] Error inesperado en register:', error);
     res.status(500).json({ error: 'Error interno del servidor al registrar el usuario' });
   }
 });
@@ -361,7 +362,7 @@ router.get('/', verificarToken, async (req, res) => {
       .order('id', { ascending: true });
 
     if (error) {
-      console.error('[USUARIOS] Error al obtener usuarios:', error.message);
+      logger.error('[USUARIOS] Error al obtener usuarios:', error.message);
       return res.status(500).json({ error: 'Error al obtener los usuarios' });
     }
 
@@ -378,7 +379,7 @@ router.get('/', verificarToken, async (req, res) => {
 
     res.json(usuariosConPermisos);
   } catch (error) {
-    console.error('[USUARIOS] Error inesperado en GET /:', error);
+    logger.error('[USUARIOS] Error inesperado en GET /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -397,13 +398,13 @@ router.get('/permisos-adicionales', verificarToken, cacheMiddleware(3600), async
       .order('id', { ascending: true });
 
     if (error) {
-      console.error('[USUARIOS] Error al obtener permisos adicionales:', error.message);
+      logger.error('[USUARIOS] Error al obtener permisos adicionales:', error.message);
       return res.status(500).json({ error: 'Error al obtener permisos adicionales' });
     }
 
     res.json(data || []);
   } catch (error) {
-    console.error('[USUARIOS] Error inesperado en GET /permisos-adicionales:', error);
+    logger.error('[USUARIOS] Error inesperado en GET /permisos-adicionales:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -422,13 +423,13 @@ router.get('/roles', verificarToken, cacheMiddleware(3600), async (req, res) => 
       .order('id', { ascending: true });
 
     if (error) {
-      console.error('[USUARIOS] Error al obtener roles:', error.message);
+      logger.error('[USUARIOS] Error al obtener roles:', error.message);
       return res.status(500).json({ error: 'Error al obtener roles' });
     }
 
     res.json(data || []);
   } catch (error) {
-    console.error('[USUARIOS] Error inesperado en GET /roles:', error);
+    logger.error('[USUARIOS] Error inesperado en GET /roles:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -479,7 +480,7 @@ router.get('/:id', verificarToken, async (req, res) => {
         // Código de Supabase para "no se encontraron filas"
         return res.status(404).json({ error: 'Usuario no encontrado' });
       }
-      console.error('[USUARIOS] Error al obtener usuario:', error.message);
+      logger.error('[USUARIOS] Error al obtener usuario:', error.message);
       return res.status(500).json({ error: 'Error al obtener el usuario' });
     }
 
@@ -496,7 +497,7 @@ router.get('/:id', verificarToken, async (req, res) => {
       permisos
     ));
   } catch (error) {
-    console.error('[USUARIOS] Error inesperado en GET /:id:', error);
+    logger.error('[USUARIOS] Error inesperado en GET /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -539,6 +540,14 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
     }
 
     const { nombre_usuario, apellido_usuario, email, rol_usuario, permisos } = req.body;
+
+    // ─── Log de depuración: ver qué recibe el backend ───
+    console.log('[USUARIOS-BACKEND] PUT /:id', {
+      usuarioId,
+      permisosRecibidos: permisos,
+      tipoPermisos: Array.isArray(permisos) ? 'array' : typeof permisos,
+      cuerpoCompleto: req.body,
+    });
 
     // ==========================================
     // PASO 1: Verificar que el usuario existe
@@ -627,7 +636,7 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
         .eq('id', usuarioId);
 
       if (updateError) {
-        console.error('[USUARIOS] Error al actualizar:', updateError.message);
+        logger.error('[USUARIOS] Error al actualizar:', updateError.message);
         return res.status(500).json({ error: 'Error al actualizar el usuario' });
       }
     }
@@ -646,6 +655,13 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
       // Resolver nuevos permisos ANTES de borrar (las fallas ocurren temprano)
       const permisosResueltos = await resolverPermisos(permisos);
 
+      // ─── Log de depuración: ver qué resuelve resolverPermisos ───
+      console.log('[USUARIOS-BACKEND] resolverPermisos resultado:', {
+        permisosEntrada: permisos,
+        permisosResueltosIds: permisosResueltos,
+        cantidadResueltos: permisosResueltos.length,
+      });
+
       // Eliminar permisos actuales (DELETE en lote)
       const { error: deletePermisosError } = await supabase
         .from('permisos_usuarios')
@@ -653,9 +669,16 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
         .eq('usuario_permiso', usuarioId);
 
       if (deletePermisosError) {
-        console.error('[USUARIOS] Error al eliminar permisos anteriores:', deletePermisosError.message);
+        logger.error('[USUARIOS] Error al eliminar permisos anteriores:', deletePermisosError.message);
         return res.status(500).json({ error: 'Error al actualizar los permisos del usuario' });
       }
+
+      // ─── Log de depuración: después del DELETE ───
+      console.log('[USUARIOS-BACKEND] Después de DELETE permisos_usuarios:', {
+        usuarioId,
+        deleteError: deletePermisosError?.message || null,
+        permisosAInsertar: permisosResueltos.length > 0 ? permisosResueltos : 'ninguno (array vacío)',
+      });
 
       // Insertar nuevos permisos; si falla, restaurar los anteriores
       if (permisosResueltos.length > 0) {
@@ -664,9 +687,22 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
           usuario_permiso: usuarioId,
         }));
 
+        // ─── Log de depuración: antes del INSERT ───
+        console.log('[USUARIOS-BACKEND] Antes de INSERT permisos_usuarios:', {
+          usuarioId,
+          nuevosPermisos,
+        });
+
         const { error: insertPermisosError } = await supabase
           .from('permisos_usuarios')
           .insert(nuevosPermisos);
+
+        // ─── Log de depuración: después del INSERT ───
+        console.log('[USUARIOS-BACKEND] Después de INSERT permisos_usuarios:', {
+          usuarioId,
+          insertError: insertPermisosError?.message || null,
+          insertExito: !insertPermisosError,
+        });
 
         if (insertPermisosError) {
           if (idsActuales.length > 0) {
@@ -677,7 +713,7 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
               }))
             );
           }
-          console.error('[USUARIOS] Error al asignar nuevos permisos:', insertPermisosError.message);
+          logger.error('[USUARIOS] Error al asignar nuevos permisos:', insertPermisosError.message);
           return res.status(500).json({ error: 'Error al asignar los nuevos permisos del usuario' });
         }
       }
@@ -713,7 +749,7 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
       ),
     });
   } catch (error) {
-    console.error('[USUARIOS] Error inesperado en PUT /:id:', error);
+    logger.error('[USUARIOS] Error inesperado en PUT /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -796,7 +832,7 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
       usuarioId: data.id,
     });
   } catch (error) {
-    console.error('[USUARIOS] Error inesperado en DELETE /:id:', error);
+    logger.error('[USUARIOS] Error inesperado en DELETE /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -832,7 +868,7 @@ router.patch('/:id/restaurar', verificarToken, requiereAdmin, async (req, res) =
       .eq('is_delete', true);
 
     if (error) {
-      console.error('[USUARIOS] Error al restaurar:', error.message);
+      logger.error('[USUARIOS] Error al restaurar:', error.message);
       return res.status(500).json({ error: 'Error al restaurar el usuario' });
     }
 
@@ -841,7 +877,7 @@ router.patch('/:id/restaurar', verificarToken, requiereAdmin, async (req, res) =
       usuarioId: usuario.id,
     });
   } catch (error) {
-    console.error('[USUARIOS] Error inesperado en PATCH /:id/restaurar:', error);
+    logger.error('[USUARIOS] Error inesperado en PATCH /:id/restaurar:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

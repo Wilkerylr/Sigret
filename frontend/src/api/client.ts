@@ -26,10 +26,24 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Token expirado o inválido → cerrar sesión
+    const status = error.response?.status;
+    const url: string = error.config?.url ?? '';
+
+    // Los errores 401 de estos endpoints son de credenciales, no de sesión:
+    // no deben cerrar la sesión ni redirigir al login.
+    const esErrorDeCredenciales = [
+      '/auth/login',
+      '/auth/cambiar-password',
+      '/auth/recuperar-password',
+      '/auth/verificar-preguntas',
+    ].some((ruta) => url.includes(ruta));
+
+    if (status === 401 && !esErrorDeCredenciales) {
+      // Token expirado o inválido → cerrar sesión y avisar en el login.
       sessionStorage.clear();
-      window.location.href = '/';
+      if (!window.location.search.includes('sesion=expirada')) {
+        window.location.href = '/?sesion=expirada';
+      }
     }
     return Promise.reject(error);
   }

@@ -5,11 +5,13 @@
  * Endpoints:
  *   POST   /api/auth/login              → Iniciar sesión (email + contraseña → JWT)
  *   POST   /api/auth/logout             → Cerrar sesión
+ *   POST   /api/auth/refresh            → Renovar el token JWT sin credenciales
  *   GET    /api/auth/perfil             → Obtener perfil del usuario autenticado
  *   PUT    /api/auth/cambiar-password → Cambiar contraseña
  */
 
 const express = require('express');
+const logger = require('../utils/logger');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -24,6 +26,99 @@ const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config');
 
 /** Verificación de token compartida (middlewares/auth.js) */
 const { verificarToken } = require('../middlewares/auth');
+
+// ==========================================
+// FUNCIONES AUXILIARES
+// ==========================================
+
+/**
+ * Firma un JWT con los datos y permisos del usuario.
+ * Centraliza la creación del token para login y refresco.
+ *
+ * @param {Object} usuario - Fila de la tabla usuarios con su rol
+ * @param {Array<{nombre: string}>} permisos - Permisos adicionales del usuario
+ * @returns {string} Token JWT firmado
+ */
+function generarToken(usuario, permisos) {
+  return jwt.sign(
+    {
+      id: usuario.id,
+      email: usuario.email_usuario,
+      nombre_usuario: usuario.nombre_usuario,
+      apellido_usuario: usuario.apellido_usuario,
+      rol_id: usuario.rol_usuario,
+      rol_nombre: usuario.roles?.nombre_rol || null,
+      permisos: permisos.map((p) => p.nombre),
+    },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+}
+
+/**
+ * Obtiene un usuario activo con su rol y sus permisos adicionales.
+ *
+ * @param {number} usuarioId - ID del usuario
+ * @returns {Promise<{usuario: Object|null, permisos: Array}>}
+ */
+async function obtenerUsuarioConPermisos(usuarioId) {
+  const { data: usuario, error } = await supabase
+    .from('usuarios')
+    .select(`
+      id,
+      nombre_usuario,
+      apellido_usuario,
+      email_usuario,
+      rol_usuario,
+      is_delete,
+      roles!inner (
+        id,
+        nombre_rol
+      )
+    `)
+    .eq('id', usuarioId)
+    .eq('is_delete', false)
+    .single();
+
+  if (error || !usuario) {
+    return { usuario: null, permisos: [] };
+  }
+
+  const { data: permisosData } = await supabase
+    .from('permisos_usuarios')
+    .select(`
+      permiso_usuario,
+      permisos_adicionales!inner (
+        id,
+        nombre_permiso,
+        valor_permiso
+      )
+    `)
+    .eq('usuario_permiso', usuarioId);
+
+  const permisos = (permisosData || []).map((p) => ({
+    id: p.permisos_adicionales.id,
+    nombre: p.permisos_adicionales.nombre_permiso,
+    valor: p.permisos_adicionales.valor_permiso,
+  }));
+
+  return { usuario, permisos };
+}
+
+/** Formatea el usuario para las respuestas de autenticación. */
+function formatearUsuarioAuth(usuario, permisos) {
+  return {
+    id: usuario.id,
+    nombre_usuario: usuario.nombre_usuario,
+    apellido_usuario: usuario.apellido_usuario,
+    email: usuario.email_usuario,
+    rol: {
+      id: usuario.rol_usuario,
+      nombre: usuario.roles?.nombre_rol || null,
+    },
+    permisos,
+  };
+}
 
 // ==========================================
 // ENDPOINTS
@@ -87,7 +182,7 @@ router.post('/login', async (req, res) => {
     const { data: usuarios, error } = await query;
 
     if (error) {
-      console.error('[AUTH] Error al buscar usuario:', error.message);
+      logger.error('[AUTH] Error al buscar usuario:', error.message);
       return res.status(500).json({ error: 'Error interno del servidor' });
     }
 
@@ -126,19 +221,7 @@ router.post('/login', async (req, res) => {
     }));
 
     // Generar token JWT (incluye permisos para que el backend los tenga disponibles)
-    const token = jwt.sign(
-      {
-        id: usuario.id,
-        email: usuario.email_usuario,
-        nombre_usuario: usuario.nombre_usuario,
-        apellido_usuario: usuario.apellido_usuario,
-        rol_id: usuario.rol_usuario,
-        rol_nombre: usuario.roles?.nombre_rol || null,
-        permisos: permisos.map(p => p.nombre),
-      },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
-    );
+    const token = generarToken(usuario, permisos);
 
     // Verificar si el usuario tiene preguntas de seguridad registradas
     const { count } = await supabase
@@ -166,7 +249,7 @@ router.post('/login', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('[AUTH] Error inesperado en login:', error);
+    logger.error('[AUTH] Error inesperado en login:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -245,7 +328,7 @@ router.get('/perfil', verificarToken, async (req, res) => {
       })),
     });
   } catch (error) {
-    console.error('[AUTH] Error inesperado en perfil:', error);
+    logger.error('[AUTH] Error inesperado en perfil:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -298,13 +381,13 @@ router.put('/cambiar-password', verificarToken, async (req, res) => {
       .eq('id', usuarioId);
 
     if (updateError) {
-      console.error('[AUTH] Error al actualizar contraseña:', updateError.message);
+      logger.error('[AUTH] Error al actualizar contraseña:', updateError.message);
       return res.status(500).json({ error: 'Error al actualizar la contraseña' });
     }
 
     res.json({ message: 'Contraseña actualizada exitosamente' });
   } catch (error) {
-    console.error('[AUTH] Error inesperado en cambiar-contraseña:', error);
+    logger.error('[AUTH] Error inesperado en cambiar-contraseña:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -363,19 +446,7 @@ router.get('/refresh-permissions', verificarToken, async (req, res) => {
     }));
 
     // Generar nuevo token con permisos actualizados
-    const token = jwt.sign(
-      {
-        id: usuario.id,
-        email: usuario.email_usuario,
-        nombre_usuario: usuario.nombre_usuario,
-        apellido_usuario: usuario.apellido_usuario,
-        rol_id: usuario.rol_usuario,
-        rol_nombre: usuario.roles?.nombre_rol || null,
-        permisos: permisos.map(p => p.nombre),
-      },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
-    );
+    const token = generarToken(usuario, permisos);
 
     res.json({
       token,
@@ -392,7 +463,35 @@ router.get('/refresh-permissions', verificarToken, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('[AUTH] Error inesperado en refresh-permissions:', error);
+    logger.error('[AUTH] Error inesperado en refresh-permissions:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
+ * POST /api/auth/refresh
+ *
+ * Renueva el token JWT del usuario autenticado sin volver a pedir credenciales.
+ * Se usa para el refresco deslizante: mientras la sesión esté activa, el
+ * frontend renueva el token antes de que expire. Si el usuario fue eliminado
+ * o desactivado, responde 404 y el cliente debe cerrar la sesión.
+ *
+ * Requiere token JWT válido en el header Authorization.
+ */
+router.post('/refresh', verificarToken, async (req, res) => {
+  try {
+    const { usuario, permisos } = await obtenerUsuarioConPermisos(req.usuario.id);
+
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    res.json({
+      token: generarToken(usuario, permisos),
+      usuario: formatearUsuarioAuth(usuario, permisos),
+    });
+  } catch (error) {
+    logger.error('[AUTH] Error inesperado en refresh:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

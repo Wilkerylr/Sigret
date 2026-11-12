@@ -3,6 +3,7 @@
  */
 
 const { supabase } = require('../db/supabase');
+const logger = require('./logger');
 
 /**
  * Devuelve el nombre completo del usuario autenticado.
@@ -28,7 +29,7 @@ async function nombreCompletoUsuario(req) {
       return `${data.nombre_usuario} ${data.apellido_usuario || ''}`.trim();
     }
   } catch (error) {
-    console.error('[UTIL] Error al obtener nombre de usuario:', error.message);
+    logger.error('[UTIL] Error al obtener nombre de usuario:', error.message);
   }
 
   return 'Usuario';

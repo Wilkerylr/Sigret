@@ -1,3 +1,5 @@
+import { logError } from '@/lib/logger';
+import { mensajeDeError } from '@/utils/errorMessage';
 /* ======================================
    hooks/useHistorialCambios.ts
    Hook para gestionar el historial de cambios (auditoría)
@@ -49,7 +51,7 @@ export function useHistorialCambios() {
       setTotalItems(data.paginacion?.totalItems || 0);
       setTotalPaginas(data.paginacion?.totalPaginas || 1);
     } catch (error) {
-      console.error('[HISTORIAL] Error al cargar:', error);
+      logError('[HISTORIAL] Error al cargar:', error);
     } finally {
       setCargando(false);
     }
@@ -123,9 +125,9 @@ export function useHistorialCambios() {
       // No se puede restaurar desde el historial sin el ID de la entidad
       console.warn('[HISTORIAL] No se puede restaurar: entrada sin reporteId');
       return false;
-    } catch (error: any) {
-      const msg = error.response?.data?.error || 'Error al restaurar';
-      console.error('[HISTORIAL] Error al restaurar:', msg);
+    } catch (error: unknown) {
+      const msg = mensajeDeError(error, 'Error al restaurar');
+      logError('[HISTORIAL] Error al restaurar:', msg);
       return false;
     } finally {
       setCargando(false);

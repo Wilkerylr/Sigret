@@ -7,6 +7,8 @@
 
 require('dotenv').config();
 
+const logger = require('./utils/logger');
+
 const PUERTO = process.env.PORT || 3001;
 
 /**
@@ -15,7 +17,7 @@ const PUERTO = process.env.PORT || 3001;
  */
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET || JWT_SECRET.length < 16) {
-  console.error(
+  logger.error(
     '[CONFIG] Error: JWT_SECRET debe estar definido en .env y tener al menos 16 caracteres.\n' +
     '  Genera uno con: node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'hex\'))"\n' +
     '  Luego añádelo a backend/.env como: JWT_SECRET=<valor generado>'
@@ -36,7 +38,7 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN
  * Sin él, cualquier origen podría acceder a la API (fail-open inseguro).
  */
 if (process.env.NODE_ENV === 'production' && CORS_ORIGIN.length === 0) {
-  console.error(
+  logger.error(
     '[CONFIG] Error: CORS_ORIGIN es obligatorio en producción.\n' +
     '  Define la URL del frontend (ej: CORS_ORIGIN=https://tu-sitio.netlify.app).\n' +
     '  Si hay varios orígenes, sepáralos por coma.'

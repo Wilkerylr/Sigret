@@ -18,6 +18,7 @@
  */
 
 const express = require('express');
+const logger = require('../utils/logger');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
 const { verificarToken, requiereAdmin } = require('../middlewares/auth');
@@ -132,13 +133,13 @@ router.get('/', verificarToken, async (req, res) => {
     const { data, error } = await query;
 
     if (error) {
-      console.error('[PLANTILLAS] Error al obtener plantillas:', error.message);
+      logger.error('[PLANTILLAS] Error al obtener plantillas:', error.message);
       return res.status(500).json({ error: 'Error al obtener las plantillas' });
     }
 
     res.json((data || []).map(formatearPlantilla));
   } catch (error) {
-    console.error('[PLANTILLAS] Error inesperado en GET /:', error);
+    logger.error('[PLANTILLAS] Error inesperado en GET /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -177,7 +178,7 @@ router.get('/:id', verificarToken, async (req, res) => {
 
     res.json(formatearPlantilla(data));
   } catch (error) {
-    console.error('[PLANTILLAS] Error inesperado en GET /:id:', error);
+    logger.error('[PLANTILLAS] Error inesperado en GET /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -260,7 +261,7 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
     });
 
     if (error) {
-      console.error('[PLANTILLAS] Error al crear plantilla:', error.message);
+      logger.error('[PLANTILLAS] Error al crear plantilla:', error.message);
       return res.status(500).json({ error: 'Error al crear la plantilla' });
     }
 
@@ -269,7 +270,7 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
       plantilla: formatearPlantilla(data),
     });
   } catch (error) {
-    console.error('[PLANTILLAS] Error inesperado en POST /:', error);
+    logger.error('[PLANTILLAS] Error inesperado en POST /:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -352,7 +353,7 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
       .eq('id', plantillaId);
 
     if (error) {
-      console.error('[PLANTILLAS] Error al actualizar:', error.message);
+      logger.error('[PLANTILLAS] Error al actualizar:', error.message);
       return res.status(500).json({ error: 'Error al actualizar la plantilla' });
     }
 
@@ -377,7 +378,7 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
       plantilla: formatearPlantilla(plantillaActualizada),
     });
   } catch (error) {
-    console.error('[PLANTILLAS] Error inesperado en PUT /:id:', error);
+    logger.error('[PLANTILLAS] Error inesperado en PUT /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -411,7 +412,7 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
       .eq('id', plantillaId);
 
     if (error) {
-      console.error('[PLANTILLAS] Error al eliminar:', error.message);
+      logger.error('[PLANTILLAS] Error al eliminar:', error.message);
       return res.status(500).json({ error: 'Error al eliminar la plantilla' });
     }
 
@@ -420,7 +421,7 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
       plantillaId: plantilla.id,
     });
   } catch (error) {
-    console.error('[PLANTILLAS] Error inesperado en DELETE /:id:', error);
+    logger.error('[PLANTILLAS] Error inesperado en DELETE /:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
