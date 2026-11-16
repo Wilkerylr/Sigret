@@ -3,11 +3,11 @@
  * CRUD de plantillas predefinidas para reportes
  *
  * Endpoints:
- *   POST   /api/plantillas         → Crear nueva plantilla (requiereAdmin)
+ *   POST   /api/plantillas         → Crear nueva plantilla (requiereAdmin o administrativo)
  *   GET    /api/plantillas         → Obtener todas las plantillas
  *   GET    /api/plantillas/:id     → Obtener plantilla por ID
- *   PUT    /api/plantillas/:id     → Actualizar plantilla (requiereAdmin)
- *   DELETE /api/plantillas/:id     → Eliminar plantilla (requiereAdmin)
+ *   PUT    /api/plantillas/:id     → Actualizar plantilla (requiereAdmin o administrativo)
+ *   DELETE /api/plantillas/:id     → Eliminar plantilla (requiereAdmin o administrativo)
  *
  * Esquema de BD:
  *   - plantillas_reportes (id, nombre_plantilla, descripcion_plantilla,
@@ -21,7 +21,7 @@ const express = require('express');
 const logger = require('../utils/logger');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
-const { verificarToken, requiereAdmin } = require('../middlewares/auth');
+const { verificarToken, requiereAdminOAdministrativo } = require('../middlewares/auth');
 
 
 // ==========================================
@@ -198,7 +198,7 @@ router.get('/:id', verificarToken, async (req, res) => {
  *   "etiquetaId": 1
  * }
  */
-router.post('/', verificarToken, requiereAdmin, async (req, res) => {
+router.post('/', verificarToken, requiereAdminOAdministrativo, async (req, res) => {
   try {
     const {
       nombre,
@@ -280,7 +280,7 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
  *
  * Actualiza una plantilla existente.
  */
-router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
+router.put('/:id', verificarToken, requiereAdminOAdministrativo, async (req, res) => {
   try {
     const plantillaId = Number(req.params.id);
 
@@ -388,7 +388,7 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
  *
  * Elimina una plantilla permanentemente.
  */
-router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
+router.delete('/:id', verificarToken, requiereAdminOAdministrativo, async (req, res) => {
   try {
     const plantillaId = Number(req.params.id);
 

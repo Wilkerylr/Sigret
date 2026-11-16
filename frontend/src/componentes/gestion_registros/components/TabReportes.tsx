@@ -8,7 +8,7 @@ import { useGestionReportes } from '../hooks/useGestionReportes';
 import BusquedaReportes from '@/componentes/busqueda_reportes/Busqueda_reportes';
 
 const TabReportes: React.FC = () => {
-  const { reportes, cargando, guardarEdicion } = useGestionReportes();
+  const { reportes, cargando } = useGestionReportes();
 
   if (cargando && reportes.length === 0) {
     return (
@@ -26,7 +26,6 @@ const TabReportes: React.FC = () => {
       <BusquedaReportes
         datosIniciales={reportes}
         modoEmbebido={true}
-        onGuardar={guardarEdicion}
       />
     </div>
   );

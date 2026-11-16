@@ -5,9 +5,9 @@
  * Endpoints:
  *   GET    /api/etiquetas         → Obtener todas las etiquetas
  *   GET    /api/etiquetas/:id     → Obtener una etiqueta por ID
- *   POST   /api/etiquetas         → Crear nueva etiqueta (requiereAdmin)
- *   PUT    /api/etiquetas/:id     → Actualizar etiqueta (requiereAdmin)
- *   DELETE /api/etiquetas/:id     → Eliminar etiqueta (requiereAdmin)
+ *   POST   /api/etiquetas         → Crear nueva etiqueta (requiereAdmin o administrativo)
+ *   PUT    /api/etiquetas/:id     → Actualizar etiqueta (requiereAdmin o administrativo)
+ *   DELETE /api/etiquetas/:id     → Eliminar etiqueta (requiereAdmin o administrativo)
  *
  * Esquema de BD:
  *   - etiquetas_reportes (id, nombre_etiqueta)
@@ -17,7 +17,7 @@ const express = require('express');
 const logger = require('../utils/logger');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
-const { verificarToken, requiereAdmin } = require('../middlewares/auth');
+const { verificarToken, requiereAdminOAdministrativo } = require('../middlewares/auth');
 
 
 // ==========================================
@@ -108,7 +108,7 @@ router.get('/:id', verificarToken, async (req, res) => {
  *
  * Body: { "nombre": "Mantenimiento" }
  */
-router.post('/', verificarToken, requiereAdmin, async (req, res) => {
+router.post('/', verificarToken, requiereAdminOAdministrativo, async (req, res) => {
   try {
     const { nombre } = req.body;
 
@@ -157,7 +157,7 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
  *
  * Body: { "nombre": "Nuevo nombre" }
  */
-router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
+router.put('/:id', verificarToken, requiereAdminOAdministrativo, async (req, res) => {
   try {
     const etiquetaId = Number(req.params.id);
 
@@ -229,7 +229,7 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
  * Elimina una etiqueta permanentemente.
  * Se verifica que ningún reporte activo esté usando esta etiqueta.
  */
-router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
+router.delete('/:id', verificarToken, requiereAdminOAdministrativo, async (req, res) => {
   try {
     const etiquetaId = Number(req.params.id);
 

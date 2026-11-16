@@ -27,7 +27,7 @@ export function mapearReporteApi(r: ReporteApi): ReporteResumen {
     trabajoRealizado: r.trabajoRealizado ?? '',
     etiquetas: r.etiqueta ? [r.etiqueta] : [],
     etiquetaId: r.etiquetaId ?? null,
-    tecnicos: r.tecnico ? [r.tecnico] : [],
+    tecnicos: Array.isArray(r.tecnicos) ? r.tecnicos : (r.tecnico ? [r.tecnico] : []),
     tecnicoId: r.tecnicoId ?? null,
     repuestos,
     repuestoId: r.repuestoId ?? null,

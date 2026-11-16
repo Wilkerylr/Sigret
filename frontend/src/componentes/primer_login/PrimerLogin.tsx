@@ -23,8 +23,16 @@ const PrimerLogin: React.FC = () => {
   const [respuestas, setRespuestas] = useState<Record<number, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { user, setPrimerLogin } = useAuthContext();
+  const { user, primerLogin, setPrimerLogin } = useAuthContext();
   const navigate = useNavigate();
+
+  // Si el primer login ya fue completado, no mostrar el formulario.
+  // Se exceptúa el paso de éxito para no cortar la confirmación al usuario.
+  useEffect(() => {
+    if (!primerLogin && paso !== "exito") {
+      navigate("/home", { replace: true });
+    }
+  }, [primerLogin, paso, navigate]);
 
   // Cargar preguntas de seguridad disponibles
   useEffect(() => {
@@ -59,7 +67,7 @@ const PrimerLogin: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await apiClient.put(ENDPOINTS.AUTH.CAMBIAR_CONTRASEÑA, {
+      const response = await apiClient.put(ENDPOINTS.AUTH.CAMBIAR_CONTRASEÑA_PRIMER_LOGIN, {
         nueva_contraseña: nuevaContraseña,
       });
 

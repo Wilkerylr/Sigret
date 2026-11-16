@@ -21,21 +21,17 @@ const LoginForm: React.FC = () => {
             : null
     );
     const [mostrarRecuperacion, setMostrarRecuperacion] = useState(false);
-    const { login, isLoading, primerLogin } = useAuthContext();
+    const { login, isLoading } = useAuthContext();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
 
-        const success = await login(email, password);
+        const result = await login(email, password);
 
-        if (success) {
-            if (primerLogin) {
-                navigate("/primer-login");
-            } else {
-                navigate("/home");
-            }
+        if (result.success) {
+            navigate(result.primerLogin ? "/primer-login" : "/home");
         } else {
             setError("Credenciales incorrectas. Intenta de nuevo.");
         }

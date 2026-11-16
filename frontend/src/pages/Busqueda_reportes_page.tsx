@@ -3,11 +3,9 @@ import React, { useCallback, useEffect, useState } from "react";
 import BusquedaReportes from "../componentes/busqueda_reportes/Busqueda_reportes";
 import apiClient from "@/api/client";
 import { ENDPOINTS } from "@/api/endpoints";
-import queryClient from "@/lib/queryClient";
 import type { ReporteApi, ReporteResumen } from "@/types";
 import { mapearReporteApi } from "@/utils/reporteMapper";
 import { mensajeDeError } from "@/utils/errorMessage";
-import type { EntidadEditable, RepuestoEditable } from "@/componentes/formulario_edicion";
 import "../componentes/Global.css";
 
 const BusquedaReportesPage: React.FC = () => {
@@ -48,42 +46,6 @@ const BusquedaReportesPage: React.FC = () => {
     cargarTodos();
   }, [cargarTodos]);
 
-  const handleGuardar = async (datos: EntidadEditable): Promise<boolean> => {
-    try {
-      await apiClient.put(ENDPOINTS.REPORTES.BY_ID(String(datos.id)), {
-        clienteId: datos.clienteId,
-        equipo: datos.equipo,
-        fechaReporte: datos.fechaReporte,
-        fechaAtencion: datos.fechaAtencion,
-        horaInicio: datos.horaInicio,
-        horaFinalizacion: datos.horaFinalizacion,
-        descripcionFalla: datos.descripcionFalla,
-        trabajoRealizado: datos.trabajoRealizado,
-        etiquetaId: datos.etiquetaId,
-        tecnicoId: datos.tecnicoId,
-        estadoId: datos.estadoId,
-        repuestoId: datos.repuestoId,
-        repuestos: Array.isArray(datos.repuestos)
-          ? (datos.repuestos as RepuestoEditable[]).map((r) => ({
-              repuestoId: Number(r.id),
-              cantidad: Number(r.cantidad),
-            }))
-          : undefined,
-        posibleCausa: datos.posibleCausa,
-        anotaciones: datos.anotaciones,
-        reportadoPor: datos.reportadoPor,
-        motivoModificacion: datos.motivoModificacion,
-      });
-      await cargarTodos();
-      queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
-      return true;
-    } catch (e: unknown) {
-      const msg = mensajeDeError(e, "Error al guardar el reporte");
-      logError("[BUSQUEDA] Error al guardar:", msg);
-      return false;
-    }
-  };
-
   if (cargando) {
     return (
       <div>
@@ -104,7 +66,6 @@ const BusquedaReportesPage: React.FC = () => {
     <div>
       <BusquedaReportes
         datosIniciales={reportes}
-        onGuardar={handleGuardar}
       />
     </div>
   );

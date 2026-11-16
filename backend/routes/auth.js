@@ -7,7 +7,8 @@
  *   POST   /api/auth/logout             → Cerrar sesión
  *   POST   /api/auth/refresh            → Renovar el token JWT sin credenciales
  *   GET    /api/auth/perfil             → Obtener perfil del usuario autenticado
- *   PUT    /api/auth/cambiar-password → Cambiar contraseña
+ *   PUT    /api/auth/cambiar-password → Cambiar contraseña (requiere actual)
+ *   PUT    /api/auth/cambiar-password-primer-login → Cambiar contraseña en primer login (sin actual requerida)
  */
 
 const express = require('express');
@@ -388,6 +389,54 @@ router.put('/cambiar-password', verificarToken, async (req, res) => {
     res.json({ message: 'Contraseña actualizada exitosamente' });
   } catch (error) {
     logger.error('[AUTH] Error inesperado en cambiar-contraseña:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
+ * PUT /api/auth/cambiar-password-primer-login
+ *
+ * Cambia la contraseña en el primer inicio de sesión.
+ * No requiere la contraseña actual, solo se permite si el usuario
+ * aún no tiene preguntas de seguridad registradas (es decir, está en su primer login).
+ *
+ * Body: { "nueva_contraseña": "nuevaClave123" }
+ */
+router.put('/cambiar-password-primer-login', verificarToken, async (req, res) => {
+  try {
+    const { nueva_contraseña } = req.body;
+    const usuarioId = req.usuario.id;
+
+    if (!nueva_contraseña || typeof nueva_contraseña !== 'string' || nueva_contraseña.length < 6) {
+      return res.status(400).json({ error: 'La nueva contraseña es obligatoria y debe tener al menos 6 caracteres' });
+    }
+
+    // Verificar que el usuario esté en su primer login (no tiene preguntas de seguridad)
+    const { count } = await supabase
+      .from('respuestas_seguridad')
+      .select('id', { count: 'exact', head: true })
+      .eq('usuario_respuesta', usuarioId);
+
+    if (count && count > 0) {
+      return res.status(403).json({ error: 'Este endpoint solo está disponible en el primer inicio de sesión' });
+    }
+
+    // Hashear y actualizar la contraseña
+    const hash = await bcrypt.hash(nueva_contraseña, 10);
+    const { error } = await supabase
+      .from('usuarios')
+      .update({ contraseña_usuario: hash })
+      .eq('id', usuarioId)
+      .eq('is_delete', false);
+
+    if (error) {
+      logger.error('[AUTH] Error al actualizar contraseña (primer login):', error.message);
+      return res.status(500).json({ error: 'Error al actualizar la contraseña' });
+    }
+
+    res.json({ message: 'Contraseña actualizada exitosamente en el primer inicio de sesión' });
+  } catch (error) {
+    logger.error('[AUTH] Error inesperado en cambiar-password-primer-login:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

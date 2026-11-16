@@ -64,9 +64,22 @@ app.use(
   cors({
     origin(origin, callback) {
       // Permitir peticiones sin origen (curl, scripts de servidor).
-      // En desarrollo, si no hay orígenes configurados, permitir todos.
-      if (!origin || (origenesPermitidos.length === 0 && process.env.NODE_ENV !== 'production')) {
+      if (!origin) {
         return callback(null, true);
+      }
+      // En desarrollo, permitir cualquier origen localhost (cualquier puerto)
+      // para evitar problemas de CORS cuando Vite cambia de puerto.
+      if (process.env.NODE_ENV !== 'production') {
+        if (
+          origin.startsWith('http://localhost:') ||
+          origin.startsWith('http://127.0.0.1:')
+        ) {
+          return callback(null, true);
+        }
+        // Si no hay orígenes configurados, permitir todos en desarrollo.
+        if (origenesPermitidos.length === 0) {
+          return callback(null, true);
+        }
       }
       if (origenesPermitidos.includes(origin)) {
         return callback(null, true);

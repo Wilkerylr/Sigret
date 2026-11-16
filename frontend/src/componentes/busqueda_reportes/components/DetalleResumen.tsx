@@ -1,18 +1,17 @@
 /* ======================================
-   components/DetalleReporte.tsx
-   Vista detallada expandible de un reporte con botón de edición
+   components/DetalleResumen.tsx
+   Vista resumida expandible de un reporte (sin botón de editar,
+   se reemplazó por "Vista Ampliada")
    ====================================== */
 
 import React from 'react';
-import { Edit3 } from 'lucide-react';
 import { ReporteResumen } from '../types';
 
-interface DetalleReporteProps {
+interface DetalleResumenProps {
   reporte: ReporteResumen;
-  onEditar: (reporte: ReporteResumen) => void;
 }
 
-const DetalleReporte: React.FC<DetalleReporteProps> = ({ reporte, onEditar }) => {
+const DetalleResumen: React.FC<DetalleResumenProps> = ({ reporte }) => {
   return (
     <div className="busqueda-detalle">
       <div className="busqueda-detalle-grid">
@@ -81,9 +80,7 @@ const DetalleReporte: React.FC<DetalleReporteProps> = ({ reporte, onEditar }) =>
           <div className="busqueda-detalle-tags">
             {reporte.etiquetas.length > 0 ? (
               reporte.etiquetas.map((etiqueta) => (
-                <span key={etiqueta} className="busqueda-detalle-tag">
-                  {etiqueta}
-                </span>
+                <span key={etiqueta} className="busqueda-detalle-tag">{etiqueta}</span>
               ))
             ) : (
               <span className="busqueda-detalle-campo-valor">Sin etiquetas</span>
@@ -96,9 +93,7 @@ const DetalleReporte: React.FC<DetalleReporteProps> = ({ reporte, onEditar }) =>
           <div className="busqueda-detalle-tags">
             {reporte.tecnicos.length > 0 ? (
               reporte.tecnicos.map((tecnico) => (
-                <span key={tecnico} className="busqueda-detalle-tag">
-                  {tecnico}
-                </span>
+                <span key={tecnico} className="busqueda-detalle-tag">{tecnico}</span>
               ))
             ) : (
               <span className="busqueda-detalle-campo-valor">Sin técnicos asignados</span>
@@ -116,19 +111,8 @@ const DetalleReporte: React.FC<DetalleReporteProps> = ({ reporte, onEditar }) =>
           <span className="busqueda-detalle-campo-valor">{reporte.trabajoRealizado}</span>
         </div>
       </div>
-
-      <div className="busqueda-detalle-acciones">
-        <button
-          type="button"
-          className="busqueda-btn-editar"
-          onClick={() => onEditar(reporte)}
-        >
-          <Edit3 size={16} />
-          Editar Reporte
-        </button>
-      </div>
     </div>
   );
 };
 
-export default DetalleReporte;
+export default DetalleResumen;

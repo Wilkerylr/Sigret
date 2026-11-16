@@ -196,21 +196,6 @@
     box-shadow: 0 0 0 3px var(--color-input-focus-sombra);
 }
 
-.busqueda-filtro-rango {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-.busqueda-filtro-rango .busqueda-filtro-input {
-    flex: 1;
-}
-
-.busqueda-filtro-rango span {
-    font-size: 0.875rem;
-    color: var(--color-texto-terciario);
-}
-
 .busqueda-filtros-acciones {
     display: flex;
     gap: 0.75rem;
@@ -440,34 +425,6 @@
     line-height: 1.5;
 }
 
-/* ---- Botón de editar en detalle ---- */
-.busqueda-detalle-acciones {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 1.25rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--color-borde-claro);
-}
-
-.busqueda-btn-editar {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1.25rem;
-    border: none;
-    border-radius: var(--border-radius2);
-    background: var(--color-fondo-oscuro);
-    color: var(--color-texto-claro);
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.busqueda-btn-editar:hover {
-    background: var(--color-boton-hover);
-}
-
 /* ---- Paginación ---- */
 .busqueda-paginacion {
     display: flex;
@@ -591,4 +548,181 @@
     font-size: 0.8125rem;
     color: var(--color-texto-terciario);
     letter-spacing: 0.1em;
+}
+
+/* ======================================
+   Vista Ampliada de Reporte
+   ====================================== */
+
+.vista-ampliada-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--color-borde-claro);
+    background: var(--color-fondo-secundario);
+    border-radius: var(--border-radius2) var(--border-radius2) 0 0;
+}
+
+.vista-ampliada-titulo {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-texto-oscuro);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.vista-ampliada-btn-cerrar {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-borde-claro);
+    border-radius: var(--border-radius2);
+    background: transparent;
+    color: var(--color-texto-secundario);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.vista-ampliada-btn-cerrar:hover {
+    background: var(--color-fondo-secundario);
+    color: var(--color-texto-oscuro);
+}
+
+.vista-ampliada-cuerpo {
+    padding: 1.5rem;
+}
+
+.vista-ampliada-seccion {
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--color-borde-claro);
+    border-radius: var(--border-radius2);
+    overflow: hidden;
+}
+
+.vista-ampliada-seccion-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-fondo-secundario);
+    border-bottom: 1px solid var(--color-borde-claro);
+}
+
+.vista-ampliada-seccion-header span {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-texto-oscuro);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.vista-ampliada-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.vista-ampliada-grid-dos {
+    grid-template-columns: 1fr;
+}
+
+.vista-ampliada-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.vista-ampliada-campo-ancho {
+    grid-column: 1 / -1;
+}
+
+.vista-ampliada-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-texto-terciario);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.vista-ampliada-valor {
+    font-size: 0.875rem;
+    color: var(--color-texto-oscuro);
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
+
+.vista-ampliada-repuestos {
+    padding: 1rem;
+}
+
+.vista-ampliada-lista-repuestos {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.vista-ampliada-item-repuesto {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--color-fondo-secundario);
+    border: 1px solid var(--color-borde-claro);
+    border-radius: var(--border-radius2);
+    font-size: 0.875rem;
+    color: var(--color-texto-oscuro);
+}
+
+.vista-ampliada-repuesto-nombre {
+    font-weight: 500;
+}
+
+.vista-ampliada-repuesto-cantidad {
+    font-size: 0.8125rem;
+    color: var(--color-texto-terciario);
+}
+
+.vista-ampliada-texto-vacio {
+    font-size: 0.875rem;
+    color: var(--color-texto-terciario);
+    font-style: italic;
+}
+
+.vista-ampliada-etiquetas,
+.vista-ampliada-tecnicos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.vista-ampliada-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    background: var(--color-fondo-secundario);
+    border: 1px solid var(--color-borde-claro);
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    color: var(--color-texto-oscuro);
+}
+
+@media (min-width: 640px) {
+    .vista-ampliada-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .vista-ampliada-grid-dos {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (min-width: 1024px) {
+    .vista-ampliada-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }

@@ -28,6 +28,8 @@ export interface ReporteApi {
   trabajoRealizado: string;
   etiqueta: string | null;
   etiquetaId: number | null;
+  /** Técnicos del reporte: principal + adicionales (servicios_tecnicos) */
+  tecnicos?: string[];
   tecnico: string | null;
   tecnicoId: number | null;
   estado: string | null;

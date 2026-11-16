@@ -64,7 +64,7 @@ const SELECT_CON_JOINS = `
  * @param {Object} reporte - Registro de la BD
  * @param {Map<number, Array>} mapaDetallesRepuestos - Mapa de reporteId → [{ repuestoId, nombre, cantidad }]
  */
-function formatearReporte(reporte, mapaDetallesRepuestos) {
+function formatearReporte(reporte, mapaDetallesRepuestos, mapaTecnicos) {
   const repuestos = [];
 
   // La fuente de verdad de los repuestos (con su cantidad) es detalle_repuestos.
@@ -87,7 +87,19 @@ function formatearReporte(reporte, mapaDetallesRepuestos) {
     });
   }
 
-  return {
+      // Tecnicos: principal (FK tecnico_reporte) + adicionales (servicios_tecnicos)
+    const tecnicosLista = [];
+    if (reporte.usuarios) {
+      tecnicosLista.push(reporte.usuarios.nombre_usuario + ' ' + reporte.usuarios.apellido_usuario);
+    }
+    if (mapaTecnicos && mapaTecnicos.has(reporte.id)) {
+      for (const t of mapaTecnicos.get(reporte.id)) {
+        if (!tecnicosLista.includes(t.nombre)) {
+          tecnicosLista.push(t.nombre);
+        }
+      }
+    }
+return {
     id: reporte.id,
     numeroReporte: `REP-${String(reporte.numero_reporte).padStart(3, '0')}`,
     cliente: reporte.clientes?.nombre_cliente || null,
@@ -101,10 +113,9 @@ function formatearReporte(reporte, mapaDetallesRepuestos) {
     trabajoRealizado: reporte.trabajo_reporte,
     etiqueta: reporte.etiquetas_reportes?.nombre_etiqueta || null,
     etiquetaId: reporte.etiquetas_reportes?.id || null,
-    tecnico: reporte.usuarios
-      ? `${reporte.usuarios.nombre_usuario} ${reporte.usuarios.apellido_usuario}`
-      : null,
-    tecnicoId: reporte.usuarios?.id || null,
+    tecnicos: tecnicosLista,
+
+
     estado: reporte.estados_equipos?.nombre || null,
     estadoId: reporte.estados_equipos?.id || null,
     repuestos,
@@ -143,6 +154,39 @@ async function obtenerDetallesRepuestos(reporteIds) {
       cantidad: d.cantidad_repuesto || 1,
     });
   }
+  return mapa;
+}
+
+/**
+/**
+ * Obtiene un mapa de todos los tecnicos asignados a un conjunto de reportes.
+ * Incluye el tecnico principal (FK tecnico_reporte) y los adicionales (servicios_tecnicos).
+ * Map<reporteId, Array<{ id, nombre }>>
+ */
+async function obtenerTecnicosReporte(reporteIds) {
+  if (!reporteIds || reporteIds.length === 0) return new Map();
+
+  const mapa = new Map();
+  for (const reporteId of reporteIds) mapa.set(reporteId, []);
+
+  // Tecnicos adicionales desde servicios_tecnicos
+  const { data: servicios, error } = await supabase
+    .from('servicios_tecnicos')
+    .select('reporte_servicio, usuarios ( id, nombre_usuario, apellido_usuario )')
+    .in('reporte_servicio', reporteIds);
+
+  if (!error && servicios) {
+    for (const s of servicios) {
+      const key = s.reporte_servicio;
+      if (mapa.has(key)) {
+        mapa.get(key).push({
+          id: s.usuarios.id,
+          nombre: s.usuarios.nombre_usuario + ' ' + s.usuarios.apellido_usuario,
+        });
+      }
+    }
+  }
+
   return mapa;
 }
 
@@ -273,9 +317,10 @@ router.get('/', verificarToken, verificarPermiso('view-busqueda-reportes'), asyn
     const totalPaginas = Math.max(1, Math.ceil(totalItems / itemsNum));
 
     const mapaDetalles = await obtenerDetallesRepuestos((data || []).map(r => r.id));
+    const mapaTecnicos = await obtenerTecnicosReporte((data || []).map(r => r.id));
 
     res.json({
-      reportes: (data || []).map(r => formatearReporte(r, mapaDetalles)),
+      reportes: (data || []).map(r => formatearReporte(r, mapaDetalles, mapaTecnicos)),
       paginacion: {
         paginaActual: paginaNum,
         totalPaginas,

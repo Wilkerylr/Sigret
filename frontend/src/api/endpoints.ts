@@ -8,6 +8,7 @@ export const ENDPOINTS = {
     LOGOUT: '/auth/logout',
     PROFILE: '/auth/perfil',
     CAMBIAR_CONTRASEÑA: '/auth/cambiar-password',
+    CAMBIAR_CONTRASEÑA_PRIMER_LOGIN: '/auth/cambiar-password-primer-login',
     REFRESH_PERMISSIONS: '/auth/refresh-permissions',
     PREGUNTAS_SEGURIDAD: '/auth/preguntas-seguridad',
     REGISTRAR_PREGUNTAS: '/auth/registrar-preguntas',

@@ -34,6 +34,7 @@ apiClient.interceptors.response.use(
     const esErrorDeCredenciales = [
       '/auth/login',
       '/auth/cambiar-password',
+      '/auth/cambiar-password-primer-login',
       '/auth/recuperar-password',
       '/auth/verificar-preguntas',
     ].some((ruta) => url.includes(ruta));

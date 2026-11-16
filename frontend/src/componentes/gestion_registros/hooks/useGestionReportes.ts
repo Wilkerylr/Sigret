@@ -12,7 +12,6 @@ import queryClient from '@/lib/queryClient';
 import type { ReporteApi, ReporteResumen } from '@/types';
 import { mapearReporteApi } from '@/utils/reporteMapper';
 import { mensajeDeError } from '@/utils/errorMessage';
-import type { EntidadEditable, RepuestoEditable } from '@/componentes/formulario_edicion';
 import type { FiltrosReportes } from '../types';
 
 const FILTROS_INICIALES: FiltrosReportes = {
@@ -107,63 +106,6 @@ export function useGestionReportes() {
     setReporteEditando(reporte);
   }, []);
 
-  const guardarEdicion = async (datos: EntidadEditable): Promise<boolean> => {
-    setCargando(true);
-    try {
-      const repuestosPayload = Array.isArray(datos.repuestos)
-        ? (datos.repuestos as RepuestoEditable[]).map((r) => ({
-            repuestoId: Number(r.id),
-            cantidad: Number(r.cantidad) || 1,
-          }))
-        : [];
-
-      // ─── Log de depuración: ver qué se envía al backend ───
-      console.log('[REPORTES] Guardando reporte ID:', datos.id, {
-        repuestosEnviados: repuestosPayload,
-        repuestoIdOriginal: datos.repuestoId,
-        motivo: datos.motivoModificacion,
-      });
-
-      const { data } = await apiClient.put(ENDPOINTS.REPORTES.BY_ID(String(datos.id)), {
-        clienteId: datos.clienteId,
-        equipo: datos.equipo,
-        fechaReporte: datos.fechaReporte,
-        fechaAtencion: datos.fechaAtencion,
-        horaInicio: datos.horaInicio,
-        horaFinalizacion: datos.horaFinalizacion,
-        descripcionFalla: datos.descripcionFalla,
-        trabajoRealizado: datos.trabajoRealizado,
-        etiquetaId: datos.etiquetaId,
-        tecnicoId: datos.tecnicoId,
-        estadoId: datos.estadoId,
-        repuestoId: datos.repuestoId,
-        repuestos: repuestosPayload,
-        posibleCausa: datos.posibleCausa,
-        anotaciones: datos.anotaciones,
-        reportadoPor: datos.reportadoPor,
-        motivoModificacion: datos.motivoModificacion,
-      });
-
-      // ─── Log de depuración: ver qué respondió el backend ───
-      console.log('[REPORTES] Respuesta del backend:', {
-        reporteId: datos.id,
-        repuestosDevueltos: data?.reporte?.repuestos,
-        mensaje: data?.message,
-      });
-
-      await cargarReportes();
-      setReporteEditando(null);
-      queryClient.invalidateQueries({ queryKey: ['estadisticas'] });
-      return true;
-    } catch (error: unknown) {
-      const msg = mensajeDeError(error, 'Error al guardar el reporte');
-      logError('[REPORTES] Error al guardar:', msg);
-      return false;
-    } finally {
-      setCargando(false);
-    }
-  };
-
   const cancelarEdicion = useCallback(() => {
     setReporteEditando(null);
   }, []);
@@ -227,7 +169,6 @@ export function useGestionReportes() {
     cambiarPagina,
     cambiarItemsPorPagina,
     iniciarEdicion,
-    guardarEdicion,
     cancelarEdicion,
     solicitarEliminar,
     confirmarEliminar,

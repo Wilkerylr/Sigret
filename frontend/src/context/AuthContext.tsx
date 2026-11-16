@@ -27,7 +27,7 @@ export interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<LoginResult>;
   logout: () => void;
   refreshPermissions: () => Promise<void>;
   isLoading: boolean;
@@ -39,9 +39,15 @@ interface AuthContextType {
   setPrimerLogin: (value: boolean) => void;
 }
 
+export interface LoginResult {
+  success: boolean;
+  primerLogin: boolean;
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const TOKEN_KEY = "sigret_token";
 const USER_KEY = "sigret_user";
+const PRIMER_LOGIN_KEY = "sigret_primer_login";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 /** Margen antes de la expiración para renovar el token de forma proactiva. */
@@ -174,13 +180,27 @@ function redirigirSesionExpirada() {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(getStoredUser);
   const [isLoading, setIsLoading] = useState(false);
-  const [primerLogin, setPrimerLogin] = useState(false);
+  const [primerLogin, setPrimerLoginState] = useState(
+    () => sessionStorage.getItem(PRIMER_LOGIN_KEY) === "true"
+  );
   const [tokenExpiraEn, setTokenExpiraEn] = useState<number | null>(() => {
     const token = sessionStorage.getItem(TOKEN_KEY);
     return token ? getTokenExpiry(token) : null;
   });
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const setPrimerLogin = useCallback((value: boolean) => {
+    setPrimerLoginState(value);
+    if (value) {
+      sessionStorage.setItem(PRIMER_LOGIN_KEY, "true");
+    } else {
+      sessionStorage.removeItem(PRIMER_LOGIN_KEY);
+    }
+  }, []);
+
+  const login = async (
+    email: string,
+    password: string
+  ): Promise<LoginResult> => {
     setIsLoading(true);
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
@@ -193,7 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
-        return false;
+        return { success: false, primerLogin: false };
       }
 
       const data = await response.json();
@@ -208,18 +228,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionStorage.setItem(USER_KEY, JSON.stringify(userData));
 
       const esPrimerLogin = data.primer_login === true;
-      // ─── Log de depuración: ver si el backend indica primer login ───
-      console.log('[AUTH] Resultado del login:', {
-        primerLoginDesdeBackend: data.primer_login,
-        esPrimerLogin,
-        usuarioId: data.usuario?.id,
-        usuarioNombre: data.usuario?.nombre_usuario,
-      });
       setPrimerLogin(esPrimerLogin);
-      return true;
+      return { success: true, primerLogin: esPrimerLogin };
     } catch (error) {
       logError("[AUTH] Error en login:", error);
-      return false;
+      return { success: false, primerLogin: false };
     } finally {
       setIsLoading(false);
     }
@@ -228,9 +241,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     setUser(null);
     setTokenExpiraEn(null);
-    setPrimerLogin(false);
+    setPrimerLoginState(false);
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(USER_KEY);
+    sessionStorage.removeItem(PRIMER_LOGIN_KEY);
   }, []);
 
   /**

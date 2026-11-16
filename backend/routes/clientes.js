@@ -19,7 +19,7 @@ const express = require('express');
 const logger = require('../utils/logger');
 const router = express.Router();
 const { supabase } = require('../db/supabase');
-const { verificarToken, requiereAdmin } = require('../middlewares/auth');
+const { verificarToken, requiereAdminOAdministrativo } = require('../middlewares/auth');
 
 const { nombreCompletoUsuario } = require('../utils/usuario');
 
@@ -171,7 +171,7 @@ router.get('/:id', verificarToken, async (req, res) => {
  *   "email": "admin@ejemplo.com"
  * }
  */
-router.post('/', verificarToken, requiereAdmin, async (req, res) => {
+router.post('/', verificarToken, requiereAdminOAdministrativo, async (req, res) => {
   try {
     const { nombre, rif, telefono, direccion, email } = req.body;
 
@@ -251,7 +251,7 @@ router.post('/', verificarToken, requiereAdmin, async (req, res) => {
  *
  * Actualiza un cliente existente.
  */
-router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
+router.put('/:id', verificarToken, requiereAdminOAdministrativo, async (req, res) => {
   try {
     const clienteId = Number(req.params.id);
 
@@ -362,7 +362,7 @@ router.put('/:id', verificarToken, requiereAdmin, async (req, res) => {
  * que NO tengan registros en la tabla reportes.
  * Solo accessible por administradores.
  */
-router.delete('/inactivos-sin-reportes', verificarToken, requiereAdmin, async (req, res) => {
+router.delete('/inactivos-sin-reportes', verificarToken, requiereAdminOAdministrativo, async (req, res) => {
   try {
     // 1. Obtener IDs de clientes que tienen al menos un reporte
     const { data: clientesConReportes } = await supabase
@@ -438,7 +438,7 @@ router.delete('/inactivos-sin-reportes', verificarToken, requiereAdmin, async (r
  * Desactiva un cliente (soft delete, is_delete = true).
  * El cliente deja de aparecer en sugerencias de reportes pero sigue visible en la lista.
  */
-router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
+router.delete('/:id', verificarToken, requiereAdminOAdministrativo, async (req, res) => {
   try {
     const clienteId = Number(req.params.id);
 
@@ -496,7 +496,7 @@ router.delete('/:id', verificarToken, requiereAdmin, async (req, res) => {
  *
  * Reactiva un cliente desactivado (is_delete = false).
  */
-router.patch('/:id/restaurar', verificarToken, requiereAdmin, async (req, res) => {
+router.patch('/:id/restaurar', verificarToken, requiereAdminOAdministrativo, async (req, res) => {
   try {
     const clienteId = Number(req.params.id);
 

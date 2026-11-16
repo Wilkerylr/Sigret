@@ -9,25 +9,18 @@ import './busqueda_reportes.css';
 import FiltrosBusqueda from './components/FiltrosBusqueda';
 import ResultadosBusqueda from './components/ResultadosBusqueda';
 import { FiltrosBusqueda as FiltrosBusquedaType, ReporteResumen, FILTROS_INICIALES } from './types';
-import { FormularioEdicion } from '@/componentes/formulario_edicion';
-import { crearConfigReporteEdicion } from '@/componentes/formulario_edicion/configuraciones';
-import { useOpcionesFormulario } from '@/componentes/formulario_edicion/hooks/useOpcionesFormulario';
-import type { EntidadEditable } from '@/componentes/formulario_edicion';
 
 interface BusquedaReportesProps {
   /** Datos iniciales desde una fuente externa (API) */
   datosIniciales?: ReporteResumen[];
   /** Si es true, oculta el título "Búsqueda de Reportes" (modo embebido) */
   modoEmbebido?: boolean;
-  /** Callback cuando se guarda un reporte editado */
-  onGuardar?: (datos: EntidadEditable) => Promise<boolean>;
 }
 
 // ─── Componente principal ────────────────────────────────────────────────────
 const BusquedaReportes: React.FC<BusquedaReportesProps> = ({
   datosIniciales,
   modoEmbebido = false,
-  onGuardar,
 }) => {
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
   const [filtrosVisibles, setFiltrosVisibles] = useState(false);
@@ -36,12 +29,6 @@ const BusquedaReportes: React.FC<BusquedaReportesProps> = ({
   const [busquedaRealizada, setBusquedaRealizada] = useState(false);
   const [paginaActual, setPaginaActual] = useState(1);
   const [itemsPorPagina, setItemsPorPagina] = useState(10);
-
-  const { opciones: opcionesFormulario } = useOpcionesFormulario();
-  const configuracionEdicion = useMemo(
-    () => crearConfigReporteEdicion(opcionesFormulario),
-    [opcionesFormulario]
-  );
 
   // Si se proveen datos iniciales, usarlos como fuente
   const fuenteDatos = useMemo(() => datosIniciales || [], [datosIniciales]);
@@ -133,60 +120,6 @@ const BusquedaReportes: React.FC<BusquedaReportesProps> = ({
     setFiltros({ ...FILTROS_INICIALES });
   };
 
-  // ─── Estado para el modal de edición ────────────────────────────────
-  const [reporteEditar, setReporteEditar] = useState<EntidadEditable | null>(null);
-
-  const aIdTexto = (valor: number | null | undefined): string =>
-    valor === null || valor === undefined ? '' : String(valor);
-
-  const handleEditarReporte = (reporte: ReporteResumen) => {
-    // Los IDs de la API son números; las opciones del formulario usan strings
-    setReporteEditar({
-      id: reporte.id,
-      numeroReporte: reporte.numeroReporte,
-      cliente: reporte.cliente,
-      clienteId: aIdTexto(reporte.clienteId),
-      equipo: reporte.equipo,
-      fechaReporte: reporte.fechaReporte,
-      fechaAtencion: reporte.fechaAtencion,
-      horaInicio: reporte.horaInicio,
-      horaFinalizacion: reporte.horaFinalizacion,
-      descripcionFalla: reporte.descripcionFalla,
-      trabajoRealizado: reporte.trabajoRealizado,
-      etiquetaId: aIdTexto(reporte.etiquetaId),
-      tecnicoId: aIdTexto(reporte.tecnicoId),
-      estadoId: aIdTexto(reporte.estadoId),
-      repuestoId: aIdTexto(reporte.repuestoId),
-      repuestos: (reporte.repuestos || []).map((r) => ({
-        id: r.id,
-        cantidad: Number(r.cantidad) || 1,
-      })),
-      plantilla: reporte.plantilla,
-      posibleCausa: reporte.posibleCausa || '',
-      anotaciones: reporte.anotaciones || '',
-      reportadoPor: reporte.reportadoPor || '',
-    });
-  };
-
-  const handleGuardarEdicion = async (datos: EntidadEditable): Promise<boolean> => {
-    if (onGuardar) {
-      return await onGuardar(datos);
-    }
-    // Modo independiente: actualizar localmente
-    setResultadosCompletos((prev) =>
-      prev.map((r) =>
-        r.id === datos.id
-          ? ({ ...r, ...datos } as ReporteResumen)
-          : r
-      )
-    );
-    return true;
-  };
-
-  const handleCerrarEdicion = () => {
-    setReporteEditar(null);
-  };
-
   const handleCambiarPagina = (pagina: number) => {
     setPaginaActual(pagina);
   };
@@ -255,26 +188,12 @@ const BusquedaReportes: React.FC<BusquedaReportesProps> = ({
         resultados={resultadosPagina}
         resultadosTotal={resultadosCompletos.length}
         busquedaRealizada={busquedaRealizada}
-        onEditarReporte={handleEditarReporte}
         paginaActual={paginaActual}
         totalPaginas={totalPaginas}
         itemsPorPagina={itemsPorPagina}
         onCambiarPagina={handleCambiarPagina}
         onCambiarItemsPorPagina={handleCambiarItemsPorPagina}
       />
-
-      {/* Modal de edición de reporte */}
-      {reporteEditar && (
-        <FormularioEdicion
-          titulo="Reporte"
-          entidad={reporteEditar}
-          configuracion={configuracionEdicion}
-          onGuardar={handleGuardarEdicion}
-          onCancelar={handleCerrarEdicion}
-          modo="editar"
-          modal={true}
-        />
-      )}
     </div>
   );
 };

@@ -87,15 +87,15 @@ function obtenerValoresPlantilla(
 function obtenerEtiquetaPrefill(
   nombrePlantilla: string,
   plantillasData: PlantillaData[]
-): string[] {
-  if (!nombrePlantilla || plantillasData.length === 0) return [];
+): string[] | null {
+  if (!nombrePlantilla || plantillasData.length === 0) return null;
   const plantilla = plantillasData.find(
     (p) => String(p.id) === nombrePlantilla || p.nombre.toLowerCase() === nombrePlantilla.toLowerCase()
   );
   if (plantilla?.etiqueta?.id) {
     return [String(plantilla.etiqueta.id)];
   }
-  return [];
+  return null;
 }
 
 interface UseFormReporteOptions {
@@ -145,7 +145,7 @@ export const useFormReporte = (options?: UseFormReporteOptions) => {
           ...prev,
           plantilla: value,
           ...(valoresPlantilla || {}),
-          etiquetas: etiquetasPrefill,
+          ...(etiquetasPrefill ? { etiquetas: etiquetasPrefill } : {}),
         };
       }
 

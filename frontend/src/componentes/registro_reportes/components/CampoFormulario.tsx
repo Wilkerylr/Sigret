@@ -38,6 +38,7 @@ const CampoFormulario: React.FC<CampoFormularioProps> = ({
             required={required}
             className="campo-input"
           >
+            <option value="">{placeholder || 'Seleccione...'}</option>
             {opciones.map((opcion) => (
               <option key={opcion.value} value={opcion.value}>
                 {opcion.label}

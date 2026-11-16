@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuthContext } from "@/context/AuthContext";
 import type { UserRole, Permission } from "@/types";
 import type { ReactNode } from "react";
@@ -20,10 +20,28 @@ export function ProtectedRoute({
   requireAllPermissions = true,
   children,
 }: ProtectedRouteProps) {
-  const { user, hasAccess, hasPermission, hasAnyPermission } = useAuthContext();
+  const {
+    user,
+    hasAccess,
+    hasPermission,
+    hasAnyPermission,
+    primerLogin,
+  } = useAuthContext();
+  const location = useLocation();
+  const enPrimerLogin = location.pathname === "/primer-login";
 
   if (!user) {
     return <Navigate to="/" replace />;
+  }
+
+  // El formulario de primer login solo requiere estar autenticado.
+  if (enPrimerLogin) {
+    return <>{children}</>;
+  }
+
+  // Mientras el primer login esté pendiente, no se puede acceder al resto de la app.
+  if (primerLogin) {
+    return <Navigate to="/primer-login" replace />;
   }
 
   if (allowedRoles && allowedRoles.length > 0 && !hasAccess(allowedRoles)) {

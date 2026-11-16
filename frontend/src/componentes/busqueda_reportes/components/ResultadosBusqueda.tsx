@@ -6,14 +6,14 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { ReporteResumen } from '../types';
-import DetalleReporte from './DetalleReporte';
+import VistaAmpliadaReporte from './VistaAmpliadaReporte';
+import DetalleResumen from './DetalleResumen';
 import Paginacion from './Paginacion';
 
 interface ResultadosBusquedaProps {
   resultados: ReporteResumen[];
   resultadosTotal: number;
   busquedaRealizada: boolean;
-  onEditarReporte: (reporte: ReporteResumen) => void;
   paginaActual: number;
   totalPaginas: number;
   itemsPorPagina: number;
@@ -25,7 +25,6 @@ const ResultadosBusqueda: React.FC<ResultadosBusquedaProps> = ({
   resultados,
   resultadosTotal,
   busquedaRealizada,
-  onEditarReporte,
   paginaActual,
   totalPaginas,
   itemsPorPagina,
@@ -33,9 +32,17 @@ const ResultadosBusqueda: React.FC<ResultadosBusquedaProps> = ({
   onCambiarItemsPorPagina,
 }) => {
   const [expandidoId, setExpandidoId] = useState<string | null>(null);
+  const [ampliadoId, setAmpliadoId] = useState<string | null>(null);
 
   const toggleExpandir = (id: string) => {
-    setExpandidoId((prev) => (prev === id ? null : id));
+    const seCierra = expandidoId === id;
+    setExpandidoId(seCierra ? null : id);
+    if (seCierra) setAmpliadoId(null);
+  };
+
+  const verAmpliado = (id: string) => {
+    setAmpliadoId(id);
+    setExpandidoId(null);
   };
 
   if (!busquedaRealizada) {
@@ -79,19 +86,39 @@ const ResultadosBusqueda: React.FC<ResultadosBusquedaProps> = ({
                 <span>👤 {reporte.tecnicos.join(', ') || 'Sin técnicos'}</span>
               </div>
             </div>
-            <button
-              type="button"
-              className={`busqueda-btn-expandir ${expandidoId === reporte.id ? 'abierto' : ''}`}
-              aria-label={expandidoId === reporte.id ? 'Cerrar detalle' : 'Ver detalle'}
-            >
-              <ChevronDown size={18} />
-            </button>
+            <div className="busqueda-resultado-acciones">
+              <button
+                type="button"
+                className={`busqueda-btn-ver-ampliado ${ampliadoId === reporte.id ? 'activo' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  verAmpliado(reporte.id);
+                }}
+              >
+                Vista Ampliada
+              </button>
+              <button
+                type="button"
+                className={`busqueda-btn-expandir ${expandidoId === reporte.id ? 'abierto' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleExpandir(reporte.id);
+                }}
+                aria-label={expandidoId === reporte.id ? 'Cerrar detalle' : 'Ver detalle'}
+              >
+                <ChevronDown size={18} />
+              </button>
+            </div>
           </div>
 
           {expandidoId === reporte.id && (
-            <DetalleReporte
+            <DetalleResumen reporte={reporte} />
+          )}
+
+          {ampliadoId === reporte.id && (
+            <VistaAmpliadaReporte
               reporte={reporte}
-              onEditar={onEditarReporte}
+              onCerrar={() => setAmpliadoId(null)}
             />
           )}
         </div>

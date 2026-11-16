@@ -48,8 +48,26 @@ function requiereAdmin(req, res, next) {
   if (!req.usuario) {
     return res.status(401).json({ error: 'Autenticación requerida' });
   }
-  if (req.usuario.rol_id !== 1) {
+  // Coerción a número por si el JWT trae rol_id como string ("1" !== 1 es true),
+  // lo cual rechazaría incorrectamente a un administrador real.
+  const rolId = Number(req.usuario.rol_id);
+  if (!Number.isInteger(rolId) || rolId !== 1) {
     return res.status(403).json({ error: 'Se requieren permisos de administrador' });
+  }
+  next();
+}
+
+/**
+ * Middleware que permite gestionar clientes a administradores (rol = 1)
+ * y personal administrativo (rol = 3).
+ */
+function requiereAdminOAdministrativo(req, res, next) {
+  if (!req.usuario) {
+    return res.status(401).json({ error: 'Autenticación requerida' });
+  }
+  const rolId = Number(req.usuario.rol_id);
+  if (!Number.isInteger(rolId) || ![1, 3].includes(rolId)) {
+    return res.status(403).json({ error: 'Se requieren permisos de administrador o administrativo' });
   }
   next();
 }
@@ -107,4 +125,4 @@ function verificarPermiso(nombrePermiso) {
   };
 }
 
-module.exports = { verificarToken, requiereAdmin, verificarPermiso, permisosEfectivos, PERMISOS_POR_ROL };
+module.exports = { verificarToken, requiereAdmin, requiereAdminOAdministrativo, verificarPermiso, permisosEfectivos, PERMISOS_POR_ROL };

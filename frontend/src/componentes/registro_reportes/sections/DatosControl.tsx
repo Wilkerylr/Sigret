@@ -45,6 +45,7 @@ const DatosControl: React.FC<DatosControlProps> = ({
         onChange={onChange}
         type="select"
         opciones={opcionesPlantillas}
+        placeholder="Sin plantilla"
         required={false}
       />
 
